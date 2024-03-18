@@ -12,13 +12,10 @@ template<typename T>
 class Color {
 public:
     T rgb[3];
-    
     auto operator<=>(const Color<T> &c) const {
         return (color() <=> c.color());
     }
-    
     const size_t color() const { return rgb[0]+rgb[1]+rgb[2]; }
-    
     friend std::ostream &operator<<(std::ostream &out, const Color<T> &c) {
         out << c.hex() << ": " << std::setw(10) << static_cast<size_t>(c.rgb[0]) << "," << std::setw(10) << static_cast<size_t>(c.rgb[1]) << "," << std::setw(10) << static_cast<size_t>(c.rgb[2]) << " -> " << std::setw(10) << static_cast<size_t>(c.color());
         return out;
@@ -37,11 +34,11 @@ void pixelSort(const cv::Mat &frame, cv::Mat &output) {
         std::vector<Color<uint8_t>> line;
         for(int i = 0; i < frame.cols; ++i) {
             cv::Vec3b pixel = frame.at<cv::Vec3b>(z, i);
-            line.push_back({pixel[0], pixel[1], pixel[2]});
+            line.push_back({pixel[2], pixel[1], pixel[0]}); // bgr
         }
         std::sort(line.begin(), line.end());
         for(int i = 0; i < frame.cols; ++i) {
-            cv::Vec3b pix = cv::Vec3b(line[i].rgb[0], line[i].rgb[1], line[i].rgb[2]);
+            cv::Vec3b pix = cv::Vec3b(line[i].rgb[2], line[i].rgb[1], line[i].rgb[0]); // bgr
             output.at<cv::Vec3b>(z, i) = pix;
         }
     }
