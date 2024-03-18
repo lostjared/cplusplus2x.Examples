@@ -11,16 +11,19 @@ template<typename T>
 class Color {
 public:
     T rgb[3];
+    
     auto operator<=>(const Color<T> &c) const {
         return (color() <=> c.color());
     }
-    size_t color() const { return rgb[0]+rgb[1]+rgb[2]; }
-
+    
+    const size_t color() const { return rgb[0]+rgb[1]+rgb[2]; }
+    
     friend std::ostream &operator<<(std::ostream &out, const Color<T> &c) {
         out << c.hex() << ": " << std::setw(10) << static_cast<size_t>(c.rgb[0]) << "," << std::setw(10) << static_cast<size_t>(c.rgb[1]) << "," << std::setw(10) << static_cast<size_t>(c.rgb[2]) << " -> " << std::setw(10) << static_cast<size_t>(c.color());
         return out;
     }
-    std::string hex() const {
+    
+    const std::string hex() const {
         std::ostringstream stream;
         stream << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << static_cast<size_t>(rgb[0]) << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << static_cast<size_t>(rgb[1])<< std::hex << std::uppercase << std::setfill('0') << std::setw(2) << static_cast<size_t>(rgb[2]);
         return stream.str();
