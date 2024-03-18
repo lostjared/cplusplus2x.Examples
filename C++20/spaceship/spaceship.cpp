@@ -20,5 +20,10 @@ int main(int argc, char **argv) {
 	if(r < r2) {
 		std::cout << "less than..\n";
 	}
+	if(r != r2 && r >= r3) {
+		std::cout << "True!\n";
+	} else {
+		std::cout << "false..\n";
+	}
 	return 0;
 }
