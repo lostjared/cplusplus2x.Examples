@@ -6,13 +6,13 @@
 template<typename T>
 class Color {
 public:
-    T red,green,blue;
+    T rgb[3];
     auto operator<=>(const Color<T> &c) const {
         return (color() <=> c.color());
     }
-    size_t color() const { return red+green+blue; }
+    size_t color() const { return rgb[0]+rgb[1]+rgb[2]; }
     friend std::ostream &operator<<(std::ostream &out, const Color<T> &c) {
-        out << static_cast<size_t>(c.red) << "," << static_cast<size_t>(c.green) << "," << static_cast<size_t>(c.blue) << " -> " << static_cast<size_t>(c.color());
+        out << static_cast<size_t>(c.rgb[0]) << "," << static_cast<size_t>(c.rgb[1]) << "," << static_cast<size_t>(c.rgb[2]) << " -> " << static_cast<size_t>(c.color());
         return out;
     }
 };
