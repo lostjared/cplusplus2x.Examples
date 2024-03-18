@@ -10,7 +10,7 @@ public:
     }
     size_t color() const { return red+green+blue; }
     friend std::ostream &operator<<(std::ostream &out, const Color<T> &c) {
-        out << static_cast<int>(c.red) << "," << static_cast<int>(c.green) << "," << static_cast<int>(c.blue) << " -> " << static_cast<int>(c.color());
+        out << static_cast<size_t>(c.red) << "," << static_cast<size_t>(c.green) << "," << static_cast<size_t>(c.blue) << " -> " << static_cast<size_t>(c.color());
         return out;
     }
 };
