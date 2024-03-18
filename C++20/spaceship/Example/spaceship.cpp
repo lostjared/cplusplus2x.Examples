@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
     colors.push_back({250, 100, 25});
     
     std::sort(colors.begin(), colors.end(), [](const Color<unsigned char> &c1, const Color<unsigned char> &c2) {
-        return (c2.color() < c1.color());
+        return (c2 < c1);
     });
     
     std::cout << "Pixel Sorted:\n";
