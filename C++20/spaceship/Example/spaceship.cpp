@@ -2,6 +2,10 @@
 #include<vector>
 #include<algorithm>
 #include<cstdint>
+#include<string>
+#include<sstream>
+#include<iomanip>
+
 
 template<typename T>
 class Color {
@@ -12,35 +16,34 @@ public:
     }
     size_t color() const { return rgb[0]+rgb[1]+rgb[2]; }
     friend std::ostream &operator<<(std::ostream &out, const Color<T> &c) {
-        out << static_cast<size_t>(c.rgb[0]) << "," << static_cast<size_t>(c.rgb[1]) << "," << static_cast<size_t>(c.rgb[2]) << " -> " << static_cast<size_t>(c.color());
+        out << c.hex() << ": " << std::setw(10) << static_cast<size_t>(c.rgb[0]) << "," << std::setw(10) << static_cast<size_t>(c.rgb[1]) << "," << std::setw(10) << static_cast<size_t>(c.rgb[2]) << " -> " << std::setw(10) << static_cast<size_t>(c.color());
         return out;
+    }
+    std::string hex() const {
+        std::ostringstream stream;
+        stream << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << static_cast<size_t>(rgb[0]) << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << static_cast<size_t>(rgb[1])<< std::hex << std::uppercase << std::setfill('0') << std::setw(2) << static_cast<size_t>(rgb[2]);
+        return stream.str();
     }
 };
 
 
 int main(int argc, char **argv) {
     std::vector<Color<uint8_t>> colors {{255,255,255}, {150, 50, 50}, {250, 100, 25}};
-
     std::cout << "8 bit: ->\n";
-    
     std::sort(colors.begin(), colors.end(), [](const Color<uint8_t> &c1, const Color<uint8_t> &c2) {
         return (c2 < c1);
     });
     std::cout << "Pixel Sorted:\n";
+    std::cout << std::setw(7) << "Hex" << std::setw(11) << "R" << std::setw(11) << "G" << std::setw(11) << "B" << "  " << std::setw(13) << "Total\n";
+  
     for(const auto &i : colors) {
         std::cout << i << "\n";
     }
-    
-    std::cout << "16 bit (reverse order) ->\n";
-    std::vector<Color<uint16_t>> color_sixteen { {1024, 500, 25 }, {2048, 128,55}, {1000,2000,32}};
-    std::sort(color_sixteen.begin(), color_sixteen.end());
-    
-    for(const auto &j : color_sixteen) {
-        std::cout << j << "\n";
+    std::sort(colors.begin(), colors.end());
+    std::cout << "Pixel Sorted (Reverse):\n";
+    for(const auto &i : colors) {
+        std::cout << i << "\n";
     }
-    
-    
-    
     return 0;
 }
 
