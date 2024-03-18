@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
         std::cerr << argv[0] << " input.png output.png\n";
         return 0;
     }
-    cv::Mat image = cv::imread(argv[1]);
+    cv::Mat image{cv::imread(argv[1])};
     if(image.empty()) {
         std::cerr << "Could not load image..\n";
     }
