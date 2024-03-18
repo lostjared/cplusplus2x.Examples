@@ -33,12 +33,12 @@ void pixelSort(const cv::Mat &frame, cv::Mat &output) {
     for(int z = 0; z < frame.rows; ++z) {
         std::vector<Color<uint8_t>> line;
         for(int i = 0; i < frame.cols; ++i) {
-            cv::Vec3b pixel = frame.at<cv::Vec3b>(z, i);
+            cv::Vec3b pixel {frame.at<cv::Vec3b>(z, i)};
             line.push_back({pixel[2], pixel[1], pixel[0]}); // bgr -> rgb
         }
         std::sort(line.begin(), line.end());
         for(int i = 0; i < frame.cols; ++i) {
-            cv::Vec3b pix = cv::Vec3b(line[i].rgb[2], line[i].rgb[1], line[i].rgb[0]); // rgb -> bgr
+            cv::Vec3b pix {cv::Vec3b(line[i].rgb[2], line[i].rgb[1], line[i].rgb[0])}; // rgb -> bgr
             output.at<cv::Vec3b>(z, i) = pix;
         }
     }
