@@ -61,10 +61,11 @@ int main(int argc, char **argv) {
     cv::Mat image{cv::imread(argv[1])};
     if(image.empty()) {
         std::cerr << "Could not load image..\n";
+        return 0;
     }
     cv::Mat output;
     pixelSort(image, output, dir);
     cv::imwrite(argv[2], output);
-    std::cerr << "wrote: " << argv[2] << "\n";
+    std::cout << "wrote: " << argv[2] << "\n";
     return 0;
 }
