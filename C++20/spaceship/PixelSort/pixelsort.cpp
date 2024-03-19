@@ -28,10 +28,11 @@ public:
     }
 };
 
+template<typename T>
 void pixelSort(const cv::Mat &frame, cv::Mat &output, bool direction) {
     output = frame.clone();
     for(int z = 0; z < frame.rows; ++z) {
-        std::vector<Color<uint8_t>> line;
+        std::vector<Color<T>> line;
         for(int i = 0; i < frame.cols; ++i) {
             cv::Vec3b pixel {frame.at<cv::Vec3b>(z, i)};
             line.push_back({pixel[2], pixel[1], pixel[0]}); // bgr -> rgb
@@ -64,7 +65,7 @@ int main(int argc, char **argv) {
         return 0;
     }
     cv::Mat output;
-    pixelSort(image, output, dir);
+    pixelSort<uint8_t>(image, output, dir);
     cv::imwrite(argv[2], output);
     std::cout << "wrote: " << argv[2] << "\n";
     return 0;
