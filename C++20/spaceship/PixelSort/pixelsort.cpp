@@ -17,7 +17,7 @@ public:
     }
     const size_t color() const { return rgb[0]+rgb[1]+rgb[2]; }
     friend std::ostream &operator<<(std::ostream &out, const Color<T> &c) {
-        out << c.hex() << ": " << std::setw(10) << static_cast<size_t>(c.rgb[0]) << "," << std::setw(10) << static_cast<size_t>(c.rgb[1]) << "," << std::setw(10) << static_cast<size_t>(c.rgb[2]) << " -> " << std::setw(10) << static_cast<size_t>(c.color());
+        out << c.hex() << ": " << std::setw(10) << static_cast<size_t>(c.rgb[0]) << "," << std::setw(10) << static_cast<size_t>(c.rgb[1]) << "," << std::setw(10) << static_cast<size_t>(c.rgb[2]) << " -> " << std::setw(10) << c.color();
         return out;
     }
     
