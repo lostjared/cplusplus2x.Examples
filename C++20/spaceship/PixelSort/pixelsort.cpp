@@ -37,7 +37,7 @@ void pixelSort(const cv::Mat &frame, cv::Mat &output, bool direction) {
             cv::Vec3b pixel {frame.at<cv::Vec3b>(z, i)};
             line.push_back({pixel[2], pixel[1], pixel[0]}); // bgr -> rgb
         }
-        std::sort(line.begin(), line.end(), [=](const Color<uint8_t> &c1, const Color<uint8_t> &c2) {
+        std::sort(line.begin(), line.end(), [=](const Color<T> &c1, const Color<T> &c2) {
             if(direction == true)
                 return (c2 < c1);
             return (c1 < c2);
