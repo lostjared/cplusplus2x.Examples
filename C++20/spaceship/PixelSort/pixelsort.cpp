@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     if(argv[3] == std::string("1"))
         dir = true;
     
-    cv::Mat image{cv::imread(argv[1])};
+    const cv::Mat image{cv::imread(argv[1])};
     if(image.empty()) {
         std::cerr << "Could not load image..\n";
         return 0;
