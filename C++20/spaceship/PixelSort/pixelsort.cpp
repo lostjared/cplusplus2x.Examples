@@ -28,13 +28,20 @@ public:
     }
 };
 
-template<typename T>
-void pixelSort(const cv::Mat &frame, cv::Mat &output, bool direction) {
+template<typename T, typename V>
+bool pixelSort(const cv::Mat &frame, cv::Mat &output, bool direction) {
+    
+    if(frame.empty())
+        return false;
+    
+    if(frame.channels() < 3)
+        return false;
+    
     output = frame.clone();
     for(int z = 0; z < frame.rows; ++z) {
         std::vector<Color<T>> line;
         for(int i = 0; i < frame.cols; ++i) {
-            cv::Vec3b pixel {frame.at<cv::Vec3b>(z, i)};
+            V pixel {frame.at<V>(z, i)};
             line.push_back({pixel[2], pixel[1], pixel[0]}); // bgr -> rgb
         }
         std::sort(line.begin(), line.end(), [=](const Color<T> &c1, const Color<T> &c2) {
@@ -43,10 +50,11 @@ void pixelSort(const cv::Mat &frame, cv::Mat &output, bool direction) {
             return (c1 < c2);
         });
         for(int i = 0; i < frame.cols; ++i) {
-            cv::Vec3b pix {cv::Vec3b(line[i].rgb[2], line[i].rgb[1], line[i].rgb[0])}; // rgb -> bgr
-            output.at<cv::Vec3b>(z, i) = pix;
+            V pix {V(line[i].rgb[2], line[i].rgb[1], line[i].rgb[0])}; // rgb -> bgr
+            output.at<V>(z, i) = pix;
         }
     }
+    return true;
 }
 
 int main(int argc, char **argv) {
@@ -65,8 +73,11 @@ int main(int argc, char **argv) {
         return 0;
     }
     cv::Mat output;
-    pixelSort<uint8_t>(image, output, dir);
-    cv::imwrite(argv[2], output);
-    std::cout << "wrote: " << argv[2] << "\n";
+    if(pixelSort<uint8_t, cv::Vec3b>(image, output, dir)) {
+        cv::imwrite(argv[2], output);
+        std::cout << "wrote: " << argv[2] << "\n";
+    } else {
+        std::cerr << "Error occurred..\n";
+    }
     return 0;
 }
