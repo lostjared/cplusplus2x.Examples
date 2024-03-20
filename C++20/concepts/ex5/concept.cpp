@@ -20,14 +20,14 @@ auto push_sub(C &cont, T1 type1, T2 type2) {
 }
 
 template<typename C, Numeric T>
-void add_int(C &cont, const T &type) {
+void add_num(C &cont, const T &type) {
     cont.push_back(type);
 }
 
 template<typename C, Numeric T, Numeric... Args>
-void add_int(C &cont,const T &type, Args... args) {
+void add_num(C &cont,const T &type, Args... args) {
     cont.push_back(type);
-    add_int(cont, args...);
+    add_num(cont, args...);
 }
 
 int main() {
@@ -43,8 +43,8 @@ int main() {
     auto rt_v = push_add(v2, 0.5, 1);
     std::cout << "add on v2<double> return type: " << rt_v << "\n";
     
-    add_int(v, 1, 2, 3, 4, 5);
-    //add_int(v, "test"); // ERR doesn't accept char
+    add_num(v, 1, 2, 3, 4, 5);
+    //add_num(v, "test"); // ERR doesn't accept char
     
     for(auto &i : v) {
         std::cout << "index: " << i << "\n";
