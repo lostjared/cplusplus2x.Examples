@@ -30,7 +30,7 @@ private:
 };
 
 int main() {
-    Obj object;
+    Obj object{255};
     echo(object);
     echo(10);
     echo(25.0f);
