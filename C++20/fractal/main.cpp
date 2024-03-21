@@ -2,8 +2,6 @@
 #include<string>
 #include"argz.hpp"
 #include"cv_fractal.hpp"
-
-#include"cv_fractal.hpp"
 #include<string>
 
 
