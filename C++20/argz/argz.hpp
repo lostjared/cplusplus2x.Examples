@@ -86,11 +86,18 @@ public:
         arg_data.argc = argc;
         for(int i = 1; i < argc; ++i) {
             const char *a = argv[i];
-            String data;
-            for(int z = 0; a[z] != 0; ++z) {
-                data += static_cast<typename String::value_type>(a[z]);
+            if constexpr(std::is_same<typename String::value_type, char>::value) {
+                arg_data.args.push_back(a);
+                continue;
             }
-            arg_data.args.push_back(data);
+            if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
+                String data;
+                for(int z = 0; a[z] != 0; ++z) {
+                    data += static_cast<typename String::value_type>(a[z]);
+                }
+                arg_data.args.push_back(data);
+                continue;
+            }
         }
         reset();
     }
