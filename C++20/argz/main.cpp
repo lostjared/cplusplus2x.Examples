@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
                     std::cout << "No arg: " << arg.arg_value << "\n";
                     break;
                 case 'v':
-                    args.help();
+                    args.help(std::cout);
                     break;
 
             }

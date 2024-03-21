@@ -216,17 +216,26 @@ public:
         return -1;
     }
     
-    void help() {
+    template<typename T>
+    void help(T &cout) {
         std::vector<Argument<String>> v;
         for(const auto &i : arg_info) {
             v.push_back(i.second);
         }
         std::sort(v.begin(), v.end());
         for(auto a = v.begin(); a != v.end(); ++a) {
-            if(a->arg_type == ArgType::ARG_SINGLE || a->arg_type == ArgType::ARG_SINGLE_VALUE)
-                std::cout << "-" << static_cast<char>(a->arg_letter) << "\t" << a->desc << "\n";
-            else
-                std::cout << "--" << a->arg_name << "\t\t" << a->desc << "\n";
+            if(a->arg_type == ArgType::ARG_SINGLE || a->arg_type == ArgType::ARG_SINGLE_VALUE) {
+                std::cout << "-" << static_cast<char>(a->arg_letter) << "\t";
+                cout << a->desc;
+                std::cout << "\n";
+            }
+            else {
+                std::cout << "--";
+                cout <<a->arg_name;
+                std::cout << "\t\t";
+                cout << a->desc;
+                std::cout << "\n";
+            }
         }
     }
 protected:
