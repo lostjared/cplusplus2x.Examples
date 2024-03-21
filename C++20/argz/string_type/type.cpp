@@ -56,7 +56,8 @@ private:
 int main(int argc, char **argv) {
     std::locale::global(std::locale(""));
     Argz<StringWrapper> argz(argc, argv);
-    argz.addOptionSingle('h', "Help meessage \u2665 ");
-    argz.help(std::cout);
+    argz.addOptionSingle('h', StringWrapper{L"Help message \u2665"});
+    argz.help(std::wcout);
     return 0;
 }
+
