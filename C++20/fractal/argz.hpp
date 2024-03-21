@@ -7,6 +7,10 @@
 #include<vector>
 #include<unordered_map>
 
+// incase you want to use your own string type
+// must include a length() function that returns size_type
+// must include a overloaded [] operator
+// must include a overoaded += operator
 template<typename T>
 concept StringType = std::is_class_v<T> && requires(T type) {
     { type.length() } -> std::same_as<typename T::size_type>;

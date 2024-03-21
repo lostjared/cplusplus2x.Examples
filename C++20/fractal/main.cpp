@@ -21,7 +21,6 @@ std::pair<double, double> splitPair(std::string_view src, std::string_view sep) 
 }
 
 
-
 int main(int argc, char **argv) {
    
     try {
