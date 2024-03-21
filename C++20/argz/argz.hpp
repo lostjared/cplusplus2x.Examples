@@ -6,6 +6,7 @@
 #include<type_traits>
 #include<vector>
 #include<unordered_map>
+#include<algorithm>
 
 template<typename T>
 concept StringType = std::is_class_v<T> && requires(T type) {
