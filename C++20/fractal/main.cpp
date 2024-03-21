@@ -28,13 +28,18 @@ int main(int argc, char **argv) {
    
     try {
         Argz<std::string> argz{argc, argv};
-        argz.addOptionSingleValue('s', "image size");
-        argz.addOptionSingleValue('r', "real/imag values");
+        argz.addOptionSingleValue('s', "image size WidthxHeight");
+        argz.addOptionSingleValue('r', "real,imag values");
         argz.addOptionSingleValue('z', "zoom");
         argz.addOptionSingleValue('i', "iteration info");
         argz.addOptionSingleValue('c', "number of cores");
         argz.addOptionSingleValue('o', "output");
         argz.addOptionSingle('h', "help message");
+        
+        if(argc == 1) {
+            argz.help();
+            return 0;
+        }
         
         int value = 0;
         Argument<std::string> arg;
@@ -73,6 +78,7 @@ int main(int argc, char **argv) {
 
         if(img_size.length() == 0 || real_size.length() == 0 || zoom_info.length() == 0 || iter_info.length() == 0 || core_info.length() == 0 || fname.length() == 0) {
             std::cerr << "Error missing argument..\n";
+            argz.help();
             return 0;
         }
         
