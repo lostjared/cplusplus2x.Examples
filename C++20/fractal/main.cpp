@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
         argz.addOptionSingle('h', "help message");
         
         if(argc == 1) {
-            argz.help();
+            argz.help(std::cout);
             return 0;
         }
         
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
         while((value = argz.proc(arg)) != -1) {
             switch(value) {
                 case 'h':
-                    argz.help();
+                    argz.help(std::cout);
                     break;
                 case 's':
                     img_size = arg.arg_value;
@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
 
         if(img_size.length() == 0 || real_size.length() == 0 || zoom_info.length() == 0 || iter_info.length() == 0 || core_info.length() == 0 || fname.length() == 0) {
             std::cerr << "Error missing argument..\n";
-            argz.help();
+            argz.help(std::cout);
             return 0;
         }
         

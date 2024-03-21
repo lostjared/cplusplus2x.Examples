@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
         while((value = argz.proc(arg)) != -1) {
             switch(value) {
                 case 'h':
-                    argz.help();
+                    argz.help(std::cout);
                     break;
                 case 'i':
                     std::cout << "got input: " << arg.arg_value << "\n";
