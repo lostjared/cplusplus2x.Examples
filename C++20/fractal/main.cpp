@@ -51,6 +51,7 @@ int main(int argc, char **argv) {
             switch(value) {
                 case 'h':
                     argz.help(std::cout);
+                    return 0;
                     break;
                 case 's':
                     img_size = arg.arg_value;
@@ -96,6 +97,7 @@ int main(int argc, char **argv) {
         cv::imwrite(fname, m);
     } catch(const ArgException<std::string> &e) {
         std::cerr << "Syntax Error: " << e.text() << "\n";
+        exit(0);
     } catch(const splitException &e) {
         std::cerr << "Exception has occoured...\n";
     } catch (...) {
