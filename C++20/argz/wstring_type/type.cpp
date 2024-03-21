@@ -9,7 +9,8 @@ int main(int argc, char **argv) {
     std::wcout.imbue(std::locale());
     Argz<std::wstring> argz(argc, argv);
     argz.addOptionSingle('h', L"Help message \u2665");
-    argz.addOptionSingle('v', L"Version Info");
+    argz.addOptionSingle('v', L"Version Info \u263A");
+    argz.addOptionDouble('j', L"jared", L"j\u00C6red");
     
     if(argc == 1) {
         argz.help(std::wcout);
@@ -25,7 +26,10 @@ int main(int argc, char **argv) {
                 argz.help(std::wcout);
                 break;
             case 'v':
-                std::wcout << L"version 0.1.0\n";
+                std::wcout << L" \u263A version 0.1.0\n";
+                break;
+            case 'j':
+                std::wcout << arg.arg_name << L" -> " << arg.desc << L" Bruni\n";
                 break;
         }
     }

@@ -170,11 +170,14 @@ public:
                     if(pos != arg_info.end()) {
                         if(pos->second.arg_type == ArgType::ARG_DOUBLE) {
                             a = pos->second;
+                            a.arg_name = name;
                             index++;
                             return code;
                         } else {
                             a = pos->second;
+                            a.arg_name = name;
                             if(++index < arg_data.args.size() && arg_data.args[index][0] != '-') {
+                                a.arg_value = name;
                                 a.arg_value = arg_data.args[index];
                                 index++;
                                 return code;
@@ -216,12 +219,16 @@ public:
                     cindex = 1;
                     index++;
                 }
+                
+                String name_val{};
+                name_val += static_cast<typename String::value_type>(c);
+                
                 if(pos != arg_info.end()) {
                     if(pos->second.arg_type == ArgType::ARG_SINGLE) {
                         a = pos->second;
+                        a.arg_name = name_val;
                         return c;
                     } else if(pos->second.arg_type == ArgType::ARG_SINGLE_VALUE) {
-                        
                         if(index < arg_data.args.size()) {
                             const String &s {arg_data.args[index]};
                             if(s.length() > 1 && s[0] == '-' && !( s[1] >= '0' && s[1] <= '9')) {
@@ -244,7 +251,8 @@ public:
                             }
                             
                             a = pos->second;
-                            a.arg_value = s;
+                            a.arg_name = s;
+                            a.arg_value = name_val;
                             index++;
                             return c;
                         }
@@ -267,6 +275,7 @@ public:
                 }
             } else {
                 a = Argument<String>();
+                a.arg_name = String{};
                 a.arg_type = ArgType::ARG_NONE;
                 a.arg_name = a.arg_value = arg_data.args.at(index);
                 index++;
