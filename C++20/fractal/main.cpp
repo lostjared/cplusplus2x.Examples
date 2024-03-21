@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
             return 0;
         }
         
-        int value = 0;
+        int value {};
         Argument<std::string> arg;
         std::string img_size;
         std::string real_size;

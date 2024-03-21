@@ -9,6 +9,8 @@
 #include<vector>
 #include<unordered_map>
 #include<algorithm>
+#include<iomanip>
+
 
 template<typename T>
 concept StringType = std::is_class_v<T> && requires(T type) {
@@ -290,36 +292,58 @@ public:
         using char_type = typename std::decay<decltype(*std::declval<T>().rdbuf())>::type::char_type;
         std::vector<Argument<String>> v;
         for(const auto &i : arg_info) {
+            if(i.second.arg_type == ArgType::ARG_SINGLE || i.second.arg_type == ArgType::ARG_SINGLE_VALUE)
             v.push_back(i.second);
         }
+        std::vector<Argument<String>> v2;
+        for(const auto &i : arg_info) {
+            if(i.second.arg_type == ArgType::ARG_DOUBLE || i.second.arg_type == ArgType::ARG_DOUBLE_VALUE)
+            v2.push_back(i.second);
+        }
         std::sort(v.begin(), v.end());
-        for(auto a = v.begin(); a != v.end(); ++a) {
+        std::sort(v2.begin(), v2.end());
+        
+        std::vector<Argument<String>> farg;
+        for(const auto &i : v) {
+            farg.push_back(i);
+        }
+        for(const auto &i : v2) {
+            farg.push_back(i);
+        }
+        for(auto a = farg.begin(); a != farg.end(); ++a) {
             if(a->arg_type == ArgType::ARG_SINGLE || a->arg_type == ArgType::ARG_SINGLE_VALUE) {
                 if constexpr (std::is_same<char_type, char>::value) {
-                    cout << "-" << static_cast<char_type>(a->arg_letter) << "\t";
-                    cout << a->desc;
+                    
+                    String item;
+                    item += static_cast<char_type>(a->arg_letter);
+                    
+                    cout << "-" <<  std::setfill(' ') << std::setw(9) << std::left << item << "\t";
+                    cout << std::setfill(' ') << std::left << std::setw(10) << a->desc;
                     cout << '\n';
                 }
                 else if constexpr (std::is_same<char_type, wchar_t>::value) {
-                    cout << L"-" << static_cast<char_type>(a->arg_letter) << L"\t";
-                    cout << a->desc;
+                    String item;
+                    item += static_cast<char_type>(a->arg_letter);
+                    
+                    cout << L"-" << std::setfill(L' ') << std::setw(9) << std::left << item << L"\t";
+                    cout << std::setfill(L' ') << std::setw(10) << a->desc;
                     cout << L'\n';
                 }
             }
             else {
                 if constexpr (std::is_same<char_type, char>::value) {
                     cout << "--";
-                    cout << a->arg_name;
-                    cout << "\t\t";
-                    cout << a->desc;
+                    cout << std::setfill(' ') << std::left << std::setw(10) << a->arg_name;
+                    cout << "\t";
+                    cout << std::setw(10) << a->desc;
                     cout << '\n';
                     
                 }
                 else if constexpr (std::is_same<char_type, wchar_t>::value) {
                     cout << L"--";
-                    cout << a->arg_name;
-                    cout << L"\t\t";
-                    cout << a->desc;
+                    cout << std::setfill(L' ') << std::left << std::setw(10) << a->arg_name;
+                    cout << L"\t";
+                    cout << std::setw(10) << std::left << a->desc;
                     cout << L'\n';
                 }
             }

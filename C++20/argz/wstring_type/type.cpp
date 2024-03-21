@@ -11,12 +11,10 @@ int main(int argc, char **argv) {
     argz.addOptionSingle('h', L"Help message \u2665");
     argz.addOptionSingle('v', L"Version Info \u263A");
     argz.addOptionDouble('j', L"jared", L"j\u00C6red");
-    
     if(argc == 1) {
         argz.help(std::wcout);
         return 0;
     }
-    
     int value{};
     Argument<std::wstring> arg;
     try {
