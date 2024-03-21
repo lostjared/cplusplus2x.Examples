@@ -9,13 +9,7 @@ public:
     using value_type = wchar_t;
     using size_type = std::wstring::size_type;
     StringWrapper() = default;
-    StringWrapper(const char *src) {
-        std::wstring s;
-        for(int i = 0; i < strlen(src); ++i) {
-            s += static_cast<wchar_t>(src[i]);
-        }
-        this->src = s;
-    }
+
     StringWrapper(const wchar_t *src) {
         this->src = src;
     }
@@ -47,7 +41,6 @@ public:
         out << w.src;
         return out;
     }
-    
 private:
     std::wstring src;
 };

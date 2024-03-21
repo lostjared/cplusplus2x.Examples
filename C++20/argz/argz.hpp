@@ -47,7 +47,7 @@ struct Argument {
 
 template<StringType String>
 struct ArgumentData {
-    std::vector<String> args;
+    std::vector<const char *> args;
     int argc;
     ArgumentData() = default;
     ArgumentData(const ArgumentData<String> &a) : args{a.args}, argc{a.argc} {}
