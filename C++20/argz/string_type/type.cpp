@@ -6,6 +6,7 @@
 
 int main(int argc, char **argv) {
     std::locale::global(std::locale(""));
+    std::wcout.imbue(std::locale());
     Argz<std::wstring> argz(argc, argv);
     argz.addOptionSingle('h', L"Help message \u2665");
     argz.help(std::wcout);
