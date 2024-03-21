@@ -65,7 +65,7 @@ struct ArgumentData {
 template<StringType String>
 class ArgException {
 public:
-    ArgException() = default; 
+    ArgException() = default;
     ArgException(const String &s) : value{s} {}
     String text() const { return value; }
 private:
@@ -84,20 +84,25 @@ public:
     
     void initArgs(int argc, char **argv) {
         arg_data.argc = argc;
-        for(int i = 1; i < argc; ++i) {
-            const char *a = argv[i];
-            if constexpr(std::is_same<typename String::value_type, char>::value) {
+        if constexpr(std::is_same<typename String::value_type, char>::value) {
+            for(int i = 1; i < argc; ++i) {
+                const char *a = argv[i];
                 arg_data.args.push_back(a);
-                continue;
             }
-            if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
+            reset();
+            return;
+        }
+        if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
+            for(int i = 1; i < argc; ++i) {
+                const char *a = argv[i];
                 String data;
                 for(int z = 0; a[z] != 0; ++z) {
                     data += static_cast<typename String::value_type>(a[z]);
                 }
                 arg_data.args.push_back(data);
-                continue;
             }
+            reset();
+            return;
         }
         reset();
     }
@@ -154,7 +159,7 @@ public:
     int proc(Argument<String> &a) {
         if(index < arg_data.args.size()) { // START
             const String &type {arg_data.args[index]};
-            if(type.length() > 3 && type[0] == '-' && type[1] == '-') { 
+            if(type.length() > 3 && type[0] == '-' && type[1] == '-') {
                 String name{};
                 for(int z = 2; z < type.length(); ++z)
                     name += type[z];
@@ -178,7 +183,7 @@ public:
                                 }
                             }
                         }
-                    } 
+                    }
                 } else {
                     if constexpr (std::is_same<typename String::value_type, char>::value) {
                         String value = "Error argument: ";
@@ -191,7 +196,7 @@ public:
                         value += name;
                         value += L" switch not found";
                         throw ArgException<String>(value);
- 
+                        
                     }
                 }
             } else if(type.length() == 1 && type[0] == '-') {
@@ -209,7 +214,7 @@ public:
                 if(cindex >= type.length()) {
                     cindex = 1;
                     index++;
-                }  
+                }
                 if(pos != arg_info.end()) {
                     if(pos->second.arg_type == ArgType::ARG_SINGLE) {
                         a = pos->second;
@@ -222,7 +227,7 @@ public:
                                 if constexpr (std::is_same<typename String::value_type, char>::value) {
                                     throw ArgException<String>("Expected value");
                                 }
-                
+                                
                                 if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
                                     throw ArgException<String>(L"Expected value");
                                 }
@@ -265,7 +270,7 @@ public:
                 a.arg_name = a.arg_value = arg_data.args.at(index);
                 index++;
                 return '-';
-            } 
+            }
         }
         return -1;
     }
@@ -298,7 +303,7 @@ public:
                     cout << "\t\t";
                     cout << a->desc;
                     cout << '\n';
-
+                    
                 }
                 else if constexpr (std::is_same<char_type, wchar_t>::value) {
                     cout << L"--";
@@ -314,7 +319,7 @@ protected:
     ArgumentData<String> arg_data; // type const char *
     std::unordered_map<int,Argument<String>> arg_info;
 private:
-    int index = 0, cindex = 1;    
+    int index = 0, cindex = 1;
 };
 
 
