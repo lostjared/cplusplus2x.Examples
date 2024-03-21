@@ -3,7 +3,7 @@ LDFLAGS =
 CPP_FILES := $(wildcard *.cpp)
 OBJ_FILES := $(CPP_FILES:.cpp=.o)
 OUTPUT_NAME = argz-test1
-DEPS := $(wildcard *.hpp) 
+DEPS := $(wildcard *.hpp)  ../argz.hpp
 
 %.o: %.cpp $(DEPS) 
 	$(CXX) $(CXXFLAGS) -c $< -o $@

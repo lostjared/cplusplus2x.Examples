@@ -48,6 +48,15 @@ template<StringType String>
 struct ArgumentData {
     std::vector<String> args;
     int argc;
+    ArgumentData() = default;
+    ArgumentData(const ArgumentData<String> &a) : args{a.args}, argc{a.argc} {}
+    ArgumentData &operator=(const ArgumentData<String> &a) {
+        if(!args.empty()) {
+            args.erase(args.begin(), args.end());
+        }
+        std::copy(a.args.begin(), a.args.end(), std::back_inserter(args));
+        return *this;
+    }
 };
 
 template<StringType String>
@@ -63,11 +72,24 @@ private:
 template<StringType String>
 class Argz {
 public:
+    
+    Argz() = default;
+    Argz(int argc, char **argv) {
+        initArgs(argc, argv);
+    }
+    Argz(const Argz<String> &a) : arg_data{a.arg_data}, arg_info{a.arg_info} {}
+    
     void initArgs(int argc, char **argv) {
         arg_data.argc = argc;
         for(int i = 1; i < argc; ++i) {
             arg_data.args.push_back(argv[i]);
         }
+        reset();
+    }
+    
+    void reset() {
+        index = 0;
+        cindex = 1;
     }
     
     void addOptionSingle(const int &c, const String &description) {
@@ -136,10 +158,15 @@ public:
                                 index++;
                                 return code;
                             } else {
-                                throw ArgException{String("Expected Value")};
+                                throw ArgException<String>("Expected Value");
                             }
                         }
                     } 
+                } else {
+                    String value = "Error argument: ";
+                    value += name;
+                    value += " switch not found";
+                    throw ArgException<String>(value);
                 }
             } else if(type.length() > 1 && type[0] == '-') {
                 
@@ -159,7 +186,7 @@ public:
                         if(index < arg_data.args.size()) {
                             const String &s {arg_data.args[index]};
                             if(s.length() > 0 && s[0] == '-')
-                                throw ArgException{String("Expected value")};
+                                throw ArgException<String>("Expected value");
                             
                             a = pos->second;
                             a.arg_value = s;
@@ -167,6 +194,12 @@ public:
                             return c;
                         }
                     }
+                } else {
+                    String value;
+                    value = "Error argument ";
+                    value += static_cast<typename String::value_type>(c);
+                    value += " switch not found.";
+                    throw ArgException<String>(value);
                 }
             } else {
                 a = Argument<String>();
