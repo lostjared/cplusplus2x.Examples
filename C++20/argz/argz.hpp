@@ -19,6 +19,7 @@ enum class ArgType {
     ARG_SINGLE_VALUE,
     ARG_DOUBLE,
     ARG_DOUBLE_VALUE,
+    ARG_NONE
 };
 
 template<StringType String>
@@ -168,7 +169,11 @@ public:
                     }
                 }
             } else {
+                a = Argument<String>();
+                a.arg_type = ArgType::ARG_NONE;
+                a.arg_name = a.arg_value = arg_data.args.at(index);
                 index++;
+                return '-';
             } 
         }
         return -1;
