@@ -45,13 +45,12 @@ struct Argument {
     }
 };
 
-template<StringType String>
 struct ArgumentData {
     std::vector<const char *> args;
     int argc;
     ArgumentData() = default;
-    ArgumentData(const ArgumentData<String> &a) : args{a.args}, argc{a.argc} {}
-    ArgumentData &operator=(const ArgumentData<String> &a) {
+    ArgumentData(const ArgumentData &a) : args{a.args}, argc{a.argc} {}
+    ArgumentData &operator=(const ArgumentData &a) {
         if(!args.empty()) {
             args.erase(args.begin(), args.end());
         }
@@ -258,7 +257,7 @@ public:
         }
     }
 protected:
-    ArgumentData<String> arg_data;
+    ArgumentData arg_data; // type const char *
     std::unordered_map<int,Argument<String>> arg_info;
 private:
     int index = 0, cindex = 1;    
