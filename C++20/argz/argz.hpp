@@ -15,6 +15,7 @@ concept StringType = std::is_class_v<T> && requires(T type) {
     { type.length() } -> std::same_as<typename T::size_type>;
     { type[0] } -> std::same_as<typename T::value_type&>;
     { type += T{} } -> std::same_as<T&>;
+    { type = T{} } -> std::same_as<T&>;
 };
 
 enum class ArgType {
