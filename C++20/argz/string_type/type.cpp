@@ -2,6 +2,7 @@
 #include<iostream>
 #include"../argz.hpp"
 #include<string>
+#include<cstring>
 
 class StringWrapper {
 public:
