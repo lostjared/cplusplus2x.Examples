@@ -1,4 +1,4 @@
-CXXFLAGS = -std=c++20 `pkg-config opencv4 --cflags` -Wno-deprecated-anon-enum-enum-conversion
+CXXFLAGS = -std=c++20 `pkg-config opencv4 --cflags` #-Wno-deprecated-anon-enum-enum-conversion
 LDFLAGS = `pkg-config opencv4 --libs`
 CPP_FILES := $(wildcard *.cpp)
 OBJ_FILES := $(CPP_FILES:.cpp=.o)
@@ -9,7 +9,7 @@ DEPS := $(wildcard *.hpp)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(OUTPUT_NAME): $(OBJ_FILES)
-	$(CXX) $(LDFLAGS) $^ -o $@
+	$(CXX)  $^ -o $@ $(LDFLAGS)
 
 all: $(OUTPUT_NAME)
 
