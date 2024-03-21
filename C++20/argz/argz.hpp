@@ -45,12 +45,13 @@ struct Argument {
     }
 };
 
+template<StringType String>
 struct ArgumentData {
-    std::vector<const char *> args;
+    std::vector<String> args;
     int argc;
     ArgumentData() = default;
-    ArgumentData(const ArgumentData &a) : args{a.args}, argc{a.argc} {}
-    ArgumentData &operator=(const ArgumentData &a) {
+    ArgumentData(const ArgumentData<String> &a) : args{a.args}, argc{a.argc} {}
+    ArgumentData &operator=(const ArgumentData<String> &a) {
         if(!args.empty()) {
             args.erase(args.begin(), args.end());
         }
@@ -82,7 +83,12 @@ public:
     void initArgs(int argc, char **argv) {
         arg_data.argc = argc;
         for(int i = 1; i < argc; ++i) {
-            arg_data.args.push_back(argv[i]);
+            const char *a = argv[i];
+            String data;
+            for(int z = 0; a[z] != 0; ++z) {
+                data += static_cast<typename String::value_type>(a[z]);
+            }
+            arg_data.args.push_back(data);
         }
         reset();
     }
@@ -158,18 +164,34 @@ public:
                                 index++;
                                 return code;
                             } else {
-                                throw ArgException<String>("Expected Value");
+                                if constexpr (std::is_same<typename String::value_type, char>::value) {
+                                    throw ArgException<String>("Expected Value");
+                                }
                             }
                         }
                     } 
                 } else {
-                    String value = "Error argument: ";
-                    value += name;
-                    value += " switch not found";
-                    throw ArgException<String>(value);
+                    if constexpr (std::is_same<typename String::value_type, char>::value) {
+                        String value = "Error argument: ";
+                        value += name;
+                        value += " switch not found";
+                        throw ArgException<String>(value);
+                    }
+                    if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
+                        String value = L"Error argument: ";
+                        value += name;
+                        value += L" switch not found";
+                        throw ArgException<String>(value);
+ 
+                    }
                 }
             } else if(type.length() == 1 && type[0] == '-') {
-                throw ArgException<String>("Expected Value found -");
+                if constexpr (std::is_same<typename String::value_type, char>::value) {
+                    throw ArgException<String>("Expected Value found -");
+                }
+                if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
+                    throw ArgException<String>(L"Expected Value found -");
+                }
             } else if(type.length() > 1 && (type[0] == '-')) {
                 
                 const int c {type[cindex]};
@@ -187,10 +209,24 @@ public:
                         
                         if(index < arg_data.args.size()) {
                             const String &s {arg_data.args[index]};
-                            if(s.length() > 1 && s[0] == '-' && !( s[1] >= '0' && s[1] <= '9'))
-                                throw ArgException<String>("Expected value");
-                            else if(s.length() == 1 && s[0] == '-')
-                                throw ArgException<String>("Expected Value found -");
+                            if(s.length() > 1 && s[0] == '-' && !( s[1] >= '0' && s[1] <= '9')) {
+                                if constexpr (std::is_same<typename String::value_type, char>::value) {
+                                    throw ArgException<String>("Expected value");
+                                }
+                
+                                if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
+                                    throw ArgException<String>(L"Expected value");
+                                }
+                                
+                            }
+                            else if(s.length() == 1 && s[0] == '-') {
+                                if constexpr (std::is_same<typename String::value_type, char>::value) {
+                                    throw ArgException<String>("Expected Value found -");
+                                }
+                                if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
+                                    throw ArgException<String>(L"Expected Value found -");
+                                }
+                            }
                             
                             a = pos->second;
                             a.arg_value = s;
@@ -199,11 +235,20 @@ public:
                         }
                     }
                 } else {
-                    String value;
-                    value = "Error argument ";
-                    value += static_cast<typename String::value_type>(c);
-                    value += " switch not found.";
-                    throw ArgException<String>(value);
+                    if constexpr (std::is_same<typename String::value_type, char>::value) {
+                        String value;
+                        value = "Error argument ";
+                        value += static_cast<typename String::value_type>(c);
+                        value += " switch not found.";
+                        throw ArgException<String>(value);
+                    }
+                    if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
+                        String value;
+                        value = L"Error argument ";
+                        value += static_cast<typename String::value_type>(c);
+                        value += L" switch not found.";
+                        throw ArgException<String>(value);
+                    }
                 }
             } else {
                 a = Argument<String>();
@@ -257,7 +302,7 @@ public:
         }
     }
 protected:
-    ArgumentData arg_data; // type const char *
+    ArgumentData<String> arg_data; // type const char *
     std::unordered_map<int,Argument<String>> arg_info;
 private:
     int index = 0, cindex = 1;    
