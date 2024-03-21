@@ -219,6 +219,7 @@ public:
     
     template<typename T>
     void help(T &cout) {
+        using char_type = typename std::decay<decltype(*std::declval<T>().rdbuf())>::type::char_type;
         std::vector<Argument<String>> v;
         for(const auto &i : arg_info) {
             v.push_back(i.second);
@@ -226,16 +227,33 @@ public:
         std::sort(v.begin(), v.end());
         for(auto a = v.begin(); a != v.end(); ++a) {
             if(a->arg_type == ArgType::ARG_SINGLE || a->arg_type == ArgType::ARG_SINGLE_VALUE) {
-                std::cout << "-" << static_cast<char>(a->arg_letter) << "\t";
-                cout << a->desc;
-                std::cout << "\n";
+                if constexpr (std::is_same<char_type, char>::value) {
+                    cout << "-" << static_cast<char_type>(a->arg_letter) << "\t";
+                    cout << a->desc;
+                    cout << '\n';
+                }
+                else if constexpr (std::is_same<char_type, wchar_t>::value) {
+                    cout << L"-" << static_cast<char_type>(a->arg_letter) << L"\t";
+                    cout << a->desc;
+                    cout << L'\n';
+                }
             }
             else {
-                std::cout << "--";
-                cout <<a->arg_name;
-                std::cout << "\t\t";
-                cout << a->desc;
-                std::cout << "\n";
+                if constexpr (std::is_same<char_type, char>::value) {
+                    cout << "--";
+                    cout << a->arg_name;
+                    cout << "\t\t";
+                    cout << a->desc;
+                    cout << '\n';
+
+                }
+                else if constexpr (std::is_same<char_type, wchar_t>::value) {
+                    cout << L"--";
+                    cout << a->arg_name;
+                    cout << L"\t\t";
+                    cout << a->desc;
+                    cout << L'\n';
+                }
             }
         }
     }
