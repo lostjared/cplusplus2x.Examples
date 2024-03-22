@@ -1,3 +1,8 @@
+/* 
+    Image fIle conversion/resizse Tool
+    written by Jared Bruni
+*/
+
 #include<iostream>
 #include<string>
 #include<fstream>
