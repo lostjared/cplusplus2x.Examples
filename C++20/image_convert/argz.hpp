@@ -241,12 +241,10 @@ public:
                             if(s.length() > 1 && s[0] == '-' && !( s[1] >= '0' && s[1] <= '9')) {
                                 if constexpr (std::is_same<typename String::value_type, char>::value) {
                                     throw ArgException<String>("Expected value");
-                                }
-                                
+                                }            
                                 if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
                                     throw ArgException<String>(L"Expected value");
                                 }
-                                
                             }
                             else if(s.length() == 1 && s[0] == '-') {
                                 if constexpr (std::is_same<typename String::value_type, char>::value) {
@@ -328,10 +326,8 @@ public:
         for(auto a = farg.begin(); a != farg.end(); ++a) {
             if(a->arg_type == ArgType::ARG_SINGLE || a->arg_type == ArgType::ARG_SINGLE_VALUE) {
                 if constexpr (std::is_same<char_type, char>::value) {
-                    
                     String item;
                     item += static_cast<char_type>(a->arg_letter);
-                    
                     cout << "-" <<  std::setfill(' ') << std::setw(9) << std::left << item << "\t";
                     cout << std::setfill(' ') << std::left << std::setw(10) << a->desc;
                     cout << '\n';
@@ -339,7 +335,6 @@ public:
                 else if constexpr (std::is_same<char_type, wchar_t>::value) {
                     String item;
                     item += static_cast<char_type>(a->arg_letter);
-                    
                     cout << L"-" << std::setfill(L' ') << std::setw(9) << std::left << item << L"\t";
                     cout << std::setfill(L' ') << std::setw(10) << a->desc;
                     cout << L'\n';
@@ -352,7 +347,6 @@ public:
                     cout << "\t";
                     cout << std::setw(10) << a->desc;
                     cout << '\n';
-                    
                 }
                 else if constexpr (std::is_same<char_type, wchar_t>::value) {
                     cout << L"--";
