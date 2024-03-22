@@ -13,7 +13,7 @@
 #include<sstream>
 #include<opencv2/opencv.hpp>
 
-bool convertFile(const std::vector<std::string> &list_files, std::string_view output, const int &width, const int &height);
+bool convertFiles(const std::vector<std::string> &list_files, std::string_view output, const int &width, const int &height);
 
 int main(int argc, char **argv) {
     Argz<std::string> argz;
@@ -91,13 +91,13 @@ int main(int argc, char **argv) {
             }
             const std::string left {image_size.substr(0, pos)};
             const std::string right {image_size.substr(pos+1, image_size.length()-pos)};
-            if(convertFile(list_files, output_format, atoi(left.c_str()), atoi(right.c_str()))) {
+            if(convertFiles(list_files, output_format, atoi(left.c_str()), atoi(right.c_str()))) {
                 std::cout << "image_convert: success.\n";
             } else {
                 std::cout << "image_convert: failed.\n";
             }
         } else {
-            if(convertFile(list_files, output_format, -1, -1)) {
+            if(convertFiles(list_files, output_format, -1, -1)) {
                 std::cout << "image_convert: success.\n";
             } else {
                 std::cout << "image_convert: failed.\n";
@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
     return  0;
 }
 
-bool convertFile(const std::vector<std::string> &list_files, std::string_view output, const int &width, const int &height) {
+bool convertFiles(const std::vector<std::string> &list_files, std::string_view output, const int &width, const int &height) {
 
     if(width == 0 || height == 0) {
         std::cerr << "invalid with/height\n";
