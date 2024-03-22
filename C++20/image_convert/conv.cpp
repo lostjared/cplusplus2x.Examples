@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
             }
         }
         if(input_file.length() == 0 || output_format.length() == 0) {
-            std::cerr << "Error missing arguments...\n";
+            std::cerr << "Error missing input/output format arguments...\n";
             argz.help(std::cout);
             return 0;
         }
