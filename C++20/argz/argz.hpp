@@ -78,13 +78,11 @@ private:
 template<StringType String>
 class Argz {
 public:
-    
     Argz() = default;
     Argz(int argc, char **argv) {
         initArgs(argc, argv);
     }
     Argz(const Argz<String> &a) : arg_data{a.arg_data}, arg_info{a.arg_info} {}
-    
     Argz<String> &initArgs(int argc, char **argv) {
         arg_data.argc = argc;
         if constexpr(std::is_same<typename String::value_type, char>::value) {
@@ -109,7 +107,6 @@ public:
         }
         reset();
         return *this;
-
     }
     
     void reset() {
@@ -218,7 +215,6 @@ public:
                     throw ArgException<String>(L"Expected Value found -");
                 }
             } else if(type.length() > 1 && (type[0] == '-')) {
-                
                 const int c {type[cindex]};
                 const auto pos {arg_info.find(c)};
                 cindex++;
@@ -226,11 +222,8 @@ public:
                     cindex = 1;
                     index++;
                 }
-                
-
                 String name_val{};
                 name_val += static_cast<typename String::value_type>(c);
-                
                 if(pos != arg_info.end()) {
                     if(pos->second.arg_type == ArgType::ARG_SINGLE) {
                         a = pos->second;
@@ -315,23 +308,18 @@ public:
         std::vector<Argument<String>> v;
         for(const auto &i : arg_info) {
             if(i.second.arg_type == ArgType::ARG_SINGLE || i.second.arg_type == ArgType::ARG_SINGLE_VALUE)
-            v.push_back(i.second);
+                v.push_back(i.second);
         }
         std::vector<Argument<String>> v2;
         for(const auto &i : arg_info) {
             if(i.second.arg_type == ArgType::ARG_DOUBLE || i.second.arg_type == ArgType::ARG_DOUBLE_VALUE)
-            v2.push_back(i.second);
+                v2.push_back(i.second);
         }
         std::sort(v.begin(), v.end());
         std::sort(v2.begin(), v2.end());
-        
         std::vector<Argument<String>> farg;
-        for(const auto &i : v) {
-            farg.push_back(i);
-        }
-        for(const auto &i : v2) {
-            farg.push_back(i);
-        }
+        std::copy(v.begin(), v.end(), std::back_inserter(farg));
+        std::copy(v2.begin(), v2.end(), std::back_inserter(farg));
         for(auto a = farg.begin(); a != farg.end(); ++a) {
             if(a->arg_type == ArgType::ARG_SINGLE || a->arg_type == ArgType::ARG_SINGLE_VALUE) {
                 if constexpr (std::is_same<char_type, char>::value) {
