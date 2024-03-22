@@ -10,7 +10,7 @@
 #include<unordered_map>
 #include<algorithm>
 #include<iomanip>
-
+#include<utility>
 
 template<typename T>
 concept StringType = std::is_class_v<T> && requires(T type) {
@@ -69,6 +69,12 @@ struct ArgumentData {
         std::copy(a.args.begin(), a.args.end(), std::back_inserter(args));
         return *this;
     }
+    ArgumentData(ArgumentData<String> &&a) : args{std::move(a.args)}, argc{a.argc} {}
+    ArgumentData<String> &operator=(ArgumentData<String> &&a) {
+        args = std::move(a.args);
+        argc = a.argc;
+        return *this;
+    }
 };
 
 template<StringType String>
@@ -88,7 +94,32 @@ public:
     Argz(int argc, char **argv) {
         initArgs(argc, argv);
     }
-    Argz(const Argz<String> &a) : arg_data{a.arg_data}, arg_info{a.arg_info} {}
+    Argz(const Argz<String> &a) : arg_data{a.arg_data}, arg_info{a.arg_info}, index{a.index}, cindex{a.cindex} {}
+
+    Argz<String> &operator=(const Argz<String> &a) {
+        if(!arg_data.empty()) {
+            arg_data.erase(arg_data.begin(), arg_data.end());
+        }
+        std::copy(a.arg_data.begin(), a.arg_data.end(), std::back_inserter(arg_data));
+        if(!arg_info.empty()) {
+            arg_info.earse(arg_info.begin(), arg_info.end());
+        }
+        std::copy(a.arg_info.begin(), a.arg_info.end(), std::back_inserter(arg_info));
+        index = a.index;
+        cindex = a.cindex;
+        return *this;
+    }
+
+    Argz(Argz<String> &&a) : arg_data{std::move(a.arg_data)}, arg_info{std::move(a.arg_info)}, index{a.index}, cindex{a.cindex} {}
+
+    Argz<String> &operator=(Argz<String> &&a) {
+        arg_data = std::move(a.arg_data);
+        arg_info = std::move(a.arg_info);
+        index = a.index;
+        cindex = a.cindex;
+        return *this;
+    }
+
     Argz<String> &initArgs(int argc, char **argv) {
         arg_data.argc = argc;
         if constexpr(std::is_same<typename String::value_type, char>::value) {
