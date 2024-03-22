@@ -67,6 +67,7 @@ struct ArgumentData {
             args.erase(args.begin(), args.end());
         }
         std::copy(a.args.begin(), a.args.end(), std::back_inserter(args));
+        argc = a.argc;
         return *this;
     }
     ArgumentData(ArgumentData<String> &&a) : args{std::move(a.args)}, argc{a.argc} {}
@@ -200,7 +201,7 @@ public:
     }
     
     int proc(Argument<String> &a) {
-        if(index < arg_data.args.size()) { // START
+        if(index < arg_data.args.size()) {
             const String &type {arg_data.args[index]};
             if(type.length() > 3 && type[0] == '-' && type[1] == '-') {
                 String name{};
