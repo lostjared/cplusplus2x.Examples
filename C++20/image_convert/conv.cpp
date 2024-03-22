@@ -125,7 +125,7 @@ bool convertFiles(const std::vector<std::string> &list_files, std::string_view o
             if(pos == std::string::npos)
                 continue;
 
-            std::string fname = i.substr(0, pos);
+            std::string fname {i.substr(0, pos)};
             if(fname.length() > 0) {
                 cv::Mat inputf {cv::imread(i)};
                 if(width != -1 && height != -1) {
