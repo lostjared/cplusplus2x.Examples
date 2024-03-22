@@ -14,7 +14,10 @@ int main(int argc, char **argv) {
     argz.initArgs(argc, argv)
     .addOptionSingleValue('i', "input file")
     .addOptionSingleValue('o', "output file format")
-    .addOptionSingleValue('s', "scale resolution formst: WithxHeight");
+    .addOptionSingleValue('s', "scale resolution formst: WithxHeight")
+    .addOptionDoubleValue('I', "input", "input file")
+    .addOptionDoubleValue('O', "output", "output format")
+    .addOptionDoubleValue('S', "size", "scale resolution");
 
     if(argc == 1) {
         argz.help(std::cout);
@@ -29,12 +32,15 @@ int main(int argc, char **argv) {
         while ((value = argz.proc(arg)) != -1) {
             switch(value) {
                 case 'i':
+                case 'I':
                 input_file = arg.arg_value;
                 break;
                 case 'o':
+                case 'O':
                 output_format = arg.arg_value;
                 break;
                 case 's':
+                case 'S':
                 image_size = arg.arg_value;
                 break;
             }
@@ -84,6 +90,10 @@ bool convertFile(std::string_view input, std::string_view output, const int &wid
         for(const auto &i : list_files) {
             std::ostringstream stream;
             auto pos {i.rfind(".")};
+
+            if(pos == std::string::npos)
+                continue;
+
             std::string fname = i.substr(0, pos);
             if(fname.length() > 0) {
                 stream << fname << "." << width << "x" << height << "." << output;
