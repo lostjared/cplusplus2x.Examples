@@ -7,7 +7,7 @@
 #include<sstream>
 #include<opencv2/opencv.hpp>
 
-bool convertFile(std::string_view input, std::string_view output, int width, int height);
+bool convertFile(std::string_view input, std::string_view output, const int &width, const int &height);
 
 int main(int argc, char **argv) {
     Argz<std::string> argz;
@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
     return  0;
 }
 
-bool convertFile(std::string_view input, std::string_view output, int width, int height) {
+bool convertFile(std::string_view input, std::string_view output, const int &width, const int &height) {
     if(width == 0 || height == 0) {
         std::cerr << "invalid with/height\n";
         return false;
