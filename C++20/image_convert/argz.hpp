@@ -316,6 +316,7 @@ public:
         std::sort(v.begin(), v.end());
         std::sort(v2.begin(), v2.end());
         std::vector<Argument<String>> farg;
+        farg.reserve(v.size()+v2.size());
         std::copy(v.begin(), v.end(), std::back_inserter(farg));
         std::copy(v2.begin(), v2.end(), std::back_inserter(farg));
         for(auto a = farg.begin(); a != farg.end(); ++a) {
