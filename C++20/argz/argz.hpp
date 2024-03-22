@@ -85,7 +85,7 @@ public:
     }
     Argz(const Argz<String> &a) : arg_data{a.arg_data}, arg_info{a.arg_info} {}
     
-    void initArgs(int argc, char **argv) {
+    Argz<String> &initArgs(int argc, char **argv) {
         arg_data.argc = argc;
         if constexpr(std::is_same<typename String::value_type, char>::value) {
             for(int i = 1; i < argc; ++i) {
@@ -93,7 +93,7 @@ public:
                 arg_data.args.push_back(a);
             }
             reset();
-            return;
+            return *this;
         }
         if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
             for(int i = 1; i < argc; ++i) {
@@ -105,9 +105,11 @@ public:
                 arg_data.args.push_back(data);
             }
             reset();
-            return;
+            return *this;
         }
         reset();
+        return *this;
+
     }
     
     void reset() {
@@ -115,40 +117,44 @@ public:
         cindex = 1;
     }
     
-    void addOptionSingle(const int &c, const String &description) {
+    Argz<String> &addOptionSingle(const int &c, const String &description) {
         Argument<String> a {};
         a.arg_letter = c;
         a.arg_type = ArgType::ARG_SINGLE;
         a.desc = description;
         arg_info[c] = a;
+        return *this;
     }
     
-    void addOptionSingleValue(const int &c, const String &description) {
+    Argz<String> &addOptionSingleValue(const int &c, const String &description) {
         Argument<String> a {};
         a.arg_letter = c;
         a.arg_type = ArgType::ARG_SINGLE_VALUE;
         a.desc = description;
         arg_info[c] = a;
+        return *this;
     }
     
-    void addOptionDouble(const int &code, const String &value, const String &description) {
+    Argz<String> &addOptionDouble(const int &code, const String &value, const String &description) {
         Argument<String> a {};
         a.arg_letter = code;
         a.arg_type = ArgType::ARG_DOUBLE;
         a.desc = description;
         a.arg_name = value;
         arg_info[code] = a;
+        return *this;
     }
     
-    void addOptionDoubleValue(const int &code, const String &value, const String &description) {
+    Argz<String> &addOptionDoubleValue(const int &code, const String &value, const String &description) {
         Argument<String> a {};
         a.arg_letter = code;
         a.arg_type = ArgType::ARG_DOUBLE_VALUE;
         a.desc = description;
         a.arg_name = value;
         arg_info[code] = a;
+        return *this;
     }
-    
+
     
     int lookUpCode(const String &value) {
         for(const auto &i : arg_info) {
@@ -179,7 +185,7 @@ public:
                             a = pos->second;
                             a.arg_name = name;
                             if(++index < arg_data.args.size() && arg_data.args[index][0] != '-') {
-                                a.arg_value = name;
+                                a.arg_name = name;
                                 a.arg_value = arg_data.args[index];
                                 index++;
                                 return code;
@@ -202,7 +208,6 @@ public:
                         value += name;
                         value += L" switch not found";
                         throw ArgException<String>(value);
-                        
                     }
                 }
             } else if(type.length() == 1 && type[0] == '-') {
@@ -253,8 +258,8 @@ public:
                             }
                             
                             a = pos->second;
-                            a.arg_name = s;
-                            a.arg_value = name_val;
+                            a.arg_value = s;
+                            a.arg_name = name_val;
                             index++;
                             return c;
                         }

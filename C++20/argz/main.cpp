@@ -3,17 +3,16 @@
 
 int main(int argc, char **argv) {
     Argz<std::string> args;
-    args.initArgs(argc, argv);
-    args.addOptionSingle('o', "output");
-    args.addOptionSingle('c', "code");
-    args.addOptionSingle('v', "argument list");
-    args.addOptionSingleValue('t', "type info");
-    args.addOptionDouble('T', "test", "test arg");
-    args.addOptionDoubleValue('I', "test2", "value 2");
+    args.initArgs(argc, argv)
+    .addOptionSingle('o', "output")
+    .addOptionSingle('c', "code")
+    .addOptionSingle('v', "argument list")
+    .addOptionSingleValue('t', "type info")
+    .addOptionDouble('T', "test", "test arg")
+    .addOptionDoubleValue('I', "test2", "value 2");
 
     int value{};
     Argument<std::string> arg;
-
     try {
         while( (value = args.proc(arg)) != -1) {
             switch(value) {
