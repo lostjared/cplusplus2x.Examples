@@ -306,13 +306,11 @@ public:
     void help(T &cout) {
         using char_type = typename std::decay<decltype(*std::declval<T>().rdbuf())>::type::char_type;
         std::vector<Argument<String>> v;
+        std::vector<Argument<String>> v2;
         for(const auto &i : arg_info) {
             if(i.second.arg_type == ArgType::ARG_SINGLE || i.second.arg_type == ArgType::ARG_SINGLE_VALUE)
                 v.push_back(i.second);
-        }
-        std::vector<Argument<String>> v2;
-        for(const auto &i : arg_info) {
-            if(i.second.arg_type == ArgType::ARG_DOUBLE || i.second.arg_type == ArgType::ARG_DOUBLE_VALUE)
+            else if(i.second.arg_type == ArgType::ARG_DOUBLE || i.second.arg_type == ArgType::ARG_DOUBLE_VALUE)
                 v2.push_back(i.second);
         }
         std::sort(v.begin(), v.end());
