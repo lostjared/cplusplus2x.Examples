@@ -100,9 +100,11 @@ public:
     Argz<String> &operator=(const Argz<String> &a) {
         arg_data = a.arg_data;
         if(!arg_info.empty()) {
-            arg_info.earse(arg_info.begin(), arg_info.end());
+            arg_info.erase(arg_info.begin(), arg_info.end());
         }
-        std::copy(a.arg_info.begin(), a.arg_info.end(), std::back_inserter(arg_info));
+        for(const auto &i : a.arg_info) {
+            arg_info[i.first] = i.second;
+        }
         index = a.index;
         cindex = a.cindex;
         return *this;
