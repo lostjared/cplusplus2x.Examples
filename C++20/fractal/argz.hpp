@@ -227,6 +227,7 @@ public:
                     index++;
                 }
                 
+
                 String name_val{};
                 name_val += static_cast<typename String::value_type>(c);
                 
@@ -256,12 +257,28 @@ public:
                                     throw ArgException<String>(L"Expected Value found -");
                                 }
                             }
-                            
-                            a = pos->second;
-                            a.arg_value = s;
-                            a.arg_name = name_val;
-                            index++;
-                            return c;
+                            if(s.length() > 0) {
+                                a = pos->second;
+                                a.arg_value = s;
+                                a.arg_name = name_val;
+                                index++;
+                                return c;
+                            } 
+                        }
+                        else {
+                            if constexpr (std::is_same<typename String::value_type, char>::value) {
+                               throw ArgException<String>("Expected Value");
+                            }
+                            if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
+                                throw ArgException<String>(L"Expected Value");
+                            }
+                        }
+                    } else {
+                         if constexpr (std::is_same<typename String::value_type, char>::value) {
+                            throw ArgException<String>("Invalid switch not found!");
+                        }
+                        if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
+                            throw ArgException<String>(L"Invalid switch not found!");
                         }
                     }
                 } else {
