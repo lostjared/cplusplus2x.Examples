@@ -45,22 +45,31 @@ int main(int argc, char **argv) {
                 break;
             }
         }
-        if(input_file.length() == 0 || output_format.length() == 0 || image_size.length() == 0) {
+        if(input_file.length() == 0 || output_format.length() == 0) {
             std::cerr << "Error missing arguments...\n";
             argz.help(std::cout);
             return 0;
         }
-        const auto pos {image_size.find("x")};
-        if(pos == std::string::npos) {
-            std::cerr << "Error use format WidthxHeight ex: 640x360\n";
-            return 0;
-        }
-        const std::string left {image_size.substr(0, pos)};
-        const std::string right {image_size.substr(pos+1, image_size.length()-pos)};
-        if(convertFile(input_file, output_format, atoi(left.c_str()), atoi(right.c_str()))) {
-            std::cout << "image_convert: success.\n";
+
+        if(image_size.length() > 0) {
+            const auto pos {image_size.find("x")};
+            if(pos == std::string::npos) {
+                std::cerr << "Error use format WidthxHeight ex: 640x360\n";
+                return 0;
+            }
+            const std::string left {image_size.substr(0, pos)};
+            const std::string right {image_size.substr(pos+1, image_size.length()-pos)};
+            if(convertFile(input_file, output_format, atoi(left.c_str()), atoi(right.c_str()))) {
+                std::cout << "image_convert: success.\n";
+            } else {
+                std::cout << "image_convert: failed.\n";
+            }
         } else {
-            std::cout << "image_convert: failed.\n";
+            if(convertFile(input_file, output_format, -1, -1)) {
+                std::cout << "image_convert: success.\n";
+            } else {
+                std::cout << "image_convert: failed.\n";
+            }
         }
     } catch(const ArgException<std::string> &e) {
         std::cerr << "Syntax Error: " << e.text() << "\n";
@@ -69,6 +78,7 @@ int main(int argc, char **argv) {
 }
 
 bool convertFile(std::string_view input, std::string_view output, const int &width, const int &height) {
+
     if(width == 0 || height == 0) {
         std::cerr << "invalid with/height\n";
         return false;
@@ -96,14 +106,22 @@ bool convertFile(std::string_view input, std::string_view output, const int &wid
 
             std::string fname = i.substr(0, pos);
             if(fname.length() > 0) {
-                stream << fname << "." << width << "x" << height << "." << output;
                 cv::Mat input {cv::imread(i)};
+                if(width != -1 && height != -1) {
+                    stream << fname << "." << width << "x" << height << "." << output;
+                } else {
+                    stream << fname << "." << output;
+                }
                 if(!input.empty()) {
                     const std::string o_file{stream.str()};
                     std::cout << i << " -> " << o_file << "\n";
-                    cv::Mat resized;
-                    cv::resize(input, resized, cv::Size(width, height));
-                    cv::imwrite(o_file, resized);
+                    if(width != -1 && height != -1) {
+                        cv::Mat resized;
+                        cv::resize(input, resized, cv::Size(width, height));
+                        cv::imwrite(o_file, resized);
+                    } else {
+                        cv::imwrite(o_file, input);
+                    }
                     converted++;
                 }
             }
