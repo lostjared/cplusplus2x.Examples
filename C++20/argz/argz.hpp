@@ -14,6 +14,12 @@
 
 template<typename T>
 concept StringType = std::is_class_v<T> && requires(T type) {
+    type.length();
+    type[0];
+    type += type;
+    type = type;
+    typename T::value_type;
+    typename T::size_type;
     { type.length() } -> std::same_as<typename T::size_type>;
     { type[0] } -> std::same_as<typename T::value_type&>;
     { type += T{} } -> std::same_as<T&>;
@@ -359,7 +365,7 @@ public:
         }
     }
 protected:
-    ArgumentData<String> arg_data; // type const char *
+    ArgumentData<String> arg_data;
     std::unordered_map<int,Argument<String>> arg_info;
 private:
     int index = 0, cindex = 1;
