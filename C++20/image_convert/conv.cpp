@@ -1,30 +1,33 @@
 #include<iostream>
 #include<string>
 #include<fstream>
+#include<vector>
 #include<algorithm>
 #include"argz.hpp"
 #include<cstdlib>
 #include<sstream>
 #include<opencv2/opencv.hpp>
 
-bool convertFile(std::string_view input, std::string_view output, const int &width, const int &height);
+bool convertFile(const std::vector<std::string> &list_files, std::string_view output, const int &width, const int &height);
 
 int main(int argc, char **argv) {
     Argz<std::string> argz;
     argz.initArgs(argc, argv)
     .addOptionSingleValue('i', "input file")
+    .addOptionSingleValue('f', "image file input")
     .addOptionSingleValue('o', "output file format")
     .addOptionSingleValue('s', "scale resolution formst: WithxHeight")
     .addOptionDoubleValue('I', "input", "input file")
     .addOptionDoubleValue('O', "output", "output format")
-    .addOptionDoubleValue('S', "size", "scale resolution");
+    .addOptionDoubleValue('S', "size", "scale resolution")
+    .addOptionDoubleValue('F', "file", "input image file");
 
     if(argc == 1) {
         argz.help(std::cout);
         return 0;
     }
 
-    std::string input_file, output_format, image_size;
+    std::string input_file, output_format, image_size, image_file;
 
     try {
         int value {};
@@ -43,14 +46,38 @@ int main(int argc, char **argv) {
                 case 'S':
                 image_size = arg.arg_value;
                 break;
+                case 'f':
+                case 'F':
+                image_file = arg.arg_value;
+                break;
             }
         }
-        if(input_file.length() == 0 || output_format.length() == 0) {
-            std::cerr << "Error missing input/output format arguments...\n";
+        if(output_format.length() == 0) {
+            std::cerr << "Error missing output format arguments...\n";
             argz.help(std::cout);
             return 0;
         }
 
+        if(image_file.length() == 0 && input_file.length() == 0) {
+            std::cerr << "Error missing input file/list...\n";
+            argz.help(std::cout);
+            return 0;
+        }
+        std::vector<std::string> list_files; 
+        if(input_file.length() > 0) {
+            std::fstream file;
+            file.open(input_file, std::ios::in);
+            while(!file.eof()) {
+                std::string line;
+                std::getline(file, line);
+                if(file) {
+                    list_files.push_back(line);
+                }
+             }
+        } 
+        if(image_file.length() > 0) {
+            list_files.push_back(image_file);
+        }
         if(image_size.length() > 0) {
             const auto pos {image_size.find("x")};
             if(pos == std::string::npos) {
@@ -59,13 +86,13 @@ int main(int argc, char **argv) {
             }
             const std::string left {image_size.substr(0, pos)};
             const std::string right {image_size.substr(pos+1, image_size.length()-pos)};
-            if(convertFile(input_file, output_format, atoi(left.c_str()), atoi(right.c_str()))) {
+            if(convertFile(list_files, output_format, atoi(left.c_str()), atoi(right.c_str()))) {
                 std::cout << "image_convert: success.\n";
             } else {
                 std::cout << "image_convert: failed.\n";
             }
         } else {
-            if(convertFile(input_file, output_format, -1, -1)) {
+            if(convertFile(list_files, output_format, -1, -1)) {
                 std::cout << "image_convert: success.\n";
             } else {
                 std::cout << "image_convert: failed.\n";
@@ -77,23 +104,12 @@ int main(int argc, char **argv) {
     return  0;
 }
 
-bool convertFile(std::string_view input, std::string_view output, const int &width, const int &height) {
+bool convertFile(const std::vector<std::string> &list_files, std::string_view output, const int &width, const int &height) {
 
     if(width == 0 || height == 0) {
         std::cerr << "invalid with/height\n";
         return false;
     }
-    std::vector<std::string> list_files;
-    std::fstream file;
-    file.open(input, std::ios::in);
-    while(!file.eof()) {
-        std::string line;
-        std::getline(file, line);
-        if(file) {
-            list_files.push_back(line);
-        }
-    }
-
     int converted {0};
 
     if(list_files.size() > 0) {
