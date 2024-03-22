@@ -98,10 +98,7 @@ public:
     Argz(const Argz<String> &a) : arg_data{a.arg_data}, arg_info{a.arg_info}, index{a.index}, cindex{a.cindex} {}
 
     Argz<String> &operator=(const Argz<String> &a) {
-        if(!arg_data.empty()) {
-            arg_data.erase(arg_data.begin(), arg_data.end());
-        }
-        std::copy(a.arg_data.begin(), a.arg_data.end(), std::back_inserter(arg_data));
+        arg_data = a.arg_data;
         if(!arg_info.empty()) {
             arg_info.earse(arg_info.begin(), arg_info.end());
         }
