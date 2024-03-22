@@ -137,14 +137,18 @@ bool convertFile(const std::vector<std::string> &list_files, std::string_view ou
                     const std::string o_file{stream.str()};
                     if(o_file == i) continue;
                     std::cout << i << " -> " << o_file << "\n";
-                    if(width != -1 && height != -1) {
-                        cv::Mat resized;
-                        cv::resize(inputf, resized, cv::Size(width, height));
-                        cv::imwrite(o_file, resized);
-                        converted++;
-                    } else {
-                        cv::imwrite(o_file, inputf);
-                        converted++;
+                    try {
+                        if(width != -1 && height != -1) {
+                            cv::Mat resized;
+                            cv::resize(inputf, resized, cv::Size(width, height));
+                            cv::imwrite(o_file, resized);
+                            converted++;
+                        } else {
+                            cv::imwrite(o_file, inputf);
+                            converted++;
+                        }
+                    } catch(...) {
+                        std::cerr << i << " could not convert to format " << output << "...\n";
                     }
                 }
             }
