@@ -106,23 +106,25 @@ bool convertFile(std::string_view input, std::string_view output, const int &wid
 
             std::string fname = i.substr(0, pos);
             if(fname.length() > 0) {
-                cv::Mat input {cv::imread(i)};
+                cv::Mat inputf {cv::imread(i)};
                 if(width != -1 && height != -1) {
                     stream << fname << "." << width << "x" << height << "." << output;
                 } else {
                     stream << fname << "." << output;
-                }
-                if(!input.empty()) {
+                }                    
+                if(!inputf.empty()) {
                     const std::string o_file{stream.str()};
+                    if(o_file == i) continue;
                     std::cout << i << " -> " << o_file << "\n";
                     if(width != -1 && height != -1) {
                         cv::Mat resized;
-                        cv::resize(input, resized, cv::Size(width, height));
+                        cv::resize(inputf, resized, cv::Size(width, height));
                         cv::imwrite(o_file, resized);
+                        converted++;
                     } else {
-                        cv::imwrite(o_file, input);
+                        cv::imwrite(o_file, inputf);
+                        converted++;
                     }
-                    converted++;
                 }
             }
         }
