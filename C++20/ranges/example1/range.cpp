@@ -1,5 +1,5 @@
 // 
-// $ CXX=g++13 make
+// $ CXX=g++-13 make
 
 
 #include<iostream>
