@@ -24,5 +24,13 @@ int main() {
     for(const auto &i : std::views::all(v)) {
         std::cout << "X: "<< i << "\n";
     }
+
+    std::vector v2 { 0, 1, 2, 3, 4 };
+
+    auto pos = std::ranges::find(v2, 1);
+    auto p1 = std::views::counted(pos, 2);
+    for(const auto &i : p1) {
+        std::cout << "counted: " << i << "\n";
+    }
     return 0;
 }
