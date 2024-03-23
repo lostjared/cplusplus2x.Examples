@@ -9,8 +9,12 @@
 int scanInteger() {
     std::string s;
     std::getline(std::cin, s);
-    if(s.length() > 0)
-    return atoi(s.c_str());
+    if(s.length() > 0) {
+        int value = atoi(s.c_str());
+        if(value > 0) return value;
+        std::cout << "Invalid input try again..\n";
+        return scanInteger();
+    }
     else {
         std::cout << "Invalid input try again..\n";
         return scanInteger();
@@ -20,6 +24,9 @@ int scanInteger() {
 void echoString(std::string_view s) {
     for(const auto &i : std::views::all(s)) {
         std::cout << i << ',';
+    }
+    for(const auto &s : std::views::take(s, 1)) {
+        std::cout << static_cast<char>(toupper(s)) << "!" << ",";
     }
     std::cout << "0;\n";
 }
