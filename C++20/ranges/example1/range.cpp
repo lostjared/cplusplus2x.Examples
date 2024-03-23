@@ -17,8 +17,14 @@ int scanInteger() {
     }
 }
 
-int main() {
+void echoString(std::string_view s) {
+    for(const auto &i : std::views::all(s)) {
+        std::cout << i << ',';
+    }
+    std::cout << "0;\n";
+}
 
+int main() {
     std::cout << "Enter how many lines to enter.: ";
     int numLines = scanInteger();
     std::vector<std::string> v;
@@ -29,15 +35,12 @@ int main() {
             v.push_back(s);
         }
     }
-
     std::ranges::sort(v);
     std::cout << "sorted -: [\n";
     for(const auto &i : std::views::all(v)) {
-        std::cout << i << ",\n";
+        echoString(i);
     }
     std::cout << "0 ];\n\n";
-
-
     return 0;
 
 }
