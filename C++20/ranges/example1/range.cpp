@@ -1,3 +1,7 @@
+// 
+// $ CXX=g++13 make
+
+
 #include<iostream>
 #include<string>
 #include<ranges>
