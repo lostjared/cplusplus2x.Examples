@@ -15,7 +15,7 @@ Data(const char (&)[N]) -> Data<N>;
 
 template <auto prefix>
 class Log {
-  public:
+public:
 	void log(std::string_view s) const { std::cout << prefix.data << " -> " << s << "\n"; }
 };
 

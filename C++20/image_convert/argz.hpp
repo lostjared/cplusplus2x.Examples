@@ -72,18 +72,18 @@ struct ArgumentData {
 
 template <StringType String>
 class ArgException {
-  public:
+public:
 	ArgException() = default;
 	ArgException(const String &s) : value{s} {}
 	String text() const { return value; }
 
-  private:
+private:
 	String value;
 };
 
 template <StringType String>
 class Argz {
-  public:
+public:
 	Argz() = default;
 	Argz(int argc, char **argv) { initArgs(argc, argv); }
 	Argz(const Argz<String> &a) : arg_data{a.arg_data}, arg_info{a.arg_info}, index{a.index}, cindex{a.cindex} {}
@@ -375,11 +375,11 @@ class Argz {
 		}
 	}
 
-  protected:
+protected:
 	ArgumentData<String> arg_data;
 	std::unordered_map<int, Argument<String>> arg_info;
 
-  private:
+private:
 	int index = 0, cindex = 1;
 };
 

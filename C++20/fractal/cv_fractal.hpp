@@ -18,7 +18,7 @@ namespace cv_fract {
 		}
 	}
 	class CV_Fractal {
-	  public:
+	public:
 		CV_Fractal() : gen{rd()}, dist_int(0, 255) { loadPalette(); }
 		CV_Fractal(const double &center_real_, const double &center_imag_, const double &zoom, const int &iterations_, const int &thread_count_) : gen{rd()}, dist_int(0, 255) {
 			initParameters(center_real_, center_imag_, zoom, iterations_, thread_count_);
@@ -61,7 +61,7 @@ namespace cv_fract {
 			DrawFractal(frame, start, end, im_start, im_end);
 		}
 
-	  private:
+	private:
 		double center_real, center_imag;
 		double zoom_;
 		int iterations;

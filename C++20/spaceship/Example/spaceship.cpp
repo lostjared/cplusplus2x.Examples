@@ -8,7 +8,7 @@
 
 template <typename T>
 class Color {
-  public:
+public:
 	T rgb[3];
 
 	auto operator<=>(const Color<T> &c) const { return (color() <=> c.color()); }

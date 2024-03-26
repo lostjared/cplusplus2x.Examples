@@ -21,11 +21,11 @@ void writeln(const T &type, Args... args) {
 class Err {};
 
 class Type {
-  public:
+public:
 	Type(int t) : type{t} {}
 	int getType() const { return type; }
 
-  private:
+private:
 	int type;
 };
 

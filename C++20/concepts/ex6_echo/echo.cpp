@@ -19,11 +19,11 @@ void echo(const O &o, Obj... obj) {
 }
 
 class DataType {
-  public:
+public:
 	DataType(const std::string &n) : name{n} {}
 	std::string toString() const { return name + " -> [value of Type]\n"; }
 
-  private:
+private:
 	std::string name;
 };
 

@@ -16,7 +16,7 @@ void echo(const T &t) {
 }
 
 class Obj {
-  public:
+public:
 	Obj() = default;
 	Obj(int valuex) : value{valuex} {}
 	int getValue() const { return value; }
@@ -25,7 +25,7 @@ class Obj {
 		return out;
 	}
 
-  private:
+private:
 	int value;
 };
 
