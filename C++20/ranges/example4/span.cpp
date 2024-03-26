@@ -22,5 +22,13 @@ int main() {
     for(const auto &e : s2) {
         std::cout << "last 3: " << e << "\n";
     }
+    auto c = v2.capacity();
+    v2.push_back("Lisp");
+    if(v2.capacity() != c) {
+        s2 = std::span<const std::string, 3>{v2.end()-3, v2.end()};
+    }
+    for(auto &e : s2) {
+        std::cout << "after capacity change: " << e << "\n";
+    }
     return 0;
 }
