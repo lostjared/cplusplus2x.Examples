@@ -16,5 +16,11 @@ int main() {
     for(const auto &e : s) {
         std::cout << "index: " << e << "\n";
     }
+    std::vector<std::string> v2 {"perl", "python", "java", "javascript", "c++" };
+    // last 3 elements
+    std::span<const std::string, 3> s2{v2.end() - 3, v2.end()};
+    for(const auto &e : s2) {
+        std::cout << "last 3: " << e << "\n";
+    }
     return 0;
 }
