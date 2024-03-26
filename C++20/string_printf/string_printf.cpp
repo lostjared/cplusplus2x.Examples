@@ -32,7 +32,7 @@ namespace io {
 		stream.clear();
 		return rt;
 	}
-} // namespace io
+}
 
 int main() {
 	std::string s = io::string_printf("test %s %d %f", "two", 10, 25.3f);
