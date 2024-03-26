@@ -1,7 +1,7 @@
-#include<iostream>
+#include <iostream>
 
-template<typename T>
-requires(!std::is_pointer_v<T>)
+template <typename T>
+	requires(!std::is_pointer_v<T>)
 T sub(T one, T two) {
 	return one - two;
 }
