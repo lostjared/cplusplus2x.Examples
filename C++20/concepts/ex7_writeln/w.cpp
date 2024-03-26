@@ -8,7 +8,9 @@ concept Output = requires(T type) {
 };
 
 template <Output T>
-void writeln(const T &type) { std::cout << type << "\n"; }
+void writeln(const T &type) {
+	std::cout << type << "\n";
+}
 
 template <Output T, Output... Args>
 void writeln(const T &type, Args... args) {

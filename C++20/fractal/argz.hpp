@@ -26,13 +26,7 @@ concept StringType = std::is_class_v<T> && requires(T type) {
 	{ type = T{} } -> std::same_as<T &>;
 };
 
-enum class ArgType {
-	ARG_SINGLE,
-	ARG_SINGLE_VALUE,
-	ARG_DOUBLE,
-	ARG_DOUBLE_VALUE,
-	ARG_NONE
-};
+enum class ArgType { ARG_SINGLE, ARG_SINGLE_VALUE, ARG_DOUBLE, ARG_DOUBLE_VALUE, ARG_NONE };
 
 template <StringType String>
 struct Argument {
@@ -51,9 +45,7 @@ struct Argument {
 		desc = a.desc;
 		return *this;
 	}
-	auto operator<=>(const Argument<String> &a) const {
-		return (arg_letter <=> a.arg_letter);
-	}
+	auto operator<=>(const Argument<String> &a) const { return (arg_letter <=> a.arg_letter); }
 };
 
 template <StringType String>
@@ -93,9 +85,7 @@ template <StringType String>
 class Argz {
   public:
 	Argz() = default;
-	Argz(int argc, char **argv) {
-		initArgs(argc, argv);
-	}
+	Argz(int argc, char **argv) { initArgs(argc, argv); }
 	Argz(const Argz<String> &a) : arg_data{a.arg_data}, arg_info{a.arg_info}, index{a.index}, cindex{a.cindex} {}
 
 	Argz<String> &operator=(const Argz<String> &a) {

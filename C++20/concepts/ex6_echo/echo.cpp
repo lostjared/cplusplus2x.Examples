@@ -8,7 +8,9 @@ concept Object = std::is_class_v<T> && requires(T t) {
 };
 
 template <Object O>
-void echo(const O o) { std::cout << o.toString(); }
+void echo(const O o) {
+	std::cout << o.toString();
+}
 
 template <Object O, Object... Obj>
 void echo(const O &o, Obj... obj) {

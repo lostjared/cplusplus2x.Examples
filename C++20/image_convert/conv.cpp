@@ -13,20 +13,11 @@
 #include <string>
 #include <vector>
 
-bool convertFiles(const std::vector<std::string> &list_files,
-				  std::string_view output, const int &width, const int &height);
+bool convertFiles(const std::vector<std::string> &list_files, std::string_view output, const int &width, const int &height);
 
 int main(int argc, char **argv) {
 	Argz<std::string> argz;
-	argz.initArgs(argc, argv)
-		.addOptionSingleValue('i', "input file")
-		.addOptionSingleValue('f', "image file input")
-		.addOptionSingleValue('o', "output file format")
-		.addOptionSingleValue('s', "scale resolution formst: WithxHeight")
-		.addOptionDoubleValue('I', "input", "input file")
-		.addOptionDoubleValue('O', "output", "output format")
-		.addOptionDoubleValue('S', "size", "scale resolution")
-		.addOptionDoubleValue('F', "file", "input image file");
+	argz.initArgs(argc, argv).addOptionSingleValue('i', "input file").addOptionSingleValue('f', "image file input").addOptionSingleValue('o', "output file format").addOptionSingleValue('s', "scale resolution formst: WithxHeight").addOptionDoubleValue('I', "input", "input file").addOptionDoubleValue('O', "output", "output format").addOptionDoubleValue('S', "size", "scale resolution").addOptionDoubleValue('F', "file", "input image file");
 
 	if (argc == 1) {
 		argz.help(std::cout);
@@ -91,10 +82,8 @@ int main(int argc, char **argv) {
 				return 0;
 			}
 			const std::string left{image_size.substr(0, pos)};
-			const std::string right{
-				image_size.substr(pos + 1, image_size.length() - pos)};
-			if (convertFiles(list_files, output_format, atoi(left.c_str()),
-							 atoi(right.c_str()))) {
+			const std::string right{image_size.substr(pos + 1, image_size.length() - pos)};
+			if (convertFiles(list_files, output_format, atoi(left.c_str()), atoi(right.c_str()))) {
 				std::cout << "image_convert: success.\n";
 			} else {
 				std::cout << "image_convert: failed.\n";
@@ -112,9 +101,7 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-bool convertFiles(const std::vector<std::string> &list_files,
-				  std::string_view output, const int &width,
-				  const int &height) {
+bool convertFiles(const std::vector<std::string> &list_files, std::string_view output, const int &width, const int &height) {
 
 	if (width == 0 || height == 0) {
 		std::cerr << "invalid with/height\n";
@@ -134,8 +121,7 @@ bool convertFiles(const std::vector<std::string> &list_files,
 			if (fname.length() > 0) {
 				cv::Mat inputf{cv::imread(i)};
 				if (width != -1 && height != -1) {
-					stream << fname << "." << width << "x" << height << "."
-						   << output;
+					stream << fname << "." << width << "x" << height << "." << output;
 				} else {
 					stream << fname << "." << output;
 				}
@@ -147,8 +133,7 @@ bool convertFiles(const std::vector<std::string> &list_files,
 					try {
 						if (width != -1 && height != -1) {
 							cv::Mat resized;
-							cv::resize(inputf, resized,
-									   cv::Size(width, height));
+							cv::resize(inputf, resized, cv::Size(width, height));
 							cv::imwrite(o_file, resized);
 							converted++;
 						} else {
@@ -156,8 +141,7 @@ bool convertFiles(const std::vector<std::string> &list_files,
 							converted++;
 						}
 					} catch (...) {
-						std::cerr << i << " could not convert to format "
-								  << output << "...\n";
+						std::cerr << i << " could not convert to format " << output << "...\n";
 					}
 				}
 			}

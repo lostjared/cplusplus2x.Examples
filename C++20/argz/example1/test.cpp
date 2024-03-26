@@ -3,8 +3,7 @@
 
 int main(int argc, char **argv) {
 	Argz<std::string> argz(argc, argv);
-	argz.addOptionSingleValue('i', "input data")
-		.addOptionSingle('h', "print out help");
+	argz.addOptionSingleValue('i', "input data").addOptionSingle('h', "print out help");
 
 	int value = 0;
 	Argument<std::string> arg;

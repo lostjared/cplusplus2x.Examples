@@ -19,9 +19,7 @@ namespace cv_fract {
 	}
 	class CV_Fractal {
 	  public:
-		CV_Fractal() : gen{rd()}, dist_int(0, 255) {
-			loadPalette();
-		}
+		CV_Fractal() : gen{rd()}, dist_int(0, 255) { loadPalette(); }
 		CV_Fractal(const double &center_real_, const double &center_imag_, const double &zoom, const int &iterations_, const int &thread_count_) : gen{rd()}, dist_int(0, 255) {
 			initParameters(center_real_, center_imag_, zoom, iterations_, thread_count_);
 			loadPalette();
@@ -38,13 +36,9 @@ namespace cv_fract {
 				std::cerr << "Error invalid iterations\n";
 		}
 
-		void setZoom(const double &z) {
-			zoom_ = z;
-		}
+		void setZoom(const double &z) { zoom_ = z; }
 
-		void resetPalette() {
-			loadPalette();
-		}
+		void resetPalette() { loadPalette(); }
 
 		void draw(cv::Mat &frame) {
 			const double aspect_ratio = static_cast<double>(frame.cols) / frame.rows;
