@@ -5,16 +5,18 @@
 template <typename T>
 concept Object = std::is_class_v<T>;
 
-template <Object O> void echo(const O &o) {
+template <Object O>
+void echo(const O &o) {
 	std::cout << "Object: " << o << "\n";
 }
 
-template <typename T> void echo(const T &t) {
+template <typename T>
+void echo(const T &t) {
 	std::cout << "Non Object: " << t << "\n";
 }
 
 class Obj {
-   public:
+  public:
 	Obj() = default;
 	Obj(int valuex) : value{valuex} {}
 	int getValue() const { return value; }
@@ -23,7 +25,7 @@ class Obj {
 		return out;
 	}
 
-   private:
+  private:
 	int value;
 };
 

@@ -21,7 +21,7 @@ int main() {
 	std::ranges::for_each(v, [](auto s) { std::cout << s << "\n"; });
 	std::ranges::sort(v, [](auto v1, auto v2) { return v2 < v1; });
 	std::ranges::for_each(
-	    v, [](auto s) { std::cout << "reverse: " << s << "\n"; });
+		v, [](auto s) { std::cout << "reverse: " << s << "\n"; });
 	for (const auto &i : std::views::all(v)) {
 		std::cout << "X: " << i << "\n";
 	}

@@ -7,9 +7,11 @@ concept Output = requires(T type) {
 	{ std::cout << type } -> std::same_as<std::ostream &>;
 };
 
-template <Output T> void writeln(const T &type) { std::cout << type << "\n"; }
+template <Output T>
+void writeln(const T &type) { std::cout << type << "\n"; }
 
-template <Output T, Output... Args> void writeln(const T &type, Args... args) {
+template <Output T, Output... Args>
+void writeln(const T &type, Args... args) {
 	std::cout << type;
 	writeln(args...);
 }
@@ -17,11 +19,11 @@ template <Output T, Output... Args> void writeln(const T &type, Args... args) {
 class Err {};
 
 class Type {
-   public:
+  public:
 	Type(int t) : type{t} {}
 	int getType() const { return type; }
 
-   private:
+  private:
 	int type;
 };
 

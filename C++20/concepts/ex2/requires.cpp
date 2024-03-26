@@ -12,7 +12,8 @@ void count_back(T start) {
 	}
 }
 
-template <is_signed_int I> void count_back(I start, I skip) {
+template <is_signed_int I>
+void count_back(I start, I skip) {
 	for (I i = start; i > 0; i -= skip) {
 		std::cout << "index: " << i << "\n";
 	}

@@ -5,7 +5,7 @@
 
 template <size_t N>
 constexpr static const int find(const std::array<int, N> &values,
-						  const int item) {
+								const int item) {
 	for (size_t i = 0; i < values.size(); ++i) {
 		if (values[i] == item)
 			return i;

@@ -16,7 +16,7 @@ struct Book {
 };
 
 class Database {
-   public:
+  public:
 	Database() = default;
 	Database(const Database &b) = delete;
 	Database(Database &&b) : db{std::move(b.db)}, index{b.index} {}
@@ -63,7 +63,7 @@ class Database {
 		}
 	}
 
-   private:
+  private:
 	std::unordered_map<int, Book> db;
 	int index;
 };

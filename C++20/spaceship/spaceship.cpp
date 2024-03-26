@@ -1,13 +1,13 @@
 #include <iostream>
 
 class Rect {
-   public:
+  public:
 	int x, y, w, h;
 	auto operator<=>(const Rect &r) const = default;
 };
 
 class Point {
-   public:
+  public:
 	int x, y;
 	// only order by x
 	auto operator<=>(const Point &p) const { return (x <=> p.x); }

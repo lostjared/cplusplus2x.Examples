@@ -19,7 +19,8 @@ auto push_sub(C &cont, T1 type1, T2 type2) {
 	return type1 - type2;
 }
 
-template <typename C, Numeric T> void add_num(C &cont, const T &type) {
+template <typename C, Numeric T>
+void add_num(C &cont, const T &type) {
 	cont.push_back(type);
 }
 

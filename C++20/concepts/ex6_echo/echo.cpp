@@ -7,19 +7,21 @@ concept Object = std::is_class_v<T> && requires(T t) {
 	{ t.toString() } -> std::same_as<std::string>;
 };
 
-template <Object O> void echo(const O o) { std::cout << o.toString(); }
+template <Object O>
+void echo(const O o) { std::cout << o.toString(); }
 
-template <Object O, Object... Obj> void echo(const O &o, Obj... obj) {
+template <Object O, Object... Obj>
+void echo(const O &o, Obj... obj) {
 	std::cout << o.toString();
 	echo(obj...);
 }
 
 class DataType {
-   public:
+  public:
 	DataType(const std::string &n) : name{n} {}
 	std::string toString() const { return name + " -> [value of Type]\n"; }
 
-   private:
+  private:
 	std::string name;
 };
 

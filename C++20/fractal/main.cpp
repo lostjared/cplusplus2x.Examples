@@ -6,7 +6,7 @@
 class splitException {};
 
 std::pair<double, double> splitPair(std::string_view src,
-							 std::string_view sep) {
+									std::string_view sep) {
 	const auto pos{src.find(sep)};
 	if (pos == std::string::npos)
 		throw splitException{};
@@ -73,8 +73,8 @@ int main(int argc, char **argv) {
 		}
 
 		if (img_size.length() == 0 || real_size.length() == 0 ||
-		    zoom_info.length() == 0 || iter_info.length() == 0 ||
-		    core_info.length() == 0 || fname.length() == 0) {
+			zoom_info.length() == 0 || iter_info.length() == 0 ||
+			core_info.length() == 0 || fname.length() == 0) {
 			std::cerr << "Error missing argument..\n";
 			argz.help(std::cout);
 			return 0;
@@ -86,19 +86,19 @@ int main(int argc, char **argv) {
 		const int iter_value = atoi(iter_info.c_str());
 		const int core_value = atoi(core_info.c_str());
 		std::cout << "[ " << fname << " ]: Fractal -> "
-				<< static_cast<int>(isize.first) << "x"
-				<< static_cast<int>(isize.second) << " " << m_values.first
-				<< "," << m_values.second << " " << zoom_value << " "
-				<< iter_value << " " << core_value << "\n";
+				  << static_cast<int>(isize.first) << "x"
+				  << static_cast<int>(isize.second) << " " << m_values.first
+				  << "," << m_values.second << " " << zoom_value << " "
+				  << iter_value << " " << core_value << "\n";
 		//-0.743643887032151
 		// 0.142625924205330
 		cv::Mat m;
 		m.create(cv::Size(static_cast<int>(isize.first),
-					   static_cast<int>(isize.second)),
-			    CV_8UC3);
+						  static_cast<int>(isize.second)),
+				 CV_8UC3);
 		cv_fract::CV_Fractal cvfrac;
 		cvfrac.initParameters(m_values.first, m_values.second, zoom_value,
-						  iter_value, core_value);
+							  iter_value, core_value);
 		cvfrac.resetPalette();
 		cvfrac.draw(m);
 		cv::imwrite(fname, m);
