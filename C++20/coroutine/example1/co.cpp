@@ -3,9 +3,9 @@
 #include <coroutine>
 #include <cstdlib>
 #include <iostream>
-#include<string>
+#include <string>
 
-template<typename T>
+template <typename T>
 class Task {
 public:
 	template <typename Type>
@@ -29,7 +29,7 @@ public:
 		}
 	}
 	Task(const Task<T> &) = delete;
-	Task<T> &operator=(const Task <T>&) = delete;
+	Task<T> &operator=(const Task<T> &) = delete;
 
 	bool resume() const {
 		if (!coro) {
@@ -39,26 +39,28 @@ public:
 		return !coro.done();
 	}
 	T getValue() { return coro.promise().value; }
+
 private:
 	std::coroutine_handle<promise_type> coro;
 };
 
 // coroutines would work perfect for a text scanner
-template<typename T>
+template <typename T>
 class Scanner {
 public:
-    Task<T> getNext() {
-        while(cur_token.length() < 5) {
-            cur_token += T{"x"};
-            co_yield cur_token;
-        }
-    }
+	Task<T> getNext() {
+		while (cur_token.length() < 5) {
+			cur_token += T{"x"};
+			co_yield cur_token;
+		}
+	}
+
 private:
-    T cur_token;
+	T cur_token;
 };
 
 int main() {
-    Scanner<std::string> scan;
+	Scanner<std::string> scan;
 	auto i = scan.getNext();
 	while (i.resume()) {
 		std::cout << "call -> " << i.getValue() << "\n";
