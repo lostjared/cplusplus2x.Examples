@@ -1,58 +1,57 @@
+/* Use GCC 13.2  or greater */
+// Help from Chapter 15 C++ 20 The Complete Guide
 #include <coroutine>
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 
-template<typename T>
-struct Counter {
-    struct counter_promise {
-        T value;
-        auto yield_value(T val) -> std::suspend_always {
-            value = val;
-            return {};
-        }
-        auto initial_suspend() { return std::suspend_always{}; }
-        auto final_suspend() noexcept { return std::suspend_always{}; }
-        auto get_return_object() {
-            // Corrected to return an instance of Counter
-            return Counter{std::coroutine_handle<counter_promise>::from_promise(*this)};
-        }
-        void return_void() {}
-        void unhandled_exception() {
-            std::exit(EXIT_FAILURE);
-        }
-    };
-    std::coroutine_handle<counter_promise> coro;
-    explicit Counter(std::coroutine_handle<counter_promise> h) : coro{h} {}
-    ~Counter() { if(coro) coro.destroy(); }
-    Counter(const Counter &) = delete;
-    Counter &operator=(const Counter &) = delete;
-    Counter(Counter &&c) noexcept : coro{c.coro} { c.coro = nullptr; }
-    Counter &operator=(Counter  &&c) noexcept {
-        coro = c.coro;
-        c.coro = nullptr;
-        return *this;
-    }
+class Task {
+public:
+	template <typename Type>
+	struct Promise {
+		int value = 0;
+		auto get_return_object() { return std::coroutine_handle<Promise<Type>>::from_promise(*this); }
+		auto initial_suspend() { return std::suspend_always{}; }
+		auto final_suspend() noexcept { return std::suspend_always{}; }
+		void unhandled_exception() { std::terminate(); }
+		void return_void() {}
+		std::suspend_always yield_value(int val) {
+			value = val;
+			return {};
+		}
+	};
+	using promise_type = Promise<Task>;
+	Task(auto h) : coro{h} {}
+	~Task() {
+		if (coro) {
+			coro.destroy();
+		}
+	}
+	Task(const Task &) = delete;
+	Task &operator=(const Task &) = delete;
 
-    T getValue() {
-        return coro.promise().value;
-    }
+	bool resume() const {
+		if (!coro) {
+			return false;
+		}
+		coro.resume();
+		return !coro.done();
+	}
 
-    bool next() {
-        if(coro.done()) return false;
-        coro.resume();
-        return true;
-    }
+	int getValue() { return coro.promise().value; }
+
+private:
+	std::coroutine_handle<promise_type> coro;
 };
 
-Counter<int> count_to(int n) {
-    for(int i = 0; i < n; ++i)
-        co_yield i;
+Task count_to(int n) {
+	for (int i = 0; i < n; ++i) {
+		co_yield (i);
+	}
 }
 
 int main() {
-    Counter<int> cx = count_to(5); 
-    while(cx.next()) {
-        std::cout << "call: " << cx.getValue() << "\n";
-    }
-    return 0;
+	auto i = count_to(5);
+	while (i.resume()) {
+		std::cout << "call -> " << i.getValue() << "\n";
+	}
 }
