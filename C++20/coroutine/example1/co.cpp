@@ -49,7 +49,7 @@ class Scanner {
 public:
     Task<T> getNext() {
         while(cur_token.length() < 5) {
-            cur_token += "x";
+            cur_token += T{"x"};
             co_yield cur_token;
         }
     }
