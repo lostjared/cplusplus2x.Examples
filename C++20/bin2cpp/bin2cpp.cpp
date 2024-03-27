@@ -72,6 +72,10 @@ int main(int argc, char **argv) {
 				convertStreamToArray(variable_name + "_arr", data, std::cout);
 			else {
 				std::fstream file;
+				const auto pos {output_file.rfind(".hpp")};
+				if(pos == std::string::npos)
+					output_file += ".hpp";
+
 				file.open(output_file, std::ios::out);
 				if (!file.is_open()) {
 					std::cerr << "Error could not open output file..\n";
@@ -79,8 +83,9 @@ int main(int argc, char **argv) {
 				}
 				file << "#ifndef __ARR_H_HPP_\n";
 				file << "#define __ARR_H_HPP_\n";
+				file << "#include<array>\n\n";
 				convertStreamToArray(variable_name + "_arr", data, file);
-				file << "#endif\n";
+				file << "\n\n#endif\n";
 				file.close();
 			}
 		}
