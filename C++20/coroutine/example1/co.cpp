@@ -61,7 +61,7 @@ private:
 
 int main() {
 	Scanner<std::string> scan;
-	auto i = scan.getNext();
+	auto i {scan.getNext()};
 	while (i.resume()) {
 		std::cout << "call -> " << i.getValue() << "\n";
 	}
