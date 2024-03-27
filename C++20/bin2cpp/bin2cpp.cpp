@@ -21,7 +21,7 @@ void convertStream(std::string_view name, std::istream &in, std::ostream &out) {
     while(!in.eof()) {
         char c{};
         in.read(&c, sizeof(char));
-        std::string hex = std::format("0x{:X}", c);
+        const std::string hex {std::format("0x{:X}", c)};
         if(in)
             out << hex << ",";
         else
