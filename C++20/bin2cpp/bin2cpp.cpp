@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
 			file.seekg(0, std::ios::end);
 			len = file.tellg();
 			file.seekg(0, std::ios::beg);
-			std::unique_ptr<char[]> buf(new char[len+1]);
+			std::unique_ptr<char[]> buf{new char[len+1]};
 			file.read(buf.get(), len);
 			file.close();
 			if (output_file.length() == 0) {
