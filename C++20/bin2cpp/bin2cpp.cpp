@@ -106,7 +106,7 @@ void convertStreamToVector(std::string_view name, std::istream &in, std::ostream
 	while (!in.eof()) {
 		uint8_t c{};
 		in.read(reinterpret_cast<char *>(&c), sizeof(uint8_t));
-		const std::string hex{std::format("0x{:X}", c)};
+		const std::string hex{std::format("0x{:X}", static_cast<uint8_t>(c))};
 		if (in)
 			out << hex << ",";
 		else
@@ -118,7 +118,7 @@ void convertStreamToVector(std::string_view name, std::istream &in, std::ostream
 void convertStreamToArray(std::string_view name, const char *data, std::size_t length, std::ostream &out) {
 	out << "inline const std::array<unsigned char, " << length + 1 << "> " << name << " {";
 	for(std::size_t i = 0; i < length; ++i) {
-		const std::string hex{std::format("0x{:X}", static_cast<unsigned char>(data[i]))};
+		const std::string hex{std::format("0x{:X}", static_cast<uint8_t>(data[i]))};
 		out << hex << ",";
 	}
 	const std::string hex{std::format("0x{:X}", 0x0)};
