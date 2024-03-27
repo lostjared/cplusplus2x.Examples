@@ -80,6 +80,7 @@ int main(int argc, char **argv) {
 				file.open(output_file, std::ios::out);
 				if (!file.is_open()) {
 					std::cerr << "Error could not open output file..\n";
+					delete [] buf;
 					return EXIT_FAILURE;
 				}
 				file << "#ifndef __ARR_H_HPP_\n";
