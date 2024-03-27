@@ -1,3 +1,5 @@
+/* Compile with GCC 13.2 or greater */
+
 #include<iostream>
 #include<string>
 #include<format>
