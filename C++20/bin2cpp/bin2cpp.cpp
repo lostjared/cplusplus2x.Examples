@@ -23,10 +23,11 @@ int main(int argc, char **argv) {
 	}
 	try {
 		Argz<std::string> argz(argc, argv);
-		argz.addOptionSingleValue('i', "input file").addOptionDoubleValue('I', "input", "input file").addOptionSingleValue('o', "output").addOptionDoubleValue('O', "output", "output file").addOptionSingle('h', "help").addOptionDouble('H', "help", "help message");
+		argz.addOptionSingleValue('i', "input file").addOptionDoubleValue('I', "input", "input file").addOptionSingleValue('o', "output").addOptionDoubleValue('O', "output", "output file").addOptionSingle('h', "help").addOptionDouble('H', "help", "help message").addOptionSingleValue('v', "variable name").addOptionDoubleValue('V', "variable", "variable name");
 		Argument<std::string> arg;
 		int value{};
-		std::string input_file, output_file;
+		std::string input_file, output_file, variable_name{"bin"};
+		;
 		while ((value = argz.proc(arg)) != -1) {
 			switch (value) {
 			case 'i':
@@ -41,6 +42,10 @@ int main(int argc, char **argv) {
 			case 'h':
 				argz.help(std::cout);
 				return EXIT_SUCCESS;
+			case 'v':
+			case 'V':
+				variable_name = arg.arg_value;
+				break;
 			}
 		}
 		if (input_file.length() == 0) {
@@ -64,7 +69,7 @@ int main(int argc, char **argv) {
 			delete[] buf;
 			file.close();
 			if (output_file.length() == 0)
-				convertStreamToArray("arr", data, std::cout);
+				convertStreamToArray(variable_name + "_arr", data, std::cout);
 			else {
 				std::fstream file;
 				file.open(output_file, std::ios::out);
@@ -74,7 +79,7 @@ int main(int argc, char **argv) {
 				}
 				file << "#ifndef __ARR_H_HPP_\n";
 				file << "#define __ARR_H_HPP_\n";
-				convertStreamToArray("arr", data, file);
+				convertStreamToArray(variable_name + "_arr", data, file);
 				file << "#endif\n";
 				file.close();
 			}
