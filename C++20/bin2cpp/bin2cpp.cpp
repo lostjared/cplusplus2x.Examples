@@ -11,7 +11,7 @@
 #include <vector>
 
 void convertStreamToVector(std::string_view name, std::istream &in, std::ostream &out);
-void convertStreamToArray(std::string_view name, std::string_view data, std::ostream &out);
+void convertStreamToArray(std::string_view name, const char *data, std::size_t length, std::ostream &out);
 void stringOutputVector(const std::vector<unsigned char> &v);
 template <std::size_t N>
 void stringOutputArray(std::array<unsigned char, N> &a);
@@ -65,15 +65,16 @@ int main(int argc, char **argv) {
 			file.seekg(0, std::ios::beg);
 			char *buf = new char[len + 1];
 			file.read(buf, len);
-			std::string data = buf;
-			delete[] buf;
 			file.close();
-			if (output_file.length() == 0)
-				convertStreamToArray(variable_name + "_arr", data, std::cout);
+			if (output_file.length() == 0) {
+				convertStreamToArray(variable_name + "_arr", buf, len, std::cout);
+				delete [] buf;
+				return EXIT_SUCCESS;
+			}
 			else {
 				std::fstream file;
-				const auto pos {output_file.rfind(".hpp")};
-				if(pos == std::string::npos)
+				const auto pos{output_file.rfind(".hpp")};
+				if (pos == std::string::npos)
 					output_file += ".hpp";
 
 				file.open(output_file, std::ios::out);
@@ -84,7 +85,8 @@ int main(int argc, char **argv) {
 				file << "#ifndef __ARR_H_HPP_\n";
 				file << "#define __ARR_H_HPP_\n";
 				file << "#include<array>\n\n";
-				convertStreamToArray(variable_name + "_arr", data, file);
+				convertStreamToArray(variable_name + "_arr", buf, len, file);
+				delete [] buf;
 				file << "\n\n#endif\n";
 				file.close();
 			}
@@ -112,10 +114,10 @@ void convertStreamToVector(std::string_view name, std::istream &in, std::ostream
 	out << "};\n";
 }
 
-void convertStreamToArray(std::string_view name, std::string_view data, std::ostream &out) {
-	out << "inline const std::array<unsigned char, " << data.length() + 1 << "> " << name << " {";
-	for (const auto &elm : std::views::all(data)) {
-		const std::string hex{std::format("0x{:X}", elm)};
+void convertStreamToArray(std::string_view name, const char *data, std::size_t length, std::ostream &out) {
+	out << "inline const std::array<unsigned char, " << length + 1 << "> " << name << " {";
+	for(std::size_t i = 0; i < length; ++i) {
+		const std::string hex{std::format("0x{:X}", static_cast<unsigned char>(data[i]))};
 		out << hex << ",";
 	}
 	const std::string hex{std::format("0x{:X}", 0x0)};
