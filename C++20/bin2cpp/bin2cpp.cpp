@@ -9,6 +9,7 @@
 #include <ranges>
 #include <string>
 #include <vector>
+#include <memory>
 
 void convertStreamToVector(std::string_view name, std::istream &in, std::ostream &out);
 void convertStreamToArray(std::string_view name, const char *data, std::size_t length, std::ostream &out);
@@ -63,12 +64,11 @@ int main(int argc, char **argv) {
 			file.seekg(0, std::ios::end);
 			len = file.tellg();
 			file.seekg(0, std::ios::beg);
-			char *buf = new char[len + 1];
-			file.read(buf, len);
+			std::unique_ptr<char[]> buf(new char[len+1]);
+			file.read(buf.get(), len);
 			file.close();
 			if (output_file.length() == 0) {
-				convertStreamToArray(variable_name + "_arr", buf, len, std::cout);
-				delete [] buf;
+				convertStreamToArray(variable_name + "_arr", buf.get(), len, std::cout);
 				return EXIT_SUCCESS;
 			}
 			else {
@@ -80,14 +80,12 @@ int main(int argc, char **argv) {
 				file.open(output_file, std::ios::out);
 				if (!file.is_open()) {
 					std::cerr << "Error could not open output file..\n";
-					delete [] buf;
 					return EXIT_FAILURE;
 				}
 				file << "#ifndef __ARR_H_HPP_\n";
 				file << "#define __ARR_H_HPP_\n";
 				file << "#include<array>\n\n";
-				convertStreamToArray(variable_name + "_arr", buf, len, file);
-				delete [] buf;
+				convertStreamToArray(variable_name + "_arr", buf.get(), len, file);
 				file << "\n\n#endif\n";
 				file.close();
 			}
