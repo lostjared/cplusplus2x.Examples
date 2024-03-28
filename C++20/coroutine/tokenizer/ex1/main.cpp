@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 		std::getline(std::wcin, s);
 		scanner.set(s, L" ");
 		auto tokens{collect(scanner.tokenizer())};
-		int index = 0;
+		int index {};
 		for (const auto &token : std::views::all(tokens)) {
 			std::wcout << L"token: " << index++ << L" " << token << L"\n";
 		}
