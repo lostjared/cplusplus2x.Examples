@@ -69,7 +69,6 @@ public:
 
 private:
 	T::size_type pos;
-	T cur_token;
 	T source;
 	T sep;
 };
