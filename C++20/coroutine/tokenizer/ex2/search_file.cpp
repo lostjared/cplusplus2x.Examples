@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     if(tokens.size() > 0) {
         for(const auto &s : std::views::all(tokens)) {
             if(data.find(s) != std::string::npos) {
-                std::cout << "Found search substring: " << s << "\n";
+                std::cout << argv[1] << ": Found search substring: " << s << "\n";
             }
         }
     }
