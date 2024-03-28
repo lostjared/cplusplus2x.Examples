@@ -65,7 +65,7 @@ public:
 	}
 	Tokenizer<T> tokenizer() {
 		auto s = source.find(sep, pos);
-		while (s != std::string::npos) {
+		while (s != T::npos) {
 			T cur_token{source.substr(pos, s - pos)};
 			pos = s + sep.length();
 			if (cur_token.length() > 0)
