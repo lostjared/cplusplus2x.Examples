@@ -62,7 +62,7 @@ public:
 			co_yield cur_token;
 			s = source.find(sep, pos);
 		}
-		std::string last{source.substr(pos, source.length())};
+		T last{source.substr(pos, source.length())};
 		if (last.length() > 0)
 			co_yield last;
 	}
