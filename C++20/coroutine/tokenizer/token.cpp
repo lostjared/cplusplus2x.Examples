@@ -113,7 +113,7 @@ int main() {
 	scan.set("abc->one->two->apples", "->");
 	auto t{scan.tokenizer()};
 	auto v2{collect(std::move(t))};
-	for(const auto &i : std::views::all(v2)) {
+	for (const auto &i : std::views::all(v2)) {
 		std::cout << i << "\n";
 	}
 	return 0;
