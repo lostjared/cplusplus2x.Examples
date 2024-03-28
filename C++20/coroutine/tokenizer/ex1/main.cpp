@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
         scanner.set(s, L" ");
         auto tokens{collect(scanner.tokenizer())};
         int index = 0;
-        for(const auto &token : tokens) {
+        for(const auto &token : std::views::all(tokens)) {
             std::wcout << L"token: " << index++ << L" " << token << L"\n";
         }
         if(tokens.size() > 0 && tokens.at(0) == L"quit") {
