@@ -58,7 +58,7 @@ template <typename T>
 class Scanner {
 public:
 	Scanner() = default;
-	explicit Scanner(const T &src, const T &seperator) : pos{}, source{src}, sep{seperator} {}
+	Scanner(const T &src, const T &seperator) : pos{}, source{src}, sep{seperator} {}
 
 	void reset() { pos = 0; }
 
