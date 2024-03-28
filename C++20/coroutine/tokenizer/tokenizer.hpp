@@ -40,14 +40,14 @@ public:
 		return *this;
 	}
 
-	bool resume() const {
+	bool next() const {
 		if (!coro) {
 			return false;
 		}
 		coro.resume();
 		return !coro.done();
 	}
-	T getValue() { return coro.promise().value; }
+	T getToken() { return coro.promise().value; }
 
 private:
 	std::coroutine_handle<promise_type> coro;
@@ -86,8 +86,8 @@ private:
 template <typename T>
 auto collect(Tokenizer<T> &&tokens) -> std::vector<T> {
 	std::vector<T> v;
-	while (tokens.resume()) {
-		v.push_back(tokens.getValue());
+	while (tokens.next()) {
+		v.push_back(tokens.getToken());
 	}
 	return v;
 }

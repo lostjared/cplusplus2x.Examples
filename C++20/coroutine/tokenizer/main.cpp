@@ -6,16 +6,16 @@ int main() {
 	Scanner<std::string> scan("test one two three", " ");
 	auto i{scan.tokenizer()};
 	int index = 0;
-	while (i.resume()) {
+	while (i.next()) {
 		++index;
-		std::cout << "calling index: " << index << " -> " << i.getValue() << "\n";
+		std::cout << "calling index: " << index << " -> " << i.getToken() << "\n";
 	}
 	scan.set("test::cpp::plus", "::");
 	auto s{scan.tokenizer()};
 	index = 0;
-	while (s.resume()) {
+	while (s.next()) {
 		++index;
-		std::cout << "index: " << index << " -> " << s.getValue() << "\n";
+		std::cout << "index: " << index << " -> " << s.getToken() << "\n";
 	}
 	scan.set("test;one;two;three;;;", ";");
 	auto v{collect(scan.tokenizer())};
