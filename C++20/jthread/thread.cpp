@@ -18,5 +18,6 @@ int main() {
     std::jthread t(thread1);
     std::this_thread::sleep_for(std::chrono::seconds(3));
     t.request_stop();
+    t.join();
     return 0;
 }
