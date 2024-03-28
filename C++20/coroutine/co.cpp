@@ -14,7 +14,7 @@ public:
 		auto final_suspend() noexcept { return std::suspend_always{}; }
 		void unhandled_exception() { std::terminate(); }
 		void return_void() {}
-		std::suspend_always yield_value(int val) {
+		std::suspend_always yield_value(const int &val) {
 			value = val;
 			return {};
 		}

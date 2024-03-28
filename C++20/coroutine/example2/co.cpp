@@ -15,11 +15,11 @@ public:
 		auto initial_suspend() { return std::suspend_always{}; }
 		auto final_suspend() noexcept { return std::suspend_always{}; }
 		void unhandled_exception() { std::terminate(); }
-		std::suspend_always yield_value(T val) {
+		std::suspend_always yield_value(const T &val) {
 			value = val;
 			return {};
 		}
-		void return_value(const auto &val) { value = val; }
+		void return_value(const T &val) { value = val; }
 	};
 	using promise_type = Promise<Task<T>>;
 	Task(auto h) : coro{h} {}
