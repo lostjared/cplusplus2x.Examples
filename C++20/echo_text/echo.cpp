@@ -43,7 +43,6 @@ int main(int argc, char **argv) {
 				break;
 			}
 		}
-
 		if (delay_time.length() == 0) {
 			std::cerr << "requires delay..\n";
 			argz.help(std::cout);
@@ -54,7 +53,6 @@ int main(int argc, char **argv) {
 			argz.help(std::cout);
 			return 0;
 		}
-
 		std::string data{readStringFromFile(filename)};
 		int delay{atoi(delay_time.c_str())};
 		for (const auto &elm : data) {
