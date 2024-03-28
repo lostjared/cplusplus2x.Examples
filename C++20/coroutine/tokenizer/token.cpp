@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include<vector>
+#include<ranges>
 
 template <typename T>
 class Tokenizer {
@@ -59,7 +61,8 @@ public:
 		while (s != std::string::npos) {
 			std::string cur_token{source.substr(pos, s - pos)};
 			pos = s + sep.length();
-			co_yield cur_token;
+			if(cur_token.length() > 0)
+				co_yield cur_token;
 			s = source.find(sep, pos);
 		}
 		T last{source.substr(pos, source.length())};
@@ -72,6 +75,15 @@ private:
 	T source;
 	T sep;
 };
+
+template<typename T>
+auto collect(Tokenizer<T> tokens) -> std::vector<T> {
+	std::vector<T> v;
+	while(tokens.resume()) {
+		v.push_back(tokens.getValue());
+	}
+	return v;
+}
 
 int main() {
 	Scanner<std::string> scan("test one two three", " ");
@@ -87,6 +99,12 @@ int main() {
 	while (s.resume()) {
 		++index;
 		std::cout << "index: " << index << " -> " << s.getValue() << "\n";
+	}
+
+	scan.set("test;one;two;three;;;", ";");
+	auto v{collect(scan.tokenizer())};
+	for(const auto &i : std::views::all(v)) {
+		std::cout << "vector: " << i << "\n";
 	}
 	return 0;
 }
