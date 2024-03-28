@@ -3,9 +3,9 @@
 #include <coroutine>
 #include <cstdlib>
 #include <iostream>
+#include <ranges>
 #include <string>
-#include<vector>
-#include<ranges>
+#include <vector>
 
 template <typename T>
 class Tokenizer {
@@ -61,7 +61,7 @@ public:
 		while (s != std::string::npos) {
 			std::string cur_token{source.substr(pos, s - pos)};
 			pos = s + sep.length();
-			if(cur_token.length() > 0)
+			if (cur_token.length() > 0)
 				co_yield cur_token;
 			s = source.find(sep, pos);
 		}
@@ -76,10 +76,10 @@ private:
 	T sep;
 };
 
-template<typename T>
+template <typename T>
 auto collect(Tokenizer<T> tokens) -> std::vector<T> {
 	std::vector<T> v;
-	while(tokens.resume()) {
+	while (tokens.resume()) {
 		v.push_back(tokens.getValue());
 	}
 	return v;
@@ -100,10 +100,9 @@ int main() {
 		++index;
 		std::cout << "index: " << index << " -> " << s.getValue() << "\n";
 	}
-
 	scan.set("test;one;two;three;;;", ";");
 	auto v{collect(scan.tokenizer())};
-	for(const auto &i : std::views::all(v)) {
+	for (const auto &i : std::views::all(v)) {
 		std::cout << "vector: " << i << "\n";
 	}
 	return 0;
