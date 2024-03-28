@@ -48,29 +48,30 @@ private:
 template <typename T>
 class Scanner {
 public:
-    explicit Scanner(const T &src, const T &seperator) : pos{}, source{src}, sep{seperator} {}
-    void set(const T &src, const T &s) {
-        source = src;
-        sep = s;
-        pos = 0;
-    }
-	Tokenizer<T> tokenizer() {
-        auto s = source.find(sep, pos);
-        while(s != std::string::npos) {
-            std::string cur_token {source.substr(pos, s-pos)};
-            pos = s + sep.length();
-            co_yield cur_token;
-            s = source.find(sep, pos);
-        }
-        std::string last {source.substr(pos, source.length())};
-        if(last.length() > 0)
-            co_yield last;
+	explicit Scanner(const T &src, const T &seperator) : pos{}, source{src}, sep{seperator} {}
+	void set(const T &src, const T &s) {
+		source = src;
+		sep = s;
+		pos = 0;
 	}
+	Tokenizer<T> tokenizer() {
+		auto s = source.find(sep, pos);
+		while (s != std::string::npos) {
+			std::string cur_token{source.substr(pos, s - pos)};
+			pos = s + sep.length();
+			co_yield cur_token;
+			s = source.find(sep, pos);
+		}
+		std::string last{source.substr(pos, source.length())};
+		if (last.length() > 0)
+			co_yield last;
+	}
+
 private:
-    T::size_type pos;
+	T::size_type pos;
 	T cur_token;
-    T source;
-    T sep;
+	T source;
+	T sep;
 };
 
 int main() {
@@ -81,12 +82,12 @@ int main() {
 		++index;
 		std::cout << "calling index: " << index << " -> " << i.getValue() << "\n";
 	}
-    scan.set("test::cpp::plus", "::");
-    auto s{scan.tokenizer()};
-    index = 0;
-    while(s.resume()) {
-        ++index;
-        std::cout << "index: " << index << " -> " << s.getValue() << "\n";
-    }
-    return 0;
+	scan.set("test::cpp::plus", "::");
+	auto s{scan.tokenizer()};
+	index = 0;
+	while (s.resume()) {
+		++index;
+		std::cout << "index: " << index << " -> " << s.getValue() << "\n";
+	}
+	return 0;
 }
