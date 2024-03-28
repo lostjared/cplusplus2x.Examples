@@ -32,6 +32,11 @@ public:
 	}
 	Tokenizer(const Tokenizer<T> &) = delete;
 	Tokenizer<T> &operator=(const Tokenizer<T> &) = delete;
+	Tokenizer(Tokenizer<T> &&t) : coro{t.coro} {}
+	Tokenizer<T> &operator=(Tokenizer<T> &&t) {
+		coro = t.coro;
+		return *this;
+	}
 
 	bool resume() const {
 		if (!coro) {
@@ -77,7 +82,7 @@ private:
 };
 
 template <typename T>
-auto collect(Tokenizer<T> tokens) -> std::vector<T> {
+auto collect(Tokenizer<T> &&tokens) -> std::vector<T> {
 	std::vector<T> v;
 	while (tokens.resume()) {
 		v.push_back(tokens.getValue());
@@ -104,6 +109,12 @@ int main() {
 	auto v{collect(scan.tokenizer())};
 	for (const auto &i : std::views::all(v)) {
 		std::cout << "vector: " << i << "\n";
+	}
+	scan.set("abc->one->two->apples", "->");
+	auto t{scan.tokenizer()};
+	auto v2{collect(std::move(t))};
+	for(const auto &i : std::views::all(v2)) {
+		std::cout << i << "\n";
 	}
 	return 0;
 }
