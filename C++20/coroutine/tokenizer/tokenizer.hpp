@@ -58,10 +58,13 @@ template <typename T>
 class Scanner {
 public:
 	explicit Scanner(const T &src, const T &seperator) : pos{}, source{src}, sep{seperator} {}
+	
+	void reset() { pos = 0; }
+
 	void set(const T &src, const T &s) {
 		source = src;
 		sep = s;
-		pos = 0;
+		reset();
 	}
 	Tokenizer<T> tokenizer() {
 		auto s = source.find(sep, pos);
