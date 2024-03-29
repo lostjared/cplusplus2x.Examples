@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
 		} else {
 			if(variable_name.length() == 0) {
 				std::cerr << "Requires variable name... use -v\n";
-				argz.help(std::coutg);
+				argz.help(std::cout);
 				return EXIT_FAILURE;
 			}
 			std::fstream file;
