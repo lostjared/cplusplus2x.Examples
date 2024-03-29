@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
 
 	} catch (const ArgException<std::string> &e) {
 		std::cerr << "Syntax Error: " << e.text() << "\n";
-	} catch (std::runtime_error &e) {
+	} catch (const std::runtime_error &e) {
 		std::cerr << "Runtime Error: " << e.what() << "\n";
 	}
 	return 0;

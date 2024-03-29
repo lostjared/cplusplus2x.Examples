@@ -58,13 +58,18 @@ template <typename T>
 class Scanner {
 public:
 	Scanner() = default;
-	Scanner(const T &src, const T &seperator) : pos{}, source{src}, sep{seperator} {}
+	Scanner(const T &src, const T &seperator) : pos{}, source{src}, sep{seperator} {
+		if(sep.length() == 0)
+			throw std::runtime_error("Seperation string must not be zero length");
+	}
 
 	void reset() { pos = 0; }
 
 	void set(const T &src, const T &s) {
 		source = src;
 		sep = s;
+		if(sep.length() == 0) 
+			throw std::runtime_error("Seperation string must not be zero length");
 		reset();
 	}
 	Tokenizer<T> tokenizer() {
