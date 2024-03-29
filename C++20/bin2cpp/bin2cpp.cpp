@@ -78,8 +78,8 @@ int main(int argc, char **argv) {
 					std::cerr << "Error could not open output file..\n";
 					return EXIT_FAILURE;
 				}
-				file << "#ifndef __ARR_H_HPP_\n";
-				file << "#define __ARR_H_HPP_\n";
+				file << "#ifndef __ARR_H_HPP_" << variable_name << "\n";
+				file << "#define __ARR_H_HPP_" << variable_name << "\n";
 				file << "#include<array>\n\n";
 				convertStreamToArray(variable_name + "_arr", buf.get(), len, file);
 				file << "\n\n#endif\n";
