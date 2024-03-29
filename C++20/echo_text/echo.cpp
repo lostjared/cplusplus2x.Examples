@@ -7,28 +7,28 @@
 #include <thread>
 
 std::string readStringFromFile(const std::string &name) {
-    std::ifstream file{name, std::ios::in | std::ios::binary | std::ios::ate};
-    if (!file.is_open()) {
-        throw std::runtime_error("Could not open file: " + name);
-    }
-    auto len{file.tellg()};
-    if (len == -1) {
-        throw std::runtime_error("Could not get length of the file: " + name);
-    }
-    std::string temp;
-    temp.resize(len);
-    file.seekg(0, std::ios::beg);
-    file.read(&temp[0], len);
-    if (!file) {
-        throw std::runtime_error("Error reading file: " + name);
-    }
-    return temp;
+	std::ifstream file{name, std::ios::in | std::ios::binary | std::ios::ate};
+	if (!file.is_open()) {
+		throw std::runtime_error("Could not open file: " + name);
+	}
+	auto len{file.tellg()};
+	if (len == -1) {
+		throw std::runtime_error("Could not get length of the file: " + name);
+	}
+	std::string temp;
+	temp.resize(len);
+	file.seekg(0, std::ios::beg);
+	file.read(&temp[0], len);
+	if (!file) {
+		throw std::runtime_error("Error reading file: " + name);
+	}
+	return temp;
 }
 
 int main(int argc, char **argv) {
 	try {
 		Argz<std::string> argz(argc, argv);
-		argz.addOptionSingleValue('t', "time delay").addOptionDoubleValue('T', "time", "time delay").addOptionSingleValue('i', "input filename").addOptionDoubleValue('I', "input", "input filename");
+		argz.addOptionSingleValue('t', "time delay").addOptionDoubleValue('T', "time", "time delay").addOptionSingleValue('i', "input filename").addOptionDoubleValue('I', "input", "input filename").addOptionSingle('h', "help message").addOptionDouble('H', "help", "help message");
 		int value{};
 		Argument<std::string> arg;
 		std::string delay_time;
@@ -43,6 +43,11 @@ int main(int argc, char **argv) {
 			case 'I':
 				filename = arg.arg_value;
 				break;
+			case 'h':
+			case 'H':
+				std::cout << "echo-text v1.0 - written by Jared Bruni\n";
+				argz.help(std::cout);
+				return 0;
 			}
 		}
 		if (delay_time.length() == 0) {
@@ -67,6 +72,5 @@ int main(int argc, char **argv) {
 	} catch (std::runtime_error &e) {
 		std::cerr << "Runtime Error: " << e.what() << "\n";
 	}
-
 	return 0;
 }
