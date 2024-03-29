@@ -1,4 +1,9 @@
-/* Compile with GCC 13.2 or greater */
+/* 
+
+Compile with GCC 13.2 or greater 
+bin2cpp20 - conversion tool
+
+*/
 
 #include "argz.hpp"
 #include <algorithm>
@@ -30,7 +35,7 @@ int main(int argc, char **argv) {
 	}
 	try {
 		Argz<std::string> argz(argc, argv);
-		argz.addOptionSingleValue('i', "input file").addOptionDoubleValue('I', "input", "input file").addOptionSingleValue('o', "output").addOptionDoubleValue('O', "output", "output file").addOptionSingle('h', "help").addOptionDouble('H', "help", "help message").addOptionSingleValue('v', "variable name").addOptionDoubleValue('V', "variable", "variable name").addOptionSingle('s', "string output").addOptionDouble('S', "string", "string output").addOptionSingle('z', "sort").addOptionDouble('Z', "sort", "sort string");
+		argz.addOptionSingleValue('i', "input file/stdin").addOptionDoubleValue('I', "input", "input file/stdin").addOptionSingleValue('o', "output").addOptionDoubleValue('O', "output", "output file").addOptionSingle('h', "help").addOptionDouble('H', "help", "help message").addOptionSingleValue('v', "variable name").addOptionDoubleValue('V', "variable", "variable name").addOptionSingle('s', "string output").addOptionDouble('S', "string", "string output").addOptionSingle('z', "sort").addOptionDouble('Z', "sort", "sort string");
 		Argument<std::string> arg;
 		int value{};
 		std::string input_file, output_file, variable_name;
