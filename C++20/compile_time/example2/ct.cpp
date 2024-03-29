@@ -4,8 +4,8 @@
 
 template <std::size_t N>
 consteval int indexOf(std::array<int, N> v, int s) {
-	for (int i = 0; i < v.size(); ++i)
-		if (v[i] == s)
+	for(int i = 0; i < v.size(); ++i)
+		if(v[i] == s)
 			return i;
 	return -1;
 }
@@ -13,7 +13,7 @@ consteval int indexOf(std::array<int, N> v, int s) {
 template <typename T, std::size_t N>
 consteval auto sum(std::array<T, N> values) {
 	T sum{};
-	for (auto &i : std::views::all(values)) {
+	for(auto &i : std::views::all(values)) {
 		sum += i;
 	}
 	return sum;

@@ -7,12 +7,12 @@ class splitException {};
 
 std::pair<double, double> splitPair(std::string_view src, std::string_view sep) {
 	const auto pos{src.find(sep)};
-	if (pos == std::string::npos)
+	if(pos == std::string::npos)
 		throw splitException{};
 	std::string left, right;
 	left = src.substr(0, pos);
 	right = src.substr(pos + 1, src.length() - pos);
-	if (left.length() == 0 || right.length() == 0)
+	if(left.length() == 0 || right.length() == 0)
 		throw splitException{};
 	const double val1{atof(left.c_str())}, val2{atof(right.c_str())};
 	return std::make_pair(val1, val2);
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 		argz.addOptionSingleValue('o', "output");
 		argz.addOptionSingle('h', "help message");
 
-		if (argc == 1) {
+		if(argc == 1) {
 			argz.help(std::cout);
 			return 0;
 		}
@@ -44,8 +44,8 @@ int main(int argc, char **argv) {
 		std::string core_info;
 		std::string fname;
 
-		while ((value = argz.proc(arg)) != -1) {
-			switch (value) {
+		while((value = argz.proc(arg)) != -1) {
+			switch(value) {
 			case 'h':
 				argz.help(std::cout);
 				return 0;
@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
 			}
 		}
 
-		if (img_size.length() == 0 || real_size.length() == 0 || zoom_info.length() == 0 || iter_info.length() == 0 || core_info.length() == 0 || fname.length() == 0) {
+		if(img_size.length() == 0 || real_size.length() == 0 || zoom_info.length() == 0 || iter_info.length() == 0 || core_info.length() == 0 || fname.length() == 0) {
 			std::cerr << "Error missing argument..\n";
 			argz.help(std::cout);
 			return 0;
@@ -92,12 +92,12 @@ int main(int argc, char **argv) {
 		cvfrac.resetPalette();
 		cvfrac.draw(m);
 		cv::imwrite(fname, m);
-	} catch (const ArgException<std::string> &e) {
+	} catch(const ArgException<std::string> &e) {
 		std::cerr << "Syntax Error: " << e.text() << "\n";
 		exit(0);
-	} catch (const splitException &e) {
+	} catch(const splitException &e) {
 		std::cerr << "Exception has occoured...\n";
-	} catch (...) {
+	} catch(...) {
 		std::cerr << "Genereal exception has ocurred...\n";
 	}
 	return 0;

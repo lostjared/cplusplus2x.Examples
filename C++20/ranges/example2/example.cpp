@@ -34,16 +34,16 @@ public:
 		pos.author = author;
 	}
 	int findItemByTitle(std::string_view title) {
-		for (const auto &i : db) {
-			if (i.second.title == title)
+		for(const auto &i : db) {
+			if(i.second.title == title)
 				return i.first;
 		}
 		return -1;
 	}
 
 	int findItemByAuthor(std::string_view author) {
-		for (const auto &i : db) {
-			if (i.second.author == author)
+		for(const auto &i : db) {
+			if(i.second.author == author)
 				return i.first;
 		}
 		return -1;
@@ -54,11 +54,11 @@ public:
 
 	void printSorted(std::ostream &out) {
 		std::vector<std::string> b;
-		for (const auto &i : std::views::all(db)) {
+		for(const auto &i : std::views::all(db)) {
 			b.push_back(i.second.author + ", [ " + i.second.title + " ] ");
 		}
 		std::ranges::sort(b);
-		for (const auto &i : std::views::all(b)) {
+		for(const auto &i : std::views::all(b)) {
 			std::cout << i << "\n";
 		}
 	}
@@ -75,10 +75,10 @@ int main(int argc, char **argv) {
 	db.addItem("Night Shift", "King, Stephen");
 	db.printSorted(std::cout);
 	int id = db.findItemByTitle("The Dead Zone");
-	if (id != -1) {
+	if(id != -1) {
 		std::cout << "by " << db[id].author << "\n";
 	}
-	for (const auto &i : std::views::take(db.database(), 3)) {
+	for(const auto &i : std::views::take(db.database(), 3)) {
 		std::cout << i.second.id << "\n";
 	}
 	return 0;

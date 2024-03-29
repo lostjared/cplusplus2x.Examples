@@ -46,7 +46,7 @@ int main() {
 	add_num(v, 1, 2, 3, 4, 5);
 	// add_num(v, "test"); // ERR doesn't accept char
 
-	for (auto &i : v) {
+	for(auto &i : v) {
 		std::cout << "index: " << i << "\n";
 	}
 	return 0;

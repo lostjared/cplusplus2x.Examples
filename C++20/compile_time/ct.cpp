@@ -8,8 +8,8 @@ int indexValue() {
 }
 
 constexpr bool is_prime(int value) {
-	for (int i = 2; i < value / 2; ++i) {
-		if (value % i == 0) {
+	for(int i = 2; i < value / 2; ++i) {
+		if(value % i == 0) {
 			return false;
 		}
 	}
@@ -20,8 +20,8 @@ template <int N>
 consteval std::array<int, N> prime_numbers() {
 	std::array<int, N> primes;
 	int z = 0;
-	for (int i = 0; z < N; ++i) {
-		if (is_prime(i)) {
+	for(int i = 0; z < N; ++i) {
+		if(is_prime(i)) {
 			primes[z++] = i;
 		}
 	}
@@ -29,7 +29,7 @@ consteval std::array<int, N> prime_numbers() {
 }
 int main() {
 	auto primes = prime_numbers<100>();
-	for (int i = 0; i < primes.size(); ++i) {
+	for(int i = 0; i < primes.size(); ++i) {
 		std::cout << i << ": -> " << primes[i] << " is prime\n";
 	}
 }

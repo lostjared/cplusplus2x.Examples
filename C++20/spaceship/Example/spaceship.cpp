@@ -34,12 +34,12 @@ int main(int argc, char **argv) {
 	std::cout << "Pixel Sorted:\n";
 	std::cout << std::setw(7) << "Hex" << std::setw(11) << "R" << std::setw(11) << "G" << std::setw(11) << "B" << "  " << std::setw(13) << "Total\n";
 
-	for (const auto &i : colors) {
+	for(const auto &i : colors) {
 		std::cout << i << "\n";
 	}
 	std::sort(colors.begin(), colors.end());
 	std::cout << "Pixel Sorted (Reverse):\n";
-	for (const auto &i : colors) {
+	for(const auto &i : colors) {
 		std::cout << i << "\n";
 	}
 	return 0;

@@ -4,7 +4,7 @@
 template <size_t S>
 constexpr auto sum(const std::array<int, S> &a) {
 	size_t index = 0;
-	for (size_t i = 0; i < a.size(); ++i) {
+	for(size_t i = 0; i < a.size(); ++i) {
 		index += a[i];
 	}
 	return index;

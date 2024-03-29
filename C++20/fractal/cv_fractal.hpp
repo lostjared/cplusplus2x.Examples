@@ -10,10 +10,10 @@ namespace cv_fract {
 	void UseMultipleThreads(cv::Mat &frame, const int &cores, F func) {
 		const int size = frame.rows / cores;
 		std::vector<std::thread> values;
-		for (int i = 0; i < cores; ++i) {
+		for(int i = 0; i < cores; ++i) {
 			values.push_back(std::thread(func, &frame, i * size, frame.cols, size));
 		}
-		for (unsigned int i = 0; i < values.size(); ++i) {
+		for(unsigned int i = 0; i < values.size(); ++i) {
 			values[i].join();
 		}
 	}
@@ -30,7 +30,7 @@ namespace cv_fract {
 			zoom_ = zoom;
 			iterations = iterations_;
 			tc = thread_count_;
-			if (iterations > 0)
+			if(iterations > 0)
 				MAX_ITER = iterations;
 			else
 				std::cerr << "Error invalid iterations\n";
@@ -74,7 +74,7 @@ namespace cv_fract {
 
 		void loadPalette() {
 			color_palette.resize(MAX_ITER);
-			for (int i = 0; i < MAX_ITER; ++i) {
+			for(int i = 0; i < MAX_ITER; ++i) {
 				const unsigned char r = dist_int(gen);
 				const unsigned char g = dist_int(gen);
 				const unsigned char b = dist_int(gen);
@@ -85,7 +85,7 @@ namespace cv_fract {
 		int mandelbrot(const std::complex<double> &c) {
 			int n = 0;
 			std::complex<double> z(0, 0);
-			while (std::abs(z) <= 2 && n < MAX_ITER) {
+			while(std::abs(z) <= 2 && n < MAX_ITER) {
 				z = z * z + c;
 				n++;
 			}
@@ -97,7 +97,7 @@ namespace cv_fract {
 			const double h = (double(z) / double(height));
 			const std::complex<double> c(start + w * (end - start), im_start + h * (im_end - im_start));
 			const int n = mandelbrot(c);
-			if (n == MAX_ITER) {
+			if(n == MAX_ITER) {
 				pixel[0] = 0;
 				pixel[1] = 0;
 				pixel[2] = 0;
@@ -107,8 +107,8 @@ namespace cv_fract {
 		}
 		void DrawFractal(cv::Mat &frame, const double &start, const double &end, const double &im_start, const double &im_end, const int &thread_count) {
 			static auto callback = [&](cv::Mat *frame, const int &offset, const int &cols, const int &size) {
-				for (int z = offset; z < offset + size; ++z) {
-					for (int i = 0; i < cols; ++i) {
+				for(int z = offset; z < offset + size; ++z) {
+					for(int i = 0; i < cols; ++i) {
 						cv::Vec3b &pixel = frame->at<cv::Vec3b>(z, i);
 						drawPixel(frame->cols, frame->rows, pixel, i, z, start, end, im_start, im_end);
 					}
@@ -117,8 +117,8 @@ namespace cv_fract {
 			UseMultipleThreads(frame, thread_count, callback);
 		}
 		void DrawFractal(cv::Mat &frame, const double &start, const double &end, const double &im_start, const double &im_end) {
-			for (int z = 0; z < frame.rows; ++z) {
-				for (int i = 0; i < frame.cols; ++i) {
+			for(int z = 0; z < frame.rows; ++z) {
+				for(int i = 0; i < frame.cols; ++i) {
 					cv::Vec3b &pixel = frame.at<cv::Vec3b>(z, i);
 					drawPixel(frame.cols, frame.rows, pixel, i, z, start, end, im_start, im_end);
 				}

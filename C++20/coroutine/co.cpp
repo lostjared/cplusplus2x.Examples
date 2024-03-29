@@ -22,7 +22,7 @@ public:
 	using promise_type = Promise<Task>;
 	Task(auto h) : coro{h} {}
 	~Task() {
-		if (coro) {
+		if(coro) {
 			coro.destroy();
 		}
 	}
@@ -30,7 +30,7 @@ public:
 	Task &operator=(const Task &) = delete;
 
 	bool resume() const {
-		if (!coro) {
+		if(!coro) {
 			return false;
 		}
 		coro.resume();
@@ -44,14 +44,14 @@ private:
 };
 
 Task count_to(int n) {
-	for (int i = 0; i < n; ++i) {
+	for(int i = 0; i < n; ++i) {
 		co_yield (i);
 	}
 }
 
 int main() {
 	auto i = count_to(5);
-	while (i.resume()) {
+	while(i.resume()) {
 		std::cout << "call -> " << i.getValue() << "\n";
 	}
 }

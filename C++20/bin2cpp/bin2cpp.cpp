@@ -6,10 +6,10 @@
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <ranges>
 #include <string>
 #include <vector>
-#include <memory>
 
 void convertStreamToVector(std::string_view name, std::istream &in, std::ostream &out);
 void convertStreamToArray(std::string_view name, const char *data, std::size_t length, std::ostream &out);
@@ -18,7 +18,7 @@ template <std::size_t N>
 void stringOutputArray(std::array<unsigned char, N> &a);
 
 int main(int argc, char **argv) {
-	if (argc == 1) {
+	if(argc == 1) {
 		convertStreamToVector("bin_vec", std::cin, std::cout);
 		return EXIT_SUCCESS;
 	}
@@ -29,8 +29,8 @@ int main(int argc, char **argv) {
 		int value{};
 		std::string input_file, output_file, variable_name{"bin"};
 		;
-		while ((value = argz.proc(arg)) != -1) {
-			switch (value) {
+		while((value = argz.proc(arg)) != -1) {
+			switch(value) {
 			case 'i':
 			case 'I':
 				input_file = arg.arg_value;
@@ -49,34 +49,33 @@ int main(int argc, char **argv) {
 				break;
 			}
 		}
-		if (input_file.length() == 0) {
+		if(input_file.length() == 0) {
 			std::cerr << "Error input file not specified...\n";
 			argz.help(std::cout);
 			return EXIT_SUCCESS;
 		} else {
 			std::fstream file;
 			file.open(input_file, std::ios::in | std::ios::binary | std::ios::ate);
-			if (!file.is_open()) {
+			if(!file.is_open()) {
 				std::cerr << "Could not open file: " << input_file << "\n";
 				return EXIT_FAILURE;
 			}
-			std::streamsize len {file.tellg()};
+			std::streamsize len{file.tellg()};
 			file.seekg(0, std::ios::beg);
-			std::unique_ptr<char[]> buf{new char[len+1]};
+			std::unique_ptr<char[]> buf{new char[len + 1]};
 			file.read(buf.get(), len);
 			file.close();
-			if (output_file.length() == 0) {
+			if(output_file.length() == 0) {
 				convertStreamToArray(variable_name + "_arr", buf.get(), len, std::cout);
 				return EXIT_SUCCESS;
-			}
-			else {
+			} else {
 				std::fstream file;
 				const auto pos{output_file.rfind(".hpp")};
-				if (pos == std::string::npos)
+				if(pos == std::string::npos)
 					output_file += ".hpp";
 
 				file.open(output_file, std::ios::out);
-				if (!file.is_open()) {
+				if(!file.is_open()) {
 					std::cerr << "Error could not open output file..\n";
 					return EXIT_FAILURE;
 				}
@@ -88,7 +87,7 @@ int main(int argc, char **argv) {
 				file.close();
 			}
 		}
-	} catch (const ArgException<std::string> &e) {
+	} catch(const ArgException<std::string> &e) {
 		std::cerr << "Syntax Error: " << e.text() << "\n";
 	}
 
@@ -99,11 +98,11 @@ void convertStreamToVector(std::string_view name, std::istream &in, std::ostream
 	out << "inline const std::vector<unsigned char> " << name << " {";
 	std::size_t index = 0;
 
-	while (!in.eof()) {
+	while(!in.eof()) {
 		uint8_t c{};
 		in.read(reinterpret_cast<char *>(&c), sizeof(uint8_t));
 		const std::string hex{std::format("0x{:X}", static_cast<uint8_t>(c))};
-		if (in)
+		if(in)
 			out << hex << ",";
 		else
 			out << hex;
@@ -122,14 +121,14 @@ void convertStreamToArray(std::string_view name, const char *data, std::size_t l
 }
 
 void stringOutputVector(const std::vector<unsigned char> &v) {
-	for (const auto &e : std::views::all(v)) {
+	for(const auto &e : std::views::all(v)) {
 		std::cout << e;
 	}
 }
 
 template <std::size_t N>
 void stringOutputArray(std::array<unsigned char, N> &a) {
-	for (const auto &i : std::views::all(a)) {
+	for(const auto &i : std::views::all(a)) {
 		std::cout << i;
 	}
 }

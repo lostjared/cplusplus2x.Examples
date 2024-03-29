@@ -24,7 +24,7 @@ public:
 	using promise_type = Promise<Task<T>>;
 	Task(auto h) : coro{h} {}
 	~Task() {
-		if (coro) {
+		if(coro) {
 			coro.destroy();
 		}
 	}
@@ -32,7 +32,7 @@ public:
 	Task<T> &operator=(const Task<T> &) = delete;
 
 	bool resume() const {
-		if (!coro) {
+		if(!coro) {
 			return false;
 		}
 		coro.resume();
@@ -65,7 +65,7 @@ int main() {
 	Scanner<std::string> scan;
 	auto i{scan.getNext()};
 	int index = 0;
-	while (i.resume()) {
+	while(i.resume()) {
 		++index;
 		std::cout << "calling index: " << index << "\n";
 	}

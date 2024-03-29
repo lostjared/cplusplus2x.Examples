@@ -28,25 +28,25 @@ public:
 template <typename T, typename V>
 bool pixelSort(const cv::Mat &frame, cv::Mat &output, bool direction) {
 
-	if (frame.empty())
+	if(frame.empty())
 		return false;
 
-	if (frame.channels() < 3)
+	if(frame.channels() < 3)
 		return false;
 
 	output = frame.clone();
-	for (int z = 0; z < frame.rows; ++z) {
+	for(int z = 0; z < frame.rows; ++z) {
 		std::vector<Color<T>> line;
-		for (int i = 0; i < frame.cols; ++i) {
+		for(int i = 0; i < frame.cols; ++i) {
 			V pixel{frame.at<V>(z, i)};
 			line.push_back({pixel[2], pixel[1], pixel[0]}); // bgr -> rgb
 		}
 		std::sort(line.begin(), line.end(), [=](const Color<T> &c1, const Color<T> &c2) {
-			if (direction == true)
+			if(direction == true)
 				return (c2 < c1);
 			return (c1 < c2);
 		});
-		for (int i = 0; i < frame.cols; ++i) {
+		for(int i = 0; i < frame.cols; ++i) {
 			V pix{V(line[i].rgb[2], line[i].rgb[1], line[i].rgb[0])}; // rgb -> bgr
 			output.at<V>(z, i) = pix;
 		}
@@ -55,22 +55,22 @@ bool pixelSort(const cv::Mat &frame, cv::Mat &output, bool direction) {
 }
 
 int main(int argc, char **argv) {
-	if (argc != 4) {
+	if(argc != 4) {
 		std::cerr << argv[0] << " input.png output.png (1|2)\n1 for Normal, 2 for Reverse\n";
 		return 0;
 	}
 
 	bool dir{false};
-	if (argv[3] == std::string("1"))
+	if(argv[3] == std::string("1"))
 		dir = true;
 
 	const cv::Mat image{cv::imread(argv[1])};
-	if (image.empty()) {
+	if(image.empty()) {
 		std::cerr << "Could not load image..\n";
 		return 0;
 	}
 	cv::Mat output;
-	if (pixelSort<uint8_t, cv::Vec3b>(image, output, dir)) {
+	if(pixelSort<uint8_t, cv::Vec3b>(image, output, dir)) {
 		cv::imwrite(argv[2], output);
 		std::cout << "wrote: " << argv[2] << "\n";
 	} else {

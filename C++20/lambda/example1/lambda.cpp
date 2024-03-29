@@ -4,7 +4,7 @@
 int main() {
 	auto hash = [](const char *src) consteval {
 		int total{};
-		for (int i = 0; src[i] != '\0'; ++i) {
+		for(int i = 0; src[i] != '\0'; ++i) {
 			total += src[i];
 		}
 		const int buckets = 255;
@@ -14,7 +14,7 @@ int main() {
 	constexpr static const char *key = "the key";
 	constexpr static auto k = hash(key);
 	std::cout << h << ":" << k << "\n";
-	if (h != k) {
+	if(h != k) {
 		std::cerr << "Error\n";
 	}
 	return 0;

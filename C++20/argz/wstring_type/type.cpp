@@ -10,15 +10,15 @@ int main(int argc, char **argv) {
 	Argz<std::wstring> argz(argc, argv);
 	argz.addOptionSingle('h', L"Help message \u2665").addOptionSingle('v', L"Version Info \u263A").addOptionDouble('j', L"jared", L"j\u00C6red");
 
-	if (argc == 1) {
+	if(argc == 1) {
 		argz.help(std::wcout);
 		return 0;
 	}
 	int value{};
 	Argument<std::wstring> arg;
 	try {
-		while ((value = argz.proc(arg)) != -1) {
-			switch (value) {
+		while((value = argz.proc(arg)) != -1) {
+			switch(value) {
 			case 'h':
 				argz.help(std::wcout);
 				break;
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 				break;
 			}
 		}
-	} catch (const ArgException<std::wstring> &e) {
+	} catch(const ArgException<std::wstring> &e) {
 		std::wcout << L"Syntax Error: " << e.text() << "\n";
 	}
 	return 0;

@@ -24,7 +24,7 @@ public:
 	using promise_type = Promise<Task<T>>;
 	Task(auto h) : coro{h} {}
 	~Task() {
-		if (coro) {
+		if(coro) {
 			coro.destroy();
 		}
 	}
@@ -32,7 +32,7 @@ public:
 	Task<T> &operator=(const Task<T> &) = delete;
 
 	bool resume() const {
-		if (!coro) {
+		if(!coro) {
 			return false;
 		}
 		coro.resume();
@@ -49,7 +49,7 @@ template <typename T>
 class Scanner {
 public:
 	Task<T> getNext() {
-		while (cur_token.length() < 5) {
+		while(cur_token.length() < 5) {
 			cur_token += T{"x"};
 			co_yield cur_token;
 		}
@@ -61,8 +61,8 @@ private:
 
 int main() {
 	Scanner<std::string> scan;
-	auto i {scan.getNext()};
-	while (i.resume()) {
+	auto i{scan.getNext()};
+	while(i.resume()) {
 		std::cout << "call -> " << i.getValue() << "\n";
 	}
 }

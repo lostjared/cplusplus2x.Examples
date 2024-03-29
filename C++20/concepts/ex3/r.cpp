@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 	push_back(v, 10);
 	// push_back(v, 10.1); error narrow not same type
 	std::cout << "vector with: \n";
-	for (const auto &i : v) {
+	for(const auto &i : v) {
 		std::cout << i << "\n";
 	}
 	return 0;

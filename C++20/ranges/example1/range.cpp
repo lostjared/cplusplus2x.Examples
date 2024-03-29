@@ -11,9 +11,9 @@
 int scanInteger() {
 	std::string s;
 	std::getline(std::cin, s);
-	if (s.length() > 0) {
+	if(s.length() > 0) {
 		int value = atoi(s.c_str());
-		if (value > 0)
+		if(value > 0)
 			return value;
 		std::cout << "Invalid input try again..\n";
 		return scanInteger();
@@ -24,10 +24,10 @@ int scanInteger() {
 }
 
 void echoString(std::string_view s) {
-	for (const auto &i : std::views::all(s)) {
+	for(const auto &i : std::views::all(s)) {
 		std::cout << i << ',';
 	}
-	for (const auto &s : std::views::take(s, 1)) {
+	for(const auto &s : std::views::take(s, 1)) {
 		std::cout << static_cast<char>(toupper(s)) << "!" << ",";
 	}
 	std::cout << "0;\n";
@@ -37,16 +37,16 @@ int main() {
 	std::cout << "Enter how many lines to enter.: ";
 	int numLines = scanInteger();
 	std::vector<std::string> v;
-	for (int i = 0; i < numLines; ++i) {
+	for(int i = 0; i < numLines; ++i) {
 		std::string s;
 		std::getline(std::cin, s);
-		if (s.length() > 0) {
+		if(s.length() > 0) {
 			v.push_back(s);
 		}
 	}
 	std::ranges::sort(v);
 	std::cout << "sorted -: [\n";
-	for (const auto &i : std::views::all(v)) {
+	for(const auto &i : std::views::all(v)) {
 		echoString(i);
 	}
 	std::cout << "0 ];\n\n";

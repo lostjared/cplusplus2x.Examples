@@ -8,8 +8,8 @@ int main(int argc, char **argv) {
 	int value{};
 	Argument<std::string> arg;
 	try {
-		while ((value = args.proc(arg)) != -1) {
-			switch (value) {
+		while((value = args.proc(arg)) != -1) {
+			switch(value) {
 			case 'o':
 				std::cout << "o switch\n";
 				break;
@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 				break;
 			}
 		}
-	} catch (const ArgException<std::string> &e) {
+	} catch(const ArgException<std::string> &e) {
 		std::cerr << "Syntax Error: " << e.text() << "\n";
 	}
 	return 0;

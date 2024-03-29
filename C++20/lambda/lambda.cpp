@@ -13,7 +13,7 @@ int main() {
 	auto test = []<typename T>(const T &type) { std::cout << "template typename: " << type << "\n"; };
 	Fill(test);
 	Fill([](const auto &t) {
-		if constexpr (std::is_same<decltype(t), const float &>::value) {
+		if constexpr(std::is_same<decltype(t), const float &>::value) {
 			std::cout << "filtered out floating point: " << t << "\n";
 			return;
 		}

@@ -55,7 +55,7 @@ struct ArgumentData {
 	ArgumentData() = default;
 	ArgumentData(const ArgumentData<String> &a) : args{a.args}, argc{a.argc} {}
 	ArgumentData &operator=(const ArgumentData<String> &a) {
-		if (!args.empty()) {
+		if(!args.empty()) {
 			args.erase(args.begin(), args.end());
 		}
 		std::copy(a.args.begin(), a.args.end(), std::back_inserter(args));
@@ -90,10 +90,10 @@ public:
 
 	Argz<String> &operator=(const Argz<String> &a) {
 		arg_data = a.arg_data;
-		if (!arg_info.empty()) {
+		if(!arg_info.empty()) {
 			arg_info.erase(arg_info.begin(), arg_info.end());
 		}
-		for (const auto &i : a.arg_info) {
+		for(const auto &i : a.arg_info) {
 			arg_info[i.first] = i.second;
 		}
 		index = a.index;
@@ -113,19 +113,19 @@ public:
 
 	Argz<String> &initArgs(int argc, char **argv) {
 		arg_data.argc = argc;
-		if constexpr (std::is_same<typename String::value_type, char>::value) {
-			for (int i = 1; i < argc; ++i) {
+		if constexpr(std::is_same<typename String::value_type, char>::value) {
+			for(int i = 1; i < argc; ++i) {
 				const char *a = argv[i];
 				arg_data.args.push_back(a);
 			}
 			reset();
 			return *this;
 		}
-		if constexpr (std::is_same<typename String::value_type, wchar_t>::value) {
-			for (int i = 1; i < argc; ++i) {
+		if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
+			for(int i = 1; i < argc; ++i) {
 				const char *a = argv[i];
 				String data;
-				for (int z = 0; a[z] != 0; ++z) {
+				for(int z = 0; a[z] != 0; ++z) {
 					data += static_cast<typename String::value_type>(a[z]);
 				}
 				arg_data.args.push_back(data);
@@ -181,8 +181,8 @@ public:
 	}
 
 	int lookUpCode(const String &value) {
-		for (const auto &i : arg_info) {
-			if (i.second.arg_name == value) {
+		for(const auto &i : arg_info) {
+			if(i.second.arg_name == value) {
 				return i.second.arg_letter;
 			}
 		}
@@ -190,17 +190,17 @@ public:
 	}
 
 	int proc(Argument<String> &a) {
-		if (index < arg_data.args.size()) {
+		if(index < arg_data.args.size()) {
 			const String &type{arg_data.args[index]};
-			if (type.length() > 3 && type[0] == '-' && type[1] == '-') {
+			if(type.length() > 3 && type[0] == '-' && type[1] == '-') {
 				String name{};
-				for (int z = 2; z < type.length(); ++z)
+				for(int z = 2; z < type.length(); ++z)
 					name += type[z];
 				int code = lookUpCode(name);
-				if (code != -1) {
+				if(code != -1) {
 					auto pos = arg_info.find(code);
-					if (pos != arg_info.end()) {
-						if (pos->second.arg_type == ArgType::ARG_DOUBLE) {
+					if(pos != arg_info.end()) {
+						if(pos->second.arg_type == ArgType::ARG_DOUBLE) {
 							a = pos->second;
 							a.arg_name = name;
 							index++;
@@ -208,73 +208,73 @@ public:
 						} else {
 							a = pos->second;
 							a.arg_name = name;
-							if (++index < arg_data.args.size() && arg_data.args[index][0] != '-') {
+							if(++index < arg_data.args.size() && arg_data.args[index][0] != '-') {
 								a.arg_name = name;
 								a.arg_value = arg_data.args[index];
 								index++;
 								return code;
 							} else {
-								if constexpr (std::is_same<typename String::value_type, char>::value) {
+								if constexpr(std::is_same<typename String::value_type, char>::value) {
 									throw ArgException<String>("Expected Value");
 								}
 							}
 						}
 					}
 				} else {
-					if constexpr (std::is_same<typename String::value_type, char>::value) {
+					if constexpr(std::is_same<typename String::value_type, char>::value) {
 						String value = "Error argument: ";
 						value += name;
 						value += " switch not found";
 						throw ArgException<String>(value);
 					}
-					if constexpr (std::is_same<typename String::value_type, wchar_t>::value) {
+					if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
 						String value = L"Error argument: ";
 						value += name;
 						value += L" switch not found";
 						throw ArgException<String>(value);
 					}
 				}
-			} else if (type.length() == 1 && type[0] == '-') {
-				if constexpr (std::is_same<typename String::value_type, char>::value) {
+			} else if(type.length() == 1 && type[0] == '-') {
+				if constexpr(std::is_same<typename String::value_type, char>::value) {
 					throw ArgException<String>("Expected Value found -");
 				}
-				if constexpr (std::is_same<typename String::value_type, wchar_t>::value) {
+				if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
 					throw ArgException<String>(L"Expected Value found -");
 				}
-			} else if (type.length() > 1 && (type[0] == '-')) {
+			} else if(type.length() > 1 && (type[0] == '-')) {
 				const int c{type[cindex]};
 				const auto pos{arg_info.find(c)};
 				cindex++;
-				if (cindex >= type.length()) {
+				if(cindex >= type.length()) {
 					cindex = 1;
 					index++;
 				}
 				String name_val{};
 				name_val += static_cast<typename String::value_type>(c);
-				if (pos != arg_info.end()) {
-					if (pos->second.arg_type == ArgType::ARG_SINGLE) {
+				if(pos != arg_info.end()) {
+					if(pos->second.arg_type == ArgType::ARG_SINGLE) {
 						a = pos->second;
 						a.arg_name = name_val;
 						return c;
-					} else if (pos->second.arg_type == ArgType::ARG_SINGLE_VALUE) {
-						if (index < arg_data.args.size()) {
+					} else if(pos->second.arg_type == ArgType::ARG_SINGLE_VALUE) {
+						if(index < arg_data.args.size()) {
 							const String &s{arg_data.args[index]};
-							if (s.length() > 1 && s[0] == '-' && !(s[1] >= '0' && s[1] <= '9')) {
-								if constexpr (std::is_same<typename String::value_type, char>::value) {
+							if(s.length() > 1 && s[0] == '-' && !(s[1] >= '0' && s[1] <= '9')) {
+								if constexpr(std::is_same<typename String::value_type, char>::value) {
 									throw ArgException<String>("Expected value");
 								}
-								if constexpr (std::is_same<typename String::value_type, wchar_t>::value) {
+								if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
 									throw ArgException<String>(L"Expected value");
 								}
-							} else if (s.length() == 1 && s[0] == '-') {
-								if constexpr (std::is_same<typename String::value_type, char>::value) {
+							} else if(s.length() == 1 && s[0] == '-') {
+								if constexpr(std::is_same<typename String::value_type, char>::value) {
 									throw ArgException<String>("Expected Value found -");
 								}
-								if constexpr (std::is_same<typename String::value_type, wchar_t>::value) {
+								if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
 									throw ArgException<String>(L"Expected Value found -");
 								}
 							}
-							if (s.length() > 0) {
+							if(s.length() > 0) {
 								a = pos->second;
 								a.arg_value = s;
 								a.arg_name = name_val;
@@ -282,30 +282,30 @@ public:
 								return c;
 							}
 						} else {
-							if constexpr (std::is_same<typename String::value_type, char>::value) {
+							if constexpr(std::is_same<typename String::value_type, char>::value) {
 								throw ArgException<String>("Expected Value");
 							}
-							if constexpr (std::is_same<typename String::value_type, wchar_t>::value) {
+							if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
 								throw ArgException<String>(L"Expected Value");
 							}
 						}
 					} else {
-						if constexpr (std::is_same<typename String::value_type, char>::value) {
+						if constexpr(std::is_same<typename String::value_type, char>::value) {
 							throw ArgException<String>("Invalid switch not found!");
 						}
-						if constexpr (std::is_same<typename String::value_type, wchar_t>::value) {
+						if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
 							throw ArgException<String>(L"Invalid switch not found!");
 						}
 					}
 				} else {
-					if constexpr (std::is_same<typename String::value_type, char>::value) {
+					if constexpr(std::is_same<typename String::value_type, char>::value) {
 						String value;
 						value = "Error argument ";
 						value += static_cast<typename String::value_type>(c);
 						value += " switch not found.";
 						throw ArgException<String>(value);
 					}
-					if constexpr (std::is_same<typename String::value_type, wchar_t>::value) {
+					if constexpr(std::is_same<typename String::value_type, wchar_t>::value) {
 						String value;
 						value = L"Error argument ";
 						value += static_cast<typename String::value_type>(c);
@@ -330,10 +330,10 @@ public:
 		using char_type = typename std::decay<decltype(*std::declval<T>().rdbuf())>::type::char_type;
 		std::vector<Argument<String>> v;
 		std::vector<Argument<String>> v2;
-		for (const auto &i : arg_info) {
-			if (i.second.arg_type == ArgType::ARG_SINGLE || i.second.arg_type == ArgType::ARG_SINGLE_VALUE)
+		for(const auto &i : arg_info) {
+			if(i.second.arg_type == ArgType::ARG_SINGLE || i.second.arg_type == ArgType::ARG_SINGLE_VALUE)
 				v.push_back(i.second);
-			else if (i.second.arg_type == ArgType::ARG_DOUBLE || i.second.arg_type == ArgType::ARG_DOUBLE_VALUE)
+			else if(i.second.arg_type == ArgType::ARG_DOUBLE || i.second.arg_type == ArgType::ARG_DOUBLE_VALUE)
 				v2.push_back(i.second);
 		}
 		std::sort(v.begin(), v.end());
@@ -342,15 +342,15 @@ public:
 		farg.reserve(v.size() + v2.size());
 		std::copy(v.begin(), v.end(), std::back_inserter(farg));
 		std::copy(v2.begin(), v2.end(), std::back_inserter(farg));
-		for (auto a = farg.begin(); a != farg.end(); ++a) {
-			if (a->arg_type == ArgType::ARG_SINGLE || a->arg_type == ArgType::ARG_SINGLE_VALUE) {
-				if constexpr (std::is_same<char_type, char>::value) {
+		for(auto a = farg.begin(); a != farg.end(); ++a) {
+			if(a->arg_type == ArgType::ARG_SINGLE || a->arg_type == ArgType::ARG_SINGLE_VALUE) {
+				if constexpr(std::is_same<char_type, char>::value) {
 					String item;
 					item += static_cast<char_type>(a->arg_letter);
 					cout << "-" << std::setfill(' ') << std::setw(9) << std::left << item << "\t";
 					cout << std::setfill(' ') << std::left << std::setw(10) << a->desc;
 					cout << '\n';
-				} else if constexpr (std::is_same<char_type, wchar_t>::value) {
+				} else if constexpr(std::is_same<char_type, wchar_t>::value) {
 					String item;
 					item += static_cast<char_type>(a->arg_letter);
 					cout << L"-" << std::setfill(L' ') << std::setw(9) << std::left << item << L"\t";
@@ -358,13 +358,13 @@ public:
 					cout << L'\n';
 				}
 			} else {
-				if constexpr (std::is_same<char_type, char>::value) {
+				if constexpr(std::is_same<char_type, char>::value) {
 					cout << "--";
 					cout << std::setfill(' ') << std::left << std::setw(10) << a->arg_name;
 					cout << "\t";
 					cout << std::setw(10) << a->desc;
 					cout << '\n';
-				} else if constexpr (std::is_same<char_type, wchar_t>::value) {
+				} else if constexpr(std::is_same<char_type, wchar_t>::value) {
 					cout << L"--";
 					cout << std::setfill(L' ') << std::left << std::setw(10) << a->arg_name;
 					cout << L"\t";

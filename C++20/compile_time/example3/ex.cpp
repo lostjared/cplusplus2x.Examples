@@ -2,7 +2,7 @@
 
 consteval int len(const char *src) {
 	int i{};
-	while (src[i] != '\0') {
+	while(src[i] != '\0') {
 		++i;
 	}
 	return i;
@@ -12,15 +12,15 @@ consteval int find(const char *src, const char *search) {
 	bool found = true;
 	int s_length = len(search);
 	int length = len(src) - s_length;
-	for (int i = 0; i < length; ++i) {
+	for(int i = 0; i < length; ++i) {
 		found = true;
-		for (int z = 0; z < s_length; ++z) {
-			if (src[i + z] != search[z]) {
+		for(int z = 0; z < s_length; ++z) {
+			if(src[i + z] != search[z]) {
 				found = false;
 				break;
 			}
 		}
-		if (found == true)
+		if(found == true)
 			return i;
 	}
 	return -1;

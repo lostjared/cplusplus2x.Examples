@@ -28,7 +28,7 @@ public:
 	using promise_type = Promise<Tokenizer<T>>;
 	Tokenizer(auto h) : coro{h} {}
 	~Tokenizer() {
-		if (coro) {
+		if(coro) {
 			coro.destroy();
 		}
 	}
@@ -41,7 +41,7 @@ public:
 	}
 
 	bool next() const {
-		if (!coro) {
+		if(!coro) {
 			return false;
 		}
 		coro.resume();
@@ -68,21 +68,21 @@ public:
 	void set(const T &src, const T &s) {
 		source = src;
 		sep = s;
-		if(sep.length() == 0) 
+		if(sep.length() == 0)
 			throw std::runtime_error("Seperation string must not be zero length");
 		reset();
 	}
 	Tokenizer<T> tokenizer() {
 		auto s = source.find(sep, pos);
-		while (s != T::npos) {
+		while(s != T::npos) {
 			T cur_token{source.substr(pos, s - pos)};
 			pos = s + sep.length();
-			if (cur_token.length() > 0)
+			if(cur_token.length() > 0)
 				co_yield cur_token;
 			s = source.find(sep, pos);
 		}
 		T last{source.substr(pos, source.length())};
-		if (last.length() > 0)
+		if(last.length() > 0)
 			co_yield last;
 	}
 
@@ -95,7 +95,7 @@ private:
 template <typename T>
 auto collect(Tokenizer<T> &&tokens) -> std::vector<T> {
 	std::vector<T> v;
-	while (tokens.next()) {
+	while(tokens.next()) {
 		v.push_back(tokens.getToken());
 	}
 	return v;
