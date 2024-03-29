@@ -28,7 +28,6 @@ int main(int argc, char **argv) {
 		Argument<std::string> arg;
 		int value{};
 		std::string input_file, output_file, variable_name{"bin"};
-		;
 		while((value = argz.proc(arg)) != -1) {
 			switch(value) {
 			case 'i':
