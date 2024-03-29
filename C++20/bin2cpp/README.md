@@ -6,7 +6,7 @@ Unix Tool to Convert a stream to a C++20 array/vector/string
 
 % bin2cpp20 -i filename -o outputheader -v variable 
 
-% bin2cpp20 -i filename -o -v variable -s stringoutput --sort
+% bin2cpp20 -i filename -o -v variable -s --sort
 
 or arguments:
 
