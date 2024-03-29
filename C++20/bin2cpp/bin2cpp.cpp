@@ -54,15 +54,13 @@ int main(int argc, char **argv) {
 			argz.help(std::cout);
 			return EXIT_SUCCESS;
 		} else {
-			std::size_t len{};
 			std::fstream file;
-			file.open(input_file, std::ios::in | std::ios::binary);
+			file.open(input_file, std::ios::in | std::ios::binary | std::ios::ate);
 			if (!file.is_open()) {
 				std::cerr << "Could not open file: " << input_file << "\n";
 				return EXIT_FAILURE;
 			}
-			file.seekg(0, std::ios::end);
-			len = file.tellg();
+			std::streamsize len {file.tellg()};
 			file.seekg(0, std::ios::beg);
 			std::unique_ptr<char[]> buf{new char[len+1]};
 			file.read(buf.get(), len);
