@@ -16,7 +16,7 @@
 
 void convertStreamToVector(std::string_view name, std::istream &in, std::ostream &out);
 void convertStreamToArray(std::string_view name, const char *data, std::size_t length, std::ostream &out);
-void convertStreamToString(bool sorted, std::string_view name, const char *data, std::size_t length, std::ostream &out);
+void convertStreamToString(bool sorted, std::string_view name, std::istream &in, std::ostream &out);
 void stringOutputVector(const std::vector<unsigned char> &v);
 template <std::size_t N>
 void stringOutputArray(std::array<unsigned char, N> &a);
@@ -78,6 +78,11 @@ int main(int argc, char **argv) {
 				std::cerr << "Error invalid variable name..\n";
 				return EXIT_FAILURE;
 			}
+
+			if(input_file == "stdin") {
+				convertStreamToString(sorted, variable_name, std::cin, std::cout);
+				return EXIT_SUCCESS;
+			}
 			std::fstream file;
 			file.open(input_file, std::ios::in | std::ios::binary | std::ios::ate);
 			if(!file.is_open()) {
@@ -95,7 +100,8 @@ int main(int argc, char **argv) {
 					convertStreamToArray(variable_name + "_arr", buf.get(), len, std::cout);
 				} else {
 					variable_name = "str_" + variable_name;
-					convertStreamToString(sorted, variable_name, buf.get(), len, std::cout);
+					std::istringstream in(buf.get());
+					convertStreamToString(sorted, variable_name, in, std::cout);
 				}
 				return EXIT_SUCCESS;
 			} else {
@@ -118,7 +124,8 @@ int main(int argc, char **argv) {
 				} else {
 					file << "#include<string>\n\n";
 					variable_name = "str_" + variable_name;
-					convertStreamToString(sorted, variable_name, buf.get(), len, file);
+					std::istringstream in(buf.get());
+					convertStreamToString(sorted, variable_name, in, file);
 				}
 				file << "\n\n#endif\n";
 				file.close();
@@ -157,19 +164,19 @@ void convertStreamToArray(std::string_view name, const char *data, std::size_t l
 	out << hex << "};\n";
 }
 
-void convertStreamToString(bool sorted, std::string_view name, const char *data, std::size_t length, std::ostream &out) {
+void convertStreamToString(bool sorted, std::string_view name, std::istream &in, std::ostream &out) {
 	out << "inline const std::string " << name << "[] = {";
-	std::istringstream in(data);
-	std::size_t index = 0;
+	std::size_t index{};
+	std::size_t length{};
 	std::vector<std::string> v;
 	while(!in.eof()) {
 		std::string line;
 		std::getline(in, line);
 		if(in) {
 			v.push_back(line);
+			length += line.length() + 1;
 		}
 	}
-
 	if(sorted) {
 		std::sort(v.begin(), v.end());
 	}
