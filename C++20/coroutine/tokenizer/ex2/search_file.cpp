@@ -6,21 +6,23 @@
 #include<memory>
 #include "../tokenizer.hpp"
 
-std::string readStringFromFile(const std::string &filename) {
-    std::fstream file;
-    file.open(filename, std::ios::in);
-    if(!file.is_open()) {
-        std::cout << "Error could not open file: " << filename << "\n";
-        exit(EXIT_FAILURE);
+std::string readStringFromFile(const std::string &name) {
+    std::ifstream file(name, std::ios::in | std::ios::binary | std::ios::ate);
+    if (!file.is_open()) {
+        throw std::runtime_error("Could not open file: " + name);
     }
-    file.seekg(0, std::ios::end);
-    long long int len {file.tellg()};
+    auto len{file.tellg()};
+    if (len == -1) {
+        throw std::runtime_error("Could not get length of the file: " + name);
+    }
+    std::string temp;
+    temp.resize(len);
     file.seekg(0, std::ios::beg);
-    std::unique_ptr<char[]> buffer(new char [len+1]);
-    file.read(buffer.get(), len);
-    buffer[len] = 0;
-    file.close();
-    return std::string(buffer.get());
+    file.read(&temp[0], len);
+    if (!file) {
+        throw std::runtime_error("Error reading file: " + name);
+    }
+    return temp;
 }
 
 int main(int argc, char **argv) {
