@@ -10,12 +10,15 @@
 #include <ranges>
 #include <string>
 #include <vector>
+#include <regex>
 
 void convertStreamToVector(std::string_view name, std::istream &in, std::ostream &out);
 void convertStreamToArray(std::string_view name, const char *data, std::size_t length, std::ostream &out);
 void stringOutputVector(const std::vector<unsigned char> &v);
 template <std::size_t N>
 void stringOutputArray(std::array<unsigned char, N> &a);
+bool is_Valid(const std::string& name);
+
 
 int main(int argc, char **argv) {
 	if(argc == 1) {
@@ -56,6 +59,10 @@ int main(int argc, char **argv) {
 			if(variable_name.length() == 0) {
 				std::cerr << "Requires variable name... use -v\n";
 				argz.help(std::cout);
+				return EXIT_FAILURE;
+			}
+			if(!is_Valid(variable_name)) {
+				std::cerr << "Error invalid variable name..\n";
 				return EXIT_FAILURE;
 			}
 			variable_name = "bin_" + variable_name;
@@ -136,4 +143,9 @@ void stringOutputArray(std::array<unsigned char, N> &a) {
 	for(const auto &i : std::views::all(a)) {
 		std::cout << i;
 	}
+}
+
+bool is_Valid(const std::string& name) {
+    std::regex pattern("^[a-zA-Z_][a-zA-Z0-9_]*$");
+    return std::regex_match(name, pattern);
 }
