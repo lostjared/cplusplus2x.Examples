@@ -1,6 +1,7 @@
 /* Compile with GCC 13.2 or greater */
 
 #include "argz.hpp"
+#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <format>
@@ -8,17 +9,19 @@
 #include <iostream>
 #include <memory>
 #include <ranges>
+#include <regex>
+#include <sstream>
 #include <string>
 #include <vector>
-#include <regex>
 
 void convertStreamToVector(std::string_view name, std::istream &in, std::ostream &out);
 void convertStreamToArray(std::string_view name, const char *data, std::size_t length, std::ostream &out);
+void convertStreamToString(bool sorted, std::string_view name, const char *data, std::size_t length, std::ostream &out);
 void stringOutputVector(const std::vector<unsigned char> &v);
 template <std::size_t N>
 void stringOutputArray(std::array<unsigned char, N> &a);
-bool is_Valid(const std::string& name);
-
+bool is_Valid(const std::string &name);
+std::string convertString(const std::string &text);
 
 int main(int argc, char **argv) {
 	if(argc == 1) {
@@ -27,10 +30,12 @@ int main(int argc, char **argv) {
 	}
 	try {
 		Argz<std::string> argz(argc, argv);
-		argz.addOptionSingleValue('i', "input file").addOptionDoubleValue('I', "input", "input file").addOptionSingleValue('o', "output").addOptionDoubleValue('O', "output", "output file").addOptionSingle('h', "help").addOptionDouble('H', "help", "help message").addOptionSingleValue('v', "variable name").addOptionDoubleValue('V', "variable", "variable name");
+		argz.addOptionSingleValue('i', "input file").addOptionDoubleValue('I', "input", "input file").addOptionSingleValue('o', "output").addOptionDoubleValue('O', "output", "output file").addOptionSingle('h', "help").addOptionDouble('H', "help", "help message").addOptionSingleValue('v', "variable name").addOptionDoubleValue('V', "variable", "variable name").addOptionSingle('s', "string output").addOptionDouble('S', "string", "string output").addOptionSingle('z', "sort").addOptionDouble('Z', "sort", "sort string");
 		Argument<std::string> arg;
 		int value{};
 		std::string input_file, output_file, variable_name;
+		bool as_string = false;
+		bool sorted = false;
 		while((value = argz.proc(arg)) != -1) {
 			switch(value) {
 			case 'i':
@@ -49,6 +54,14 @@ int main(int argc, char **argv) {
 			case 'V':
 				variable_name = arg.arg_value;
 				break;
+			case 's':
+			case 'S':
+				as_string = true;
+				break;
+			case 'z':
+			case 'Z':
+				sorted = true;
+				break;
 			}
 		}
 		if(input_file.length() == 0) {
@@ -65,7 +78,6 @@ int main(int argc, char **argv) {
 				std::cerr << "Error invalid variable name..\n";
 				return EXIT_FAILURE;
 			}
-			variable_name = "bin_" + variable_name;
 			std::fstream file;
 			file.open(input_file, std::ios::in | std::ios::binary | std::ios::ate);
 			if(!file.is_open()) {
@@ -78,7 +90,13 @@ int main(int argc, char **argv) {
 			file.read(buf.get(), len);
 			file.close();
 			if(output_file.length() == 0) {
-				convertStreamToArray(variable_name + "_arr", buf.get(), len, std::cout);
+				if(as_string == false) {
+					variable_name = "bin_" + variable_name;
+					convertStreamToArray(variable_name + "_arr", buf.get(), len, std::cout);
+				} else {
+					variable_name = "str_" + variable_name;
+					convertStreamToString(sorted, variable_name, buf.get(), len, std::cout);
+				}
 				return EXIT_SUCCESS;
 			} else {
 				std::fstream file;
@@ -93,8 +111,15 @@ int main(int argc, char **argv) {
 				}
 				file << "#ifndef __ARR_H_HPP_" << variable_name << "\n";
 				file << "#define __ARR_H_HPP_" << variable_name << "\n";
-				file << "#include<array>\n\n";
-				convertStreamToArray(variable_name + "_arr", buf.get(), len, file);
+				if(as_string == false) {
+					file << "#include<array>\n\n";
+					variable_name = "bin_" + variable_name;
+					convertStreamToArray(variable_name + "_arr", buf.get(), len, file);
+				} else {
+					file << "#include<string>\n\n";
+					variable_name = "str_" + variable_name;
+					convertStreamToString(sorted, variable_name, buf.get(), len, file);
+				}
 				file << "\n\n#endif\n";
 				file.close();
 			}
@@ -132,6 +157,34 @@ void convertStreamToArray(std::string_view name, const char *data, std::size_t l
 	out << hex << "};\n";
 }
 
+void convertStreamToString(bool sorted, std::string_view name, const char *data, std::size_t length, std::ostream &out) {
+	out << "inline const std::string " << name << "[] = {";
+	std::istringstream in(data);
+	std::size_t index = 0;
+	std::vector<std::string> v;
+	while(!in.eof()) {
+		std::string line;
+		std::getline(in, line);
+		if(in) {
+			v.push_back(line);
+		}
+	}
+
+	if(sorted) {
+		std::sort(v.begin(), v.end());
+	}
+
+	for(auto &line : v) {
+		index += line.length() + 1;
+		if(line.length() > 0) {
+			out << "\"" << convertString(line) << "\"";
+			if(index < length)
+				out << ",";
+		}
+	}
+	out << "};\n";
+}
+
 void stringOutputVector(const std::vector<unsigned char> &v) {
 	for(const auto &e : std::views::all(v)) {
 		std::cout << e;
@@ -145,7 +198,20 @@ void stringOutputArray(std::array<unsigned char, N> &a) {
 	}
 }
 
-bool is_Valid(const std::string& name) {
-    std::regex pattern("^[a-zA-Z_][a-zA-Z0-9_]*");
-    return std::regex_match(name, pattern);
+bool is_Valid(const std::string &name) {
+	std::regex pattern("^[a-zA-Z_][a-zA-Z0-9_]*");
+	return std::regex_match(name, pattern);
+}
+
+std::string convertString(const std::string &s) {
+	std::string temp;
+	for(std::size_t i = 0; i < s.length(); ++i) {
+		if(s[i] == '\"' || s[i] == '\\') {
+			temp += "\\";
+			temp += s[i];
+		} else {
+			temp += s[i];
+		}
+	}
+	return temp;
 }
