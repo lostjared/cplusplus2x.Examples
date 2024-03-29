@@ -4,10 +4,7 @@
 #include"../tokenizer.hpp"
 
 
-void fillBuffer(std::string &s) {
-    std::mt19937 en(std::random_device{}());
-    std::uniform_int_distribution<int> char_dist('a', 'z');
-    std::uniform_int_distribution<int> length(0, 255);
+void fillBuffer(auto &en, auto &char_dist, auto &length, std::string &s) {
     auto len{length(en)};
     for(int i = 0; i < len; ++i) {
         s += char_dist(en);
@@ -16,9 +13,9 @@ void fillBuffer(std::string &s) {
     }
 }
 
-void testScanner(Scanner<std::string> &scan) {
+void testScanner(auto &en, auto &char_dist, auto &length, Scanner<std::string> &scan) {
     std::string random_string;
-    fillBuffer(random_string);
+    fillBuffer(en, char_dist, length, random_string);
     scan.set(random_string, " ");
     auto tokens{collect(scan.tokenizer())};
     int index{};
@@ -31,11 +28,15 @@ void testScanner(Scanner<std::string> &scan) {
 
 int main() {
     try {
+        std::mt19937 en(std::random_device{}());
+        std::uniform_int_distribution<int> char_dist('a', 'z');
+        std::uniform_int_distribution<int> length(0, 255);
+
         Scanner<std::string> scanner;
         constexpr static int count = 5000;
         for(int index = 0; index < count; ++index) {
             std::cout << "running test index: " << index << "\n";
-            testScanner(scanner);
+            testScanner(en, char_dist, length, scanner);
         }
         std::cout << "Passed test no exceptions thrown or errors occoured.\n";
     } catch(const std::runtime_error &e) {
