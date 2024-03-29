@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
 		argz.addOptionSingleValue('i', "input file").addOptionDoubleValue('I', "input", "input file").addOptionSingleValue('o', "output").addOptionDoubleValue('O', "output", "output file").addOptionSingle('h', "help").addOptionDouble('H', "help", "help message").addOptionSingleValue('v', "variable name").addOptionDoubleValue('V', "variable", "variable name");
 		Argument<std::string> arg;
 		int value{};
-		std::string input_file, output_file, variable_name{"bin"};
+		std::string input_file, output_file, variable_name;
 		while((value = argz.proc(arg)) != -1) {
 			switch(value) {
 			case 'i':
@@ -58,6 +58,7 @@ int main(int argc, char **argv) {
 				argz.help(std::cout);
 				return EXIT_FAILURE;
 			}
+			variable_name = "bin_" + variable_name;
 			std::fstream file;
 			file.open(input_file, std::ios::in | std::ios::binary | std::ios::ate);
 			if(!file.is_open()) {
