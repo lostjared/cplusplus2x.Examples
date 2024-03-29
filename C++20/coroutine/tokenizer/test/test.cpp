@@ -29,12 +29,12 @@ void testScanner(auto &en, auto &char_dist, auto &length, Scanner<std::string> &
 
 int main() {
 	try {
-		std::mt19937 en(std::random_device{}());
-		std::uniform_int_distribution<int> char_dist('a', 'z');
-		std::uniform_int_distribution<int> length(0, 255);
+		std::mt19937 en{std::random_device{}()};
+		std::uniform_int_distribution<int> char_dist{'a', 'z'};
+		std::uniform_int_distribution<int> length{0, 255};
 
 		Scanner<std::string> scanner;
-		constexpr static int count = 5000;
+		constexpr static int count{5000};
 		for (int index = 0; index < count; ++index) {
 			std::cout << "running test index: " << index << "\n";
 			testScanner(en, char_dist, length, scanner);
