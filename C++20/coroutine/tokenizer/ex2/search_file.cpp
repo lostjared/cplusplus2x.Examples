@@ -7,7 +7,7 @@
 #include "../tokenizer.hpp"
 
 std::string readStringFromFile(const std::string &name) {
-    std::ifstream file(name, std::ios::in | std::ios::binary | std::ios::ate);
+    std::ifstream file{name, std::ios::in | std::ios::binary | std::ios::ate};
     if (!file.is_open()) {
         throw std::runtime_error("Could not open file: " + name);
     }
