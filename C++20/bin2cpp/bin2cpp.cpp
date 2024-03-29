@@ -53,6 +53,11 @@ int main(int argc, char **argv) {
 			argz.help(std::cout);
 			return EXIT_SUCCESS;
 		} else {
+			if(variable_name.length() == 0) {
+				std::cerr << "Requires variable name... use -v\n";
+				argz.help(std::coutg);
+				return EXIT_FAILURE;
+			}
 			std::fstream file;
 			file.open(input_file, std::ios::in | std::ios::binary | std::ios::ate);
 			if(!file.is_open()) {
