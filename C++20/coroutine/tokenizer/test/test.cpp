@@ -21,6 +21,7 @@ void testScanner(auto &en, auto &char_dist, auto &length, Scanner<std::string> &
 	auto tokens{collect(scan.tokenizer())};
 	int index{};
 	std::cout << "random string: " << random_string << "\n";
+	std::cout << "contains: "<< tokens.size() << " token(s).\n";
 	for(const auto &i : tokens) {
 		++index;
 		std::cout << "index[" << index << "] -> " << i << "\n";
