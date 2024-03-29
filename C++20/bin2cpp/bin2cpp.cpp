@@ -146,6 +146,6 @@ void stringOutputArray(std::array<unsigned char, N> &a) {
 }
 
 bool is_Valid(const std::string& name) {
-    std::regex pattern("^[a-zA-Z_][a-zA-Z0-9_]*$");
+    std::regex pattern("^[a-zA-Z_][a-zA-Z0-9_]*");
     return std::regex_match(name, pattern);
 }
