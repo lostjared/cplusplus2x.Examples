@@ -84,6 +84,7 @@ public:
 		T last{source.substr(pos, source.length())};
 		if(last.length() > 0)
 			co_yield last;
+		co_return last;
 	}
 
 private:
