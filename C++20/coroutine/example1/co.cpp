@@ -53,7 +53,6 @@ public:
 			cur_token += T{"x"};
 			co_yield cur_token;
 		}
-		co_return cur_token;
 	}
 
 private:
