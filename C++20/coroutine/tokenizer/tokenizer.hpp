@@ -23,7 +23,7 @@ public:
 			value = val;
 			return {};
 		}
-		void return_value(const T &val) { value = val; }
+		//void return_value(const T &val) { value = val; }
 	};
 	using promise_type = Promise<Tokenizer<T>>;
 	Tokenizer(auto h) : coro{h} {}
@@ -84,7 +84,7 @@ public:
 		T last{source.substr(pos, source.length())};
 		if(last.length() > 0)
 			co_yield last;
-		co_return last;
+		//co_return last;
 	}
 
 private:
