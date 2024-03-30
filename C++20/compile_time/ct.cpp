@@ -3,7 +3,6 @@
 
 int indexValue() {
 	static constinit int index = 0;
-	;
 	return ++index;
 }
 
