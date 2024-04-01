@@ -1,4 +1,4 @@
-// Help for this from: C++20 Templates: The Complete Guide
+// Help for this from: C++20 The Complete Guide
 // Chapter 17.2 "Semaphores"
 
 #include<iostream>
