@@ -20,6 +20,9 @@ int main() {
     std::vector<std::jthread> pool;
     for(int i = 0; i < thread_count; ++i) {
         pool.push_back(std::jthread{[&enabled, &val, &val_mut, i](std::stop_token st) {
+
+            auto id = std::this_thread::get_id();
+
             while(!st.stop_requested()) {
                 enabled.acquire();
                 char v; 
@@ -29,7 +32,7 @@ int main() {
                     val.pop();
                }
                for(int j = 0; j < 10; ++j)  {
-                std::cout.put(v).flush();
+                std::cout << "thread id: " << id << " " << v << "\n";
                 auto dur = std::chrono::milliseconds(130) * ((i%3)+1);
                 std::this_thread::sleep_for(dur);
                }
