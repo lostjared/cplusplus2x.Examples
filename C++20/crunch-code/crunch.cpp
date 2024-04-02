@@ -30,9 +30,10 @@ void crunch_line(const std::string &s, std::ostream &out) {
     for(size_t i = 0; i < s.length(); ++i) {
         if(s[i] == '\t' || s[i] == '\r' || s[i] == '\n')
             continue;
-
-        if(s[i] == ' ' && i+1 < s.length() && s[i+1] == ' ')
+        if(s[i] == ' ' && i+1 < s.length() && s[i+1] == ' ') {
+            i++;
             continue;
+        }
         if(s[i] == '\\' && i+1 < s.length() && s[i+1] != '\\')
             continue;
 
