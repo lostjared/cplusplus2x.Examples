@@ -5,6 +5,7 @@
 
 void crunch(std::istream &in, std::ostream &out);
 void crunch_line(const std::string &s, std::ostream &out);
+bool testchr(const std::string, std::size_t &i);
 
 int main() {
 	crunch(std::cin, std::cout);
@@ -30,16 +31,11 @@ void crunch_line(const std::string &s, std::ostream &out) {
 	bool grab_string{false};
 	for(size_t i = 0; i < s.length(); ++i) {
 		if(grab_string == false) {
-			if(s[i] == '\t' || s[i] == '\r' || s[i] == '\n')
-				continue;
-			if(s[i] == '/' && i + 1 < s.length() && s[i + 1] == '/')
-				return;
-			if(s[i] == ' ' && i + 1 < s.length() && s[i + 1] == ' ') {
-				i++;
+			if(!testchr(s, i)) {
 				continue;
 			}
-			if(s[i] == '\\' && i + 1 < s.length() && s[i + 1] != '\\')
-				continue;
+			if(s[i] == '/' && i + 1 < s.length() && s[i + 1] == '/')
+				return;
 		}
 		if(s[i] == '\\' && i + 1 < s.length() && s[i + 1] == '\"') {
 			out << s[i];
@@ -51,4 +47,17 @@ void crunch_line(const std::string &s, std::ostream &out) {
 
 		out << s[i];
 	}
+}
+
+bool testchr(const std::string s, std::size_t &i) {
+	if(s[i] == '\t' || s[i] == '\r' || s[i] == '\n')
+		return false;
+	if(s[i] == ' ' && i + 1 < s.length() && s[i + 1] == ' ') {
+		i++;
+		return false;
+	}
+	if(s[i] == '\\' && i + 1 < s.length() && s[i + 1] != '\\')
+		return false;
+
+	return true;
 }
