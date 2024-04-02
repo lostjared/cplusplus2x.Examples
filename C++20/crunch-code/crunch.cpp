@@ -27,15 +27,32 @@ void crunch(std::istream &in, std::ostream &out) {
 }
 
 void crunch_line(const std::string &s, std::ostream &out) {
+
+    bool grab_string = false;
+
     for(size_t i = 0; i < s.length(); ++i) {
-        if(s[i] == '\t' || s[i] == '\r' || s[i] == '\n')
-            continue;
-        if(s[i] == ' ' && i+1 < s.length() && s[i+1] == ' ') {
-            i++;
-            continue;
+
+        if(grab_string == false)  {
+            if(s[i] == '\t' || s[i] == '\r' || s[i] == '\n')
+                continue;
+
+            if(s[i] == '/'  && i+1 < s.length() && s[i+1] == '/') 
+                return;
+
+            if(s[i] == ' ' && i+1 < s.length() && s[i+1] == ' ') {
+                i++;
+                continue;
+            }
+           if(s[i] == '\\' && i+1 < s.length() && s[i+1] != '\\')
+                continue;
         }
-        if(s[i] == '\\' && i+1 < s.length() && s[i+1] != '\\')
+
+        if(s[i] == '\\' && i+1 < s.length() && s[i+1] == '\"') {
+            out << s[i];
+            out << s[i+1];
             continue;
+        } else if(s[i] == '\"')
+            grab_string = !grab_string;
 
         out << s[i];
     }
