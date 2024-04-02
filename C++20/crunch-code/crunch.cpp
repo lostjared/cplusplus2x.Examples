@@ -50,6 +50,7 @@ void crunch_line(const std::string &s, std::ostream &out) {
         if(s[i] == '\\' && i+1 < s.length() && s[i+1] == '\"') {
             out << s[i];
             out << s[i+1];
+            i++;
             continue;
         } else if(s[i] == '\"')
             grab_string = !grab_string;
