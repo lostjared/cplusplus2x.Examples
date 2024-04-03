@@ -36,13 +36,17 @@ int main() {
 		}
 	}};
 	for(int i = 0; i < 25; ++i) {
-		std::cout << "main data: " << i << "\n";
+	   std::cout << "main data: " << i << "\n";
        for(int j = 0; j < rand()%100; ++j) {
             dq.push_front(j);
         }
-        d_ready.release();
-		d_done.acquire();
-		std::cout << "main data [done]\n";
+        if(!dq.empty()) {
+            d_ready.release();
+		    d_done.acquire();
+		    std::cout << "main data [done]\n";
+        } else {
+            std::cout << "main data [empty]\n";
+        }
 	}
 	return 0;
 }
