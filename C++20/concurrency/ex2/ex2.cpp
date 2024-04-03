@@ -1,6 +1,6 @@
 // Help from C++20: The Complete Guide
 // Chapter 17.2
-// Uses binary semaphores
+// Expanded Example Uses binary semaphores
 
 #include <chrono>
 #include <iostream>
