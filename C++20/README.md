@@ -1,6 +1,3 @@
-C++ 20 Examples will go here.
+# C++20 Examples 
 
-I am reading C++20 The Complete Guide
-to learn this stuff to practice with and build this repo of 
-notes/examples.
-
+This repository hosts my notes and sample programs, serving as a personal memory aid for the knowledge I acquired from reading "C++20 The Complete Guide". It is designed to include only the essential information.
