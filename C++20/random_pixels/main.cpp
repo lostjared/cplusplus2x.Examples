@@ -19,8 +19,7 @@ int main(int argc, char **argv) {
     int width=1080, height=1080;
     try {
         Argz<std::string> args(argc, argv);
-        args.addOptionSingleValue('w', "width");
-        args.addOptionSingleValue('h', "height");
+        args.addOptionSingleValue('w', "width").addOptionSingleValue('h', "height");
         int value{};
         Argument<std::string> arg;
 
