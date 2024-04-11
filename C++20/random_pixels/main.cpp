@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
     
     if(width <= 0 || height <= 0) {
         std::cerr << "Invalid width/height";
-        return 0;
+        return EXIT_FAILURE;
     }
 
     if(SDL_Init(SDL_INIT_VIDEO) < 0) {
