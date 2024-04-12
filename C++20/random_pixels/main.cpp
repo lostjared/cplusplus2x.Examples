@@ -15,9 +15,11 @@ void rand_pixels(SDL_Texture *tex, SDL_Surface *surface) {
     SDL_UnlockTexture(tex);
 }
 
+// RAII + Rule of Five (from Core Guidlines)
+// only allow move
 class Texture {
 public:
-    Texture(SDL_Renderer *renderer, int width, int height) : ren{renderer} {
+     Texture(SDL_Renderer *renderer, int width, int height) : ren{renderer} {
         tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
         if(!tex) {
             std::cerr << "Fatal Error could not create texture....\n";
@@ -25,9 +27,15 @@ public:
             exit(EXIT_FAILURE);
         }
     }
-
-    SDL_Texture *texture() const { return tex; }
-
+    Texture(const Texture &t) = delete;
+    Texture(Texture &&t) : ren{t.ren}, tex{t.tex} {}
+    Texture &operator=(const Texture &t) = delete;
+    Texture &operator=(Texture && t) {
+        ren = t.ren;
+        tex = t.tex; // copy pointeirs
+        return *this;
+    }
+    SDL_Texture *texture() const { return tex; };
     ~Texture() {
         if(tex != nullptr)
             SDL_DestroyTexture(tex);
@@ -38,15 +46,22 @@ protected:
     SDL_Texture *tex = nullptr;
 };
 
+// RAII - Resource Acqusistion is Initilization
+// Rule of Five - Core Guidlines
+// No Copy/Move
 class ScopedSurface {
 public:
-    ScopedSurface(SDL_Surface *s) : surf{s} {}
+    explicit ScopedSurface(SDL_Surface *s) : surf{s} {}
     ~ScopedSurface() {
         if(surf != nullptr) {
             SDL_FreeSurface(surf);
             surf = nullptr;
         }
     }
+    ScopedSurface(const ScopedSurface &) = delete;
+    ScopedSurface(ScopedSurface &&) = delete;
+    ScopedSurface &operator=(const ScopedSurface &) = delete;
+    ScopedSurface &operator=(ScopedSurface &&) = delete;
     SDL_Surface *surface() { return surf; }
 protected:
     SDL_Surface *surf = nullptr;
