@@ -32,7 +32,13 @@ public:
     Texture &operator=(const Texture &t) = delete;
     Texture &operator=(Texture && t) {
         ren = t.ren;
+        t.ren = nullptr; //moved value set old to nullptr
+        // release old pointer
+        if(tex) 
+            SDL_DestroyTexture(tex);
+        
         tex = t.tex; // copy pointeirs
+        t.tex = nullptr; // moved value
         return *this;
     }
     SDL_Texture *texture() const { return tex; };
@@ -46,8 +52,8 @@ protected:
     SDL_Texture *tex = nullptr;
 };
 
-// RAII - Resource Acqusistion is Initilization
-// Rule of Five - Core Guidlines
+// RAII - Resource Acquisition is Initialization
+// Rule of Five - Core Guidelines
 // No Copy/Move
 class ScopedSurface {
 public:
