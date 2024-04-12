@@ -15,6 +15,30 @@ void rand_pixels(SDL_Texture *tex, SDL_Surface *surface) {
     SDL_UnlockTexture(tex);
 }
 
+class Texture {
+public:
+    Texture(SDL_Renderer *renderer, int width, int height) : ren{renderer} {
+        tex = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
+        if(!tex) {
+            std::cerr << "Fatal Error could not create texture....\n";
+            SDL_Quit();
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    SDL_Texture *texture() const { return tex; }
+
+    ~Texture() {
+        if(tex != nullptr)
+            SDL_DestroyTexture(tex);
+    }
+
+protected:
+    SDL_Renderer *ren;
+    SDL_Texture *tex = nullptr;
+};
+
+
 int main(int argc, char **argv) {
     int width=1080, height=1080;
     try {
@@ -53,7 +77,7 @@ int main(int argc, char **argv) {
         SDL_Quit();
         return EXIT_FAILURE;
     }    
-    SDL_Texture *tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
+    Texture tex(ren, width, height);
     SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(NULL, width, height, 32, 0, 0x00FF0000, 0x0000FF00,0x000000FF,0xFF000000);
     bool active = true;
     SDL_Event e;
@@ -69,12 +93,11 @@ int main(int argc, char **argv) {
             }
         }       
         SDL_RenderClear(ren);
-        rand_pixels(tex, surface);
-        SDL_RenderCopy(ren, tex, 0, 0);
+        rand_pixels(tex.texture(), surface);
+        SDL_RenderCopy(ren, tex.texture(), 0, 0);
         SDL_RenderPresent(ren);
     }
     SDL_DestroyRenderer(ren);
-    SDL_DestroyTexture(tex);
     SDL_DestroyWindow(window);
     SDL_FreeSurface(surface);
     SDL_Quit();
