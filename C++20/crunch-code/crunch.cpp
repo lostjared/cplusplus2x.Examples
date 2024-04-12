@@ -1,9 +1,14 @@
+/*  
+	Crunch Code GPLv3
+*/
 #include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
+#include <sstream>
 
 void crunch(std::istream &in, std::ostream &out);
+std::string remove_ml_comment(const std::string &s1);
 void crunch_line(const std::string &s, std::ostream &out);
 bool testchr(const std::string, std::size_t &i);
 
@@ -13,11 +18,16 @@ int main() {
 }
 
 void crunch(std::istream &in, std::ostream &out) {
+	std::ostringstream stream;
+	stream << in.rdbuf();
+	std::string data{stream.str()};
+ 	data = remove_ml_comment(data);
+	std::istringstream is(data);
 	std::vector<std::string> lines;
-	while(!in.eof()) {
+	while(!is.eof()) {
 		std::string line;
-		std::getline(in, line);
-		if(in && line.length() > 0)
+		std::getline(is, line);
+		if(is && line.length() > 0)
 			lines.push_back(line);
 	}
 	for(std::size_t i = 0; i < lines.size(); ++i) {
@@ -60,4 +70,27 @@ bool testchr(const std::string s, std::size_t &i) {
 		return false;
 
 	return true;
+}
+
+bool chkChr(const std::string &text, std::size_t i, char c) {
+	if(i < text.length() && text[i] == c) 
+		return true;
+	return false;
+}
+
+std::string remove_ml_comment(const std::string &text) {
+	std::string temp{};
+	for(std::size_t i = 0; i < text.length(); ++i) {
+		if(chkChr(text, i, '/') && chkChr(text, i+1, '*')) {
+			i ++;
+			do {
+				i++;
+			} while(chkChr(text, i, '*') == false && chkChr(text, i+1, '/') == false);
+		} else if(text[i] != '/') {
+			temp += text[i];
+			continue;
+		}
+
+	}
+	return temp;
 }
