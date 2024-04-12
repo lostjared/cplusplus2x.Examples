@@ -38,6 +38,19 @@ protected:
     SDL_Texture *tex = nullptr;
 };
 
+class ScopedSurface {
+public:
+    ScopedSurface(SDL_Surface *s) : surf{s} {}
+    ~ScopedSurface() {
+        if(surf != nullptr) {
+            SDL_FreeSurface(surf);
+            surf = nullptr;
+        }
+    }
+    SDL_Surface *surface() { return surf; }
+protected:
+    SDL_Surface *surf = nullptr;
+};
 
 int main(int argc, char **argv) {
     int width=1080, height=1080;
@@ -79,6 +92,7 @@ int main(int argc, char **argv) {
     }    
     Texture tex(ren, width, height);
     SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(NULL, width, height, 32, 0, 0x00FF0000, 0x0000FF00,0x000000FF,0xFF000000);
+    ScopedSurface surface1{surface};
     bool active = true;
     SDL_Event e;
     while(active) {
@@ -93,13 +107,12 @@ int main(int argc, char **argv) {
             }
         }       
         SDL_RenderClear(ren);
-        rand_pixels(tex.texture(), surface);
+        rand_pixels(tex.texture(), surface1.surface());
         SDL_RenderCopy(ren, tex.texture(), 0, 0);
         SDL_RenderPresent(ren);
     }
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(window);
-    SDL_FreeSurface(surface);
     SDL_Quit();
     return EXIT_SUCCESS;
 }
