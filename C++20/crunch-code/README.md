@@ -1,6 +1,6 @@
 # Crunch Code
 
-Crunch Code is a lightweight C++ command-line tool designed to strip comments and unnecessary whitespace from C++ source files. I used this program to create videos of compact scrolling code for video project.
+Crunch Code is a lightweight C++ command-line tool designed to strip comments and unnecessary whitespace from C++ source files. I used this program to create videos of compact scrolling code for a video project.
 
 ## Features
 
