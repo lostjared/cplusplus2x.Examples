@@ -29,12 +29,12 @@ sudo make install
 To use Crunch Code, you can run the executable with the source files as arguments. Here's how to use it from the command line:
 
 ```bash
-./crunch_code file1.cpp file2.cpp
+./crunch-code file1.cpp file2.cpp
 ```
 
 If no files are specified, the program will read from standard input:
 
 ```bash
-./crunch_code < input.cpp
+./crunch-code < input.cpp
 ```
 
