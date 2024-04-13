@@ -37,4 +37,8 @@ If no files are specified, the program will read from standard input:
 ```bash
 ./crunch-code < input.cpp
 ```
+or
 
+```bash
+cat *cpp | ./crunch-code > file.txt
+```
