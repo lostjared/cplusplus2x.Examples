@@ -22,9 +22,11 @@ int main(int argc, char **argv) {
 			file.open(argv[i], std::ios::in);
 			if(!file.is_open()) {
 				std::cerr << "Error could not open: " << argv[i] << "\n";
+				continue;
 			} else {
 				crunch(file, std::cout);
 			}
+			file.close();
 		}
 	}
 	return 0;
