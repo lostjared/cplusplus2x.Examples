@@ -98,7 +98,7 @@ std::string remove_ml_comment(const std::string &text) {
 			i++;
 			do {
 				i++;
-			} while(chkChr(text, i, '*') == false && chkChr(text, i + 1, '/') == false);
+			} while(!(chkChr(text, i, '*') && chkChr(text, i + 1, '/')));
 		} else if(text[i] != '/') {
 			temp += text[i];
 			continue;
