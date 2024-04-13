@@ -3,6 +3,7 @@
 */
 #include <algorithm>
 #include <iostream>
+#include<fstream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -16,8 +17,15 @@ int main(int argc, char **argv) {
 	if(argc == 1) {
 		crunch(std::cin, std::cout);
 	} else {
-
-
+		for(int i = 1; i < argc; ++i) {
+			std::fstream file;
+			file.open(argv[i], std::ios::in);
+			if(!file.is_open()) {
+				std::cerr << "Error could not open: " << argv[i] << "\n";
+			} else {
+				crunch(file, std::cout);
+			}
+		}
 	}
 	return 0;
 }
