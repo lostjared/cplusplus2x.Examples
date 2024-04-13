@@ -19,22 +19,22 @@ Crunch Code is a lightweight C++ command-line tool designed to strip comments an
 
 You can build the project using a C++ compiler such as g++. Here's how you can compile it:
 
-\```bash
+```bash
 make
 sudo make install
-\```
+```
 
 ### Usage
 
 To use Crunch Code, you can run the executable with the source files as arguments. Here's how to use it from the command line:
 
-\```bash
+```bash
 ./crunch_code file1.cpp file2.cpp
-\```
+```
 
 If no files are specified, the program will read from standard input:
 
-\```bash
+```bash
 ./crunch_code < input.cpp
-\```
+```
 
