@@ -12,8 +12,13 @@ std::string remove_ml_comment(const std::string &s1);
 void crunch_line(const std::string &s, std::ostream &out);
 bool testchr(const std::string, std::size_t &i);
 
-int main() {
-	crunch(std::cin, std::cout);
+int main(int argc, char **argv) {
+	if(argc == 1) {
+		crunch(std::cin, std::cout);
+	} else {
+
+
+	}
 	return 0;
 }
 
