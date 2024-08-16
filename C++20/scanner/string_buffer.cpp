@@ -46,6 +46,17 @@ namespace scan {
                 }
 
             }
+            
+            void StringBuffer::reset(uint64_t pos) {
+                index = pos;
+            }
+    }
 
+    namespace token {
+        Token::Token(const TokenType &t) : type{t} {}     
+        void Token::setToken(const TokenType &type, const Token::string_type &value) {
+            this->type = type;
+            this->value = value;
+        }
     }
 }
