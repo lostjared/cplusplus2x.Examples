@@ -14,8 +14,8 @@ namespace scan {
                 index = b.index;
                  return *this;
             }
-            StringBuffer &StringBuffer::operator=(const std::basic_string<ch_type> &bb) {
-                buffer_ =  buffer_;
+            StringBuffer &StringBuffer::operator=(const string_type &buf) {
+                buffer_ =  buf;
                 index = 0;
                 return *this;
             }
