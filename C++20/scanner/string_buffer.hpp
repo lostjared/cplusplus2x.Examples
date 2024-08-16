@@ -11,14 +11,15 @@ namespace scan {
     namespace buffer {
         class StringBuffer {
         public:
-            using ch_type = uint8_t;
+            using ch_type = int8_t;
+            using string_type = std::basic_string<ch_type, std::char_traits<ch_type>>;
 
-            StringBuffer(const std::string &buf) : buffer_{buf}, index{0} {}
+            StringBuffer(const string_type &buf) : buffer_{buf}, index{0} {}
             StringBuffer(const StringBuffer &sb) :  buffer_{sb.buffer_}, index{0} {}   
             StringBuffer(StringBuffer &&sb) :  buffer_{std::move(sb.buffer_)}, index{0} {}
             StringBuffer &operator=(const StringBuffer &sb);                                      
             StringBuffer &operator=(StringBuffer &&b);
-            StringBuffer &operator=(const std::basic_string<ch_type> &b);
+            StringBuffer &operator=(const string_type &b);
 
             std::optional<ch_type> getch();
             std::optional<ch_type> curch();
@@ -27,7 +28,7 @@ namespace scan {
             bool eof(uint64_t pos);
 
             private:
-               std::string buffer_;           
+               string_type buffer_;           
                uint64_t index{};
         };
     }
