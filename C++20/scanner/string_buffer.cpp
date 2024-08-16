@@ -4,59 +4,10 @@
 
 namespace scan {
     namespace buffer {
-            StringBuffer &StringBuffer::operator=(const StringBuffer &sb) {
-                buffer_ = sb.buffer_;
-                index = sb.index;
-                return *this;
-            }                     
-            StringBuffer &StringBuffer::operator=(StringBuffer &&b) { //rval
-                buffer_ = std::move(b.buffer_);
-                index = b.index;
-                 return *this;
-            }
-            StringBuffer &StringBuffer::operator=(const string_type &buf) {
-                buffer_ =  buf;
-                index = 0;
-                return *this;
-            }
-
-            std::optional<StringBuffer::ch_type> StringBuffer::getch() {
-                if(index + 1 < buffer_.length()) {
-                    return buffer_[index++];
-                }
-                return std::nullopt;
-            }
-            std::optional<StringBuffer::ch_type> StringBuffer::curch() {
-                if(index < buffer_.length())
-                    return buffer_[index];
-                return std::nullopt;
-            }
-            std::optional<StringBuffer::ch_type> StringBuffer::peekch() {
-                if(index + 1 < buffer_.length())
-                    return buffer_[index+1];
-                return std::nullopt;
-            }
-
-            bool StringBuffer::eof(uint64_t pos) {
-
-                if(pos+index > buffer_.size()) {
-                    return true;
-                } else {
-                    return false;
-                }
-
-            }
             
-            void StringBuffer::reset(uint64_t pos) {
-                index = pos;
-            }
     }
 
     namespace token {
-        Token::Token(const TokenType &t) : type{t} {}     
-        void Token::setToken(const TokenType &type, const Token::string_type &value) {
-            this->type = type;
-            this->value = value;
-        }
+
     }
 }
