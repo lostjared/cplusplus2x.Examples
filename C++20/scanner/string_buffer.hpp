@@ -8,15 +8,16 @@
 
 namespace scan {
     namespace buffer {
+        template<typename Ch = int8_t, typename String = std::basic_string<Ch, std::char_traits<Ch>>>
         class StringBuffer {
         public:
-            using ch_type = int8_t;
-            using string_type = std::basic_string<ch_type, std::char_traits<ch_type>>;
+            using ch_type = Ch;
+            using string_type = String;
             StringBuffer(const string_type &buf) : buffer_{buf}, index{0} {}
-            StringBuffer(const StringBuffer &sb) :  buffer_{sb.buffer_}, index{0} {}   
-            StringBuffer(StringBuffer &&sb) :  buffer_{std::move(sb.buffer_)}, index{0} {}
-            StringBuffer &operator=(const StringBuffer &sb);                                      
-            StringBuffer &operator=(StringBuffer &&b);
+            StringBuffer(const StringBuffer<Ch,String> &sb) :  buffer_{sb.buffer_}, index{0} {}   
+            StringBuffer(StringBuffer<Ch,String> &&sb) :  buffer_{std::move(sb.buffer_)}, index{0} {}
+            StringBuffer &operator=(const StringBuffer<Ch,String> &sb);                                      
+            StringBuffer &operator=(StringBuffer<Ch,String> &&b);
             StringBuffer &operator=(const string_type &b);
 
             std::optional<ch_type> getch();
@@ -30,25 +31,85 @@ namespace scan {
                string_type buffer_;           
                uint64_t index{};
         };
+
+        template<typename Ch, typename String>
+        StringBuffer<Ch,String> &StringBuffer<Ch,String>::operator=(const StringBuffer<Ch,String> &sb) {
+            buffer_ = sb.buffer_;
+            index = sb.index;
+            return *this;
+        }            
+        template<typename Ch, typename String>         
+        StringBuffer<Ch,String> &StringBuffer<Ch,String>::operator=(StringBuffer<Ch,String> &&b) { //rval
+            buffer_ = std::move(b.buffer_);
+            index = b.index;
+                return *this;
+        }
+        template<typename Ch, typename String>         
+        StringBuffer<Ch,String> &StringBuffer<Ch,String>::operator=(const string_type &buf) {
+            buffer_ =  buf;
+            index = 0;
+            return *this;
+        }
+
+        template<typename Ch, typename String>         
+        std::optional<Ch> StringBuffer<Ch,String>::getch() {
+            if(index + 1 < buffer_.length()) {
+                return buffer_[index++];
+            }
+            return std::nullopt;
+        }
+        template<typename Ch, typename String>
+        std::optional<Ch> StringBuffer<Ch,String>::curch() {
+            if(index < buffer_.length())
+                return buffer_[index];
+            return std::nullopt;
+        }
+        template<typename Ch, typename String>
+        std::optional<Ch> StringBuffer<Ch, String>::peekch() {
+            if(index + 1 < buffer_.length())
+                return buffer_[index+1];
+            return std::nullopt;
+        }
+        template<typename Ch, typename String>
+        bool StringBuffer<Ch,String>::eof(uint64_t pos) {
+            if(pos+index > buffer_.size()) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        template<typename Ch, typename String>
+        void StringBuffer<Ch,String>::reset(uint64_t pos) {
+            index = pos;
+        }
     }
 
     namespace token {
         enum class TokenType { TT_ID, TT_SYM, TT_STR, TT_NULL };
+        template<typename Ch = int8_t, typename String = std::basic_string<Ch, std::char_traits<Ch>>>
         class Token {
         public:
-            using ch_type = int8_t;
-            using string_type = std::basic_string<ch_type, std::char_traits<ch_type>>;
+            using ch_type = Ch;
+            using string_type = String;
             Token() = default;
             Token(const TokenType &type);
-            void setToken(const TokenType &type, const string_type &value);
+            void setToken(const TokenType &type, const String &value);
             string_type getValue() const { return value; }
             TokenType getType() const { return type; }
         private:
             TokenType type;
             string_type value;
         };
+        
+        template<typename Ch, typename String>
+        Token<Ch, String>::Token(const TokenType &t) : type{t} {}     
+
+        template<typename Ch, typename String>
+        void Token<Ch, String>::setToken(const TokenType &type, const String &value) {
+            this->type = type;
+            this->value = value;
+        }
     }
 }
-
 
 #endif
