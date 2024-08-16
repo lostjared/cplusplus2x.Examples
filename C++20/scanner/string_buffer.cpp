@@ -21,15 +21,19 @@ namespace scan {
             }
 
             std::optional<StringBuffer::ch_type> StringBuffer::getch() {
-
+                if(index + 1 < buffer_.length()) {
+                    return buffer_[index++];
+                }
                 return std::nullopt;
             }
             std::optional<StringBuffer::ch_type> StringBuffer::curch() {
-
+                if(index < buffer_.length())
+                    return buffer_[index];
                 return std::nullopt;
             }
             std::optional<StringBuffer::ch_type> StringBuffer::peekch() {
-
+                if(index + 1 < buffer_.length())
+                    return buffer_[index+1];
                 return std::nullopt;
             }
 
