@@ -118,6 +118,7 @@ namespace scan {
                 tok_value += *ch;    
             }
 
+            string_buffer.backward_step(1);
             token.setToken(types::TokenType::TT_NUM, tok_value);
             std::cout << "grabbed number: " << tok_value << "\n";
             return token;
@@ -139,48 +140,3 @@ namespace scan {
 }
 
 
-
-using types::TokenType;
-using types::CharType;
-
-
-std::ostream &operator<<(std::ostream &out, const TokenType &tt) {
-    switch(tt) {
-        case types::TokenType::TT_ID:
-        out << "Identifier";
-        break;
-        case types::TokenType::TT_NUM:
-        out << "Numeeic Data";
-        break;
-        case types::TokenType::TT_STR:
-        out << "String Data";
-        break;
-        case types::TokenType::TT_SYM:
-        out << "Symbol(s)";
-        break;
-        default:
-            out << "Null Type";
-    }     
-
-    return out;
-}       
-
-std::ostream &operator<<(std::ostream &out, const CharType &c) {
-    switch(c) {
-        case types::CharType::TT_CHAR:
-        out << "Characters";
-        break;
-        case types::CharType::TT_DIGIT:
-        out << "Digits";
-        break;
-        case types::CharType::TT_STRING:
-        out << "String";
-        break;
-        case types::CharType::TT_SYMBOL:
-        out << "Symbol";
-        break;
-        default:
-        out << "[Null Type]";
-    }
-    return out;
-}

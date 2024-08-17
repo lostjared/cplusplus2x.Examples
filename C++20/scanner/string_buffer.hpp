@@ -94,7 +94,7 @@ namespace scan {
         }                                                                                                                                                              
         template<typename Ch, typename String>
         std::optional<Ch> StringBuffer<Ch, String>::backward_step(int num) {
-            if(index - num > 0) {
+            if(index - num >= 0) {
                 index = index - num;
                 return buffer_[index];
             }

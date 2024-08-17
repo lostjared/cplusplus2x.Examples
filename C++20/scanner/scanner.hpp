@@ -34,7 +34,9 @@ namespace scan {
     
 }
 
-  
+std::ostream &operator<<(std::ostream &out, const types::CharType &c);
+std::ostream &operator<<(std::ostream &out, const types::TokenType &t);
+
 
 
 #endif

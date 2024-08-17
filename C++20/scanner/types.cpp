@@ -2,41 +2,19 @@
 
 
 namespace types {
+
+    std::vector<std::string> strTokenType {"Identifier", "Symbols", "String", "Numeric", "NULL"};
+    std::vector<std::string> strCharType  {"Characters", "Digits", "Symbols", "String", "NULL"};
+
     void print_type_TokenType(std::ostream &out, const TokenType &tt) {
-        switch(tt) {
-            case types::TokenType::TT_ID:
-            out << "Identifier";
-            break;
-            case types::TokenType::TT_NUM:
-            out << "Numeric Data";
-            break;
-            case types::TokenType::TT_STR:
-            out << "String Data";
-            break;
-            case types::TokenType::TT_SYM:
-            out << "Symbol(s)";
-            break;
-            default:
-                out << "Null Type";
-        }     
+       unsigned int t_type = static_cast<unsigned int>(tt);
+       if(t_type < strTokenType.size())
+            out << strTokenType[t_type];
     }       
 
     void print_type_CharType(std::ostream &out, const CharType &c) {
-        switch(c) {
-            case types::CharType::TT_CHAR:
-            out << "Characters";
-            break;
-            case types::CharType::TT_DIGIT:
-            out << "Digits";
-            break;
-            case types::CharType::TT_STRING:
-            out << "String";
-            break;
-            case types::CharType::TT_SYMBOL:
-            out << "Symbol";
-            break;
-            default:
-            out << "[Null Type]";
-        }
+        unsigned int t_type = static_cast<unsigned int>(c);
+        if(t_type < strCharType.size())
+           out << strCharType[t_type];
     }
 }
