@@ -30,6 +30,8 @@ namespace scan {
         TString string_buffer;
         TMap token_map;
         std::vector<TToken> tokens;
+
+        bool isCSymbolOrOperator(const std::string& str);
     };
 
     class ScanExcept {

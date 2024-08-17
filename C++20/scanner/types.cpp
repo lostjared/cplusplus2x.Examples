@@ -4,7 +4,7 @@
 namespace types {
 
     std::vector<std::string> strTokenType {"Identifier", "Symbols", "String", "Numeric", "NULL"};
-    std::vector<std::string> strCharType  {"Characters", "Digits", "Symbols", "String", "NULL"};
+    std::vector<std::string> strCharType  {"Characters", "Digits", "Symbols", "String", "Space", "NULL"};
 
     void print_type_TokenType(std::ostream &out, const TokenType &tt) {
        unsigned int t_type = static_cast<unsigned int>(tt);

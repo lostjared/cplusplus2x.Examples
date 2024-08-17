@@ -1,5 +1,5 @@
 #include"scanner.hpp"
-
+#include<set>
 
 namespace scan {
 
@@ -17,7 +17,6 @@ namespace scan {
                     auto ch_ln = string_buffer.curch();
                     do {
                         ch_ln = string_buffer.getch();    
-                        std::cout << "eat chr: " << *ch_ln << "\n";
                     } while(ch_ln.has_value() && *ch_ln != '\n');
                     continue;
                 } else if(ch2.has_value() && *ch2 == '*') {
@@ -68,8 +67,8 @@ namespace scan {
                             }
                         }
                         break;
+                        case types::CharType::TT_SPACE:
                         case types::CharType::TT_NULL:
-                        std::cout << "skip char: " << *ch << "\n";
                         continue;
                     }
                 }
@@ -93,9 +92,8 @@ namespace scan {
                 if(!ch_t.has_value() || (*ch_t != types::CharType::TT_CHAR && *ch_t != types::CharType::TT_DIGIT)) break;
                 tok_value += *ch;    
             }
-
             token.setToken(types::TokenType::TT_ID, tok_value);
-            std::cout << "grabbed id: " << tok_value << "\n";
+            string_buffer.backward_step(1);
             return token;
         }
 
@@ -129,20 +127,93 @@ namespace scan {
 
             string_buffer.backward_step(1);
             token.setToken(types::TokenType::TT_NUM, tok_value);
-            std::cout << "grabbed number: " << tok_value << "\n";
             return token;
         }
         return std::nullopt;
     }
 
+    bool Scanner::isCSymbolOrOperator(const std::string& str) {
+        static const std::set<std::string> c_op = {
+            "++", "--", ">>=", "<<=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", 
+            "==", "!=", ">=", "<=", ">>", "<<", "&&", "||", "->", ".", "&", "*", "+", 
+            "-", "~", "!", "/", "%", ">", "<", "=", "^", "|", "?", ":", ";", ",", 
+            "(", ")", "[", "]", "{", "}", "->", "."
+        };
+        return c_op.find(str) != c_op.end();
+    }
+
     std::optional<TToken> Scanner::grabSymbols() {
+        TToken token;
+        std::string tok_value;
+        string_buffer.backward_step(1);
+        auto ch = string_buffer.getch();
+        if (ch.has_value()) {
+            tok_value += *ch;
+            std::string temp_value = tok_value;
+            int look = 0;
+            bool found = false;
+            while (true) {
+                auto temp = string_buffer.peekch(look);
+                if (temp.has_value() && token_map.lookup_int8(*temp) == types::CharType::TT_SYMBOL) {
+                    temp_value += *temp;
+                    if (isCSymbolOrOperator(temp_value)) {
+                        tok_value = temp_value;  
+                        look++;
+                        found = true;
+                    } else {
+                        break;  
+                    }
+                } else {
+                    break;  
+                }
+            }
+            if(found) {
+                string_buffer.forward_step(look);
+            }
+            token.setToken(types::TokenType::TT_SYM, tok_value);
+            return token;
+        }
         return std::nullopt;
     }
         
     std::optional<TToken> Scanner::grabString() {
-        return std::nullopt;
-    }
+            TToken token;
+            std::string tok_value;
 
+            while (true) {
+                auto ch = string_buffer.getch();
+                if (!ch.has_value()) break;
+
+                if (*ch == '\\') {
+                    auto next_ch = string_buffer.getch();
+                    if (!next_ch.has_value()) break;
+
+                    switch (*next_ch) {
+                        case 'n': tok_value += '\n'; break;
+                        case 't': tok_value += '\t'; break;
+                        case 'r': tok_value += '\r'; break;
+                        case '\\': tok_value += '\\'; break;
+                        case '\"': tok_value += '\"'; break;
+                        case '\'': tok_value += '\''; break;
+                        default:
+                            tok_value += '\\';
+                            tok_value += *next_ch;
+                            break;
+                    }
+                } else if (*ch == '\"') {
+                    break;
+                } else {
+                    tok_value += *ch;
+                }
+            }
+
+            if (!tok_value.empty()) {
+                token.setToken(types::TokenType::TT_STR, tok_value);
+                return token;
+            }
+
+            return std::nullopt;
+        }
     
     TToken &Scanner::operator[](size_t index) { return tokens[index]; }
     size_t Scanner::size() const { return tokens.size(); }

@@ -7,8 +7,7 @@
 
 namespace types {
     enum class TokenType { TT_ID, TT_SYM, TT_STR, TT_NUM, TT_NULL };
-    enum class CharType { TT_CHAR, TT_DIGIT, TT_SYMBOL, TT_STRING, TT_NULL };
-    const unsigned int max_types = 4;
+    enum class CharType { TT_CHAR, TT_DIGIT, TT_SYMBOL, TT_STRING, TT_SPACE, TT_NULL };
 
     // quick Look up
     extern std::vector<std::string> strTokenType;

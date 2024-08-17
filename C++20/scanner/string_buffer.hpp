@@ -25,7 +25,7 @@ namespace scan {
 
             std::optional<ch_type> getch();
             std::optional<ch_type> curch();
-            std::optional<ch_type> peekch();
+            std::optional<ch_type> peekch(int num=1);
             std::optional<ch_type> prevch();
             std::optional<ch_type> forward_step(int num=1);
             std::optional<ch_type> backward_step(int num=1);
@@ -72,9 +72,9 @@ namespace scan {
             return std::nullopt;
         }
         template<typename Ch, typename String>
-        std::optional<Ch> StringBuffer<Ch, String>::peekch() {
-            if(index + 1 < buffer_.length())
-                return buffer_[index+1];
+        std::optional<Ch> StringBuffer<Ch, String>::peekch(int num) {
+            if(index + num < buffer_.length())
+                return buffer_[index+num];
             return std::nullopt;
         }
 
@@ -161,6 +161,7 @@ namespace scan {
             for(i = '0'; i <= '9'; ++i) {
                 token_map[i] = CharType::TT_DIGIT;
             }
+            token_map[' '] = CharType::TT_SPACE;
             token_map['+'] = CharType::TT_SYMBOL;
             token_map['-'] = CharType::TT_SYMBOL;
             token_map['*'] = CharType::TT_SYMBOL;
@@ -186,7 +187,7 @@ namespace scan {
             token_map['.'] = CharType::TT_SYMBOL;
             token_map['?'] = CharType::TT_SYMBOL;
             token_map['#'] = CharType::TT_SYMBOL;
-            token_map['_'] = CharType::TT_SYMBOL;
+            token_map['_'] = CharType::TT_CHAR;
             token_map['\\'] = CharType::TT_SYMBOL;
             token_map['\''] = CharType::TT_STRING;
             token_map['\"'] = CharType::TT_STRING;  
@@ -247,7 +248,7 @@ namespace scan {
 
         template<typename Ch, typename String>
         void Token<Ch, String>::print(std::ostream &out) {
-            out << value << ":\t";
+            out << value << " -> \t";
             types::print_type_TokenType(out, this->type);
             out << "\n"; 
         }
