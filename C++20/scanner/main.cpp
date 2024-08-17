@@ -9,7 +9,7 @@
 
 int scanFile(const std::string &contents) {
     try {
-        std::unique_ptr<scan::Scanner> scan(new scan::Scanner(scan::TString(contents)));
+        std::unique_ptr<scan::Scanner> scan(new scan::Scanner(scan::TString(contents+"\n")));
         uint64_t tokens = scan->scan();
         std::cout << "scan returned: " << tokens << "\n";
 
