@@ -91,7 +91,7 @@ namespace scan {
         class TokenMap {
         public:
             TokenMap();
-
+            std::optional<CharType> lookup_int8(int8_t c);
         private:
             CharType token_map[MAX_CHARS+1];
         };
@@ -108,8 +108,18 @@ namespace scan {
             for(i = 'A'; i <= 'Z'; ++i) {
                 token_map[i] = CharType::TT_CHAR;
             }
+            for(i = '0'; i <= '9'; ++i) {
+                token_map[i] = CharType::TT_DIGIT;
+            }
         }
-
+        template<int MAX_CHARS>
+        std::optional<CharType> TokenMap<MAX_CHARS>::lookup_int8(int8_t c) {
+            if(c >= 0 && c < MAX_CHARS) {
+                return token_map[c];
+            }
+            return std::nullopt;
+        }
+        
         template<typename Ch = int8_t, typename String = std::basic_string<Ch, std::char_traits<Ch>>>
         class Token {
         public:
