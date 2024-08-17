@@ -111,6 +111,36 @@ namespace scan {
             for(i = '0'; i <= '9'; ++i) {
                 token_map[i] = CharType::TT_DIGIT;
             }
+            token_map['+'] = CharType::TT_SYMBOL;
+            token_map['-'] = CharType::TT_SYMBOL;
+            token_map['*'] = CharType::TT_SYMBOL;
+            token_map['/'] = CharType::TT_SYMBOL;
+            token_map['%'] = CharType::TT_SYMBOL;
+            token_map['&'] = CharType::TT_SYMBOL;
+            token_map['|'] = CharType::TT_SYMBOL;
+            token_map['^'] = CharType::TT_SYMBOL;
+            token_map['~'] = CharType::TT_SYMBOL;
+            token_map['!'] = CharType::TT_SYMBOL;
+            token_map['='] = CharType::TT_SYMBOL;
+            token_map['<'] = CharType::TT_SYMBOL;
+            token_map['>'] = CharType::TT_SYMBOL;
+            token_map['('] = CharType::TT_SYMBOL;
+            token_map[')'] = CharType::TT_SYMBOL;
+            token_map['['] = CharType::TT_SYMBOL;
+            token_map[']'] = CharType::TT_SYMBOL;
+            token_map['{'] = CharType::TT_SYMBOL;
+            token_map['}'] = CharType::TT_SYMBOL;
+            token_map[';'] = CharType::TT_SYMBOL;
+            token_map[':'] = CharType::TT_SYMBOL;
+            token_map[','] = CharType::TT_SYMBOL;
+            token_map['.'] = CharType::TT_SYMBOL;
+            token_map['?'] = CharType::TT_SYMBOL;
+            token_map['#'] = CharType::TT_SYMBOL;
+            token_map['_'] = CharType::TT_SYMBOL;
+            token_map['\\'] = CharType::TT_SYMBOL;
+            token_map['\''] = CharType::TT_STRING;
+            token_map['\"'] = CharType::TT_STRING;  
+            token_map['@'] = CharType::TT_SYMBOL;   
         }
         template<int MAX_CHARS>
         std::optional<CharType> TokenMap<MAX_CHARS>::lookup_int8(int8_t c) {
