@@ -92,22 +92,40 @@ namespace scan {
             using ch_type = Ch;
             using string_type = String;
             Token() = default;
-            Token(const TokenType &type);
+            Token(const TokenType &t) : type{t} {}
+            Token(const Token<Ch,String> &t) : type{t.type}, value{t.value} {}
+            Token(Token<Ch,String>  &&t);
+            Token<Ch,String> &operator=(const TokenType &type);
+            Token<Ch,String> &operator=(const Token<Ch,String> &t);
+            Token<Ch,String> &operator=(Token<Ch,String> &&t);
             void setToken(const TokenType &type, const String &value);
-            string_type getValue() const { return value; }
-            TokenType getType() const { return type; }
+            string_type getTokenValue() const { return value; }
+            TokenType getTokenType() const { return type; }
         private:
             TokenType type;
             string_type value;
         };
         
         template<typename Ch, typename String>
-        Token<Ch, String>::Token(const TokenType &t) : type{t} {}     
-
-        template<typename Ch, typename String>
         void Token<Ch, String>::setToken(const TokenType &type, const String &value) {
             this->type = type;
             this->value = value;
+        }
+
+        template<typename Ch, typename String>
+        Token<Ch,String> &Token<Ch,String>::operator=(const TokenType &type) {
+
+            return *this;
+        }
+        template<typename Ch, typename String>
+        Token<Ch,String> &Token<Ch,String>::operator=(const Token<Ch,String> &t) {
+
+            return *this;
+        }
+        template<typename Ch, typename String>
+        Token<Ch,String> &Token<Ch,String>::operator=(Token<Ch,String> &&t) {
+
+            return *this;
         }
     }
 }

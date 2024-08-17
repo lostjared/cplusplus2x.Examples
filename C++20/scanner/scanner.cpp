@@ -3,7 +3,7 @@
 
 namespace scan {
 
-    Scanner::Scanner(const StringBuffer &b) : string_buffer{b} {
+    Scanner::Scanner(const TString &b) : string_buffer{b} {
 
     }
 }

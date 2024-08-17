@@ -9,14 +9,14 @@
 
 namespace scan {
 
-    using buffer::StringBuffer;
+    using TString = buffer::StringBuffer<char>;
 
     class Scanner {
     public:
-        Scanner(const StringBuffer &b);
+        Scanner(const TString &b);
 
     private:
-        StringBuffer string_buffer;
+        TString string_buffer;
     };
     
 }
