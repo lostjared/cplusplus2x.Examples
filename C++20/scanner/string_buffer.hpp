@@ -5,6 +5,7 @@
 #include<sstream>
 #include<cstdint>
 #include<optional>
+#include<unordered_map>
 
 namespace scan {
     namespace buffer {
@@ -23,6 +24,7 @@ namespace scan {
             std::optional<ch_type> getch();
             std::optional<ch_type> curch();
             std::optional<ch_type> peekch();
+            std::optional<ch_type> prevch();
             std::optional<ch_type> forward_step(int num=1);
             std::optional<ch_type> backward_step(int num=1);
 
@@ -73,6 +75,12 @@ namespace scan {
             return std::nullopt;
         }
 
+        template<typename Ch, typename String>
+        std::optional<Ch> StringBuffer<Ch, String>::prevch() {
+            if(index - 1 >= 0)
+                return buffer_[index-1];
+            return std::nullopt;
+        }
         template<typename Ch, typename String> 
         std::optional<Ch> StringBuffer<Ch, String>::forward_step(int num) {
             if(index + num < buffer_.length()) {
@@ -80,8 +88,9 @@ namespace scan {
                 return buffer_[index];
             }
             return std::nullopt;
+
         }
-        template<typename Ch, typename String> 
+        template<typename Ch, typename String>
         std::optional<Ch> StringBuffer<Ch, String>::backward_step(int num) {
             if(index - num > 0) {
                 index = index - num;
@@ -107,17 +116,17 @@ namespace scan {
     namespace token {
         enum class TokenType { TT_ID, TT_SYM, TT_STR, TT_NUM, TT_NULL };
         enum class CharType { TT_NULL, TT_CHAR, TT_DIGIT, TT_SYMBOL, TT_STRING };
-        template<int MAX_CHARS=256>
+        template<typename Ch = char, int MAX_CHARS=256>
         class TokenMap {
         public:
             TokenMap();
             std::optional<CharType> lookup_int8(int8_t c);
         private:
-            CharType token_map[MAX_CHARS+1];
+            std::unordered_map<Ch, CharType> token_map;
         };
 
-        template<int MAX_CHARS>
-        TokenMap<MAX_CHARS>::TokenMap() {
+        template<typename Ch, int MAX_CHARS>
+        TokenMap<Ch, MAX_CHARS>::TokenMap() {
             std::size_t i = 0;
             for(i = 0;  i < MAX_CHARS; ++i) {
                 token_map[i] = CharType::TT_NULL;
@@ -162,10 +171,12 @@ namespace scan {
             token_map['\"'] = CharType::TT_STRING;  
             token_map['@'] = CharType::TT_SYMBOL;   
         }
-        template<int MAX_CHARS>
-        std::optional<CharType> TokenMap<MAX_CHARS>::lookup_int8(int8_t c) {
+        template<typename Ch, int MAX_CHARS>
+        std::optional<CharType> TokenMap<Ch, MAX_CHARS>::lookup_int8(int8_t c) {
             if(c >= 0 && c < MAX_CHARS) {
-                return token_map[c];
+                auto f = token_map.find(c);
+                if(f != token_map.end())
+                    return f->second;
             }
             return std::nullopt;
         }

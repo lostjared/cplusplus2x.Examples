@@ -12,7 +12,7 @@ namespace scan {
 
     using TString = buffer::StringBuffer<char>;
     using TToken = token::Token<char>;
-    using TMap = token::TokenMap<>;
+    using TMap = token::TokenMap<char>;
 
     class Scanner {
     public:
