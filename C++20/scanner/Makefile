@@ -1,4 +1,4 @@
-CXXFLAGS = -std=c++20 
+CXXFLAGS = -std=c++20 -Wall -pedantic
 LDFLAGS = 
 CPP_FILES := $(wildcard *.cpp)
 OBJ_FILES := $(CPP_FILES:.cpp=.o)
