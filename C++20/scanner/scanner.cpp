@@ -6,5 +6,127 @@ namespace scan {
     Scanner::Scanner(const TString &b) : string_buffer{b} {
 
     }
+
+    uint64_t Scanner::scan() {
+        tokens.clear();
+        while(!string_buffer.eof(0)) {
+            auto ch = string_buffer.getch();
+
+            if(ch.has_value() && *ch == '/') {
+                auto ch2 = string_buffer.curch();
+                if(ch2.has_value() && *ch2 == '/') {
+                    auto ch_ln = string_buffer.curch();
+                    do {
+                        ch_ln = string_buffer.getch();    
+                        std::cout << "eat chr: " << *ch_ln << "\n";
+                    } while(ch_ln.has_value() && *ch_ln != '\n');
+                    continue;
+                } else if(ch2.has_value() && *ch2 == '*') {
+                    auto ch_in = string_buffer.curch();
+                    auto ch_ex = string_buffer.curch();
+                    do {
+                        ch_ex = string_buffer.curch();
+                        ch_in = string_buffer.getch();
+                    } while(ch_ex.has_value() && *ch_ex != '*' && ch_in.has_value() && *ch_in != '/');
+                }
+            } 
+            
+            if(ch.has_value()) {
+                 auto t_ch = token_map.lookup_int8(*ch);
+                if(t_ch.has_value()) {
+                    switch(*t_ch) {
+                        case token::CharType::TT_CHAR: {
+                            auto tok = grabId();
+                            if(tok.has_value()) {
+                                tokens.push_back(*tok);
+                            }
+                        }
+                        break;
+                        case token::CharType::TT_DIGIT: {
+                            auto tok = grabDigits();
+                            if(tok.has_value()) {
+                                tokens.push_back(*tok);
+                            }
+                        }
+                        break;
+                        case token::CharType::TT_SYMBOL: {
+                            auto tok = grabSymbols();
+                            if(tok.has_value()) {
+                                tokens.push_back(*tok);
+                            }
+                        }
+                        break;
+                        case token::CharType::TT_STRING: {
+                            auto tok = grabString();
+                            if(tok.has_value()) {
+                                tokens.push_back(*tok);
+                            }
+                        }
+                        break;
+                        case token::CharType::TT_NULL:
+                        std::cout << "skip char: " << *ch << "\n";
+                        continue;
+                    }
+                }
+            } else break;
+        }
+        return tokens.size();
+    }
+
+    std::optional<TToken> Scanner::grabId() {
+        auto ch = string_buffer.backward_step(1);
+        TToken token;
+
+        if(ch.has_value()) {
+            auto ch_t = token_map.lookup_int8(*ch);
+            decltype(token.getTokenValue()) tok_value;
+
+            while(true) {
+                ch = string_buffer.getch();
+                if(!ch.has_value()) break;
+                ch_t = token_map.lookup_int8(*ch);
+                if(!ch_t.has_value() || (*ch_t != token::CharType::TT_CHAR && *ch_t != token::CharType::TT_DIGIT)) break;
+                tok_value += *ch;    
+            }
+
+            token.setToken(token::TokenType::TT_ID, tok_value);
+            std::cout << "grabbed id: " << tok_value << "\n";
+            return token;
+        }
+
+        return std::nullopt;
+    }
+
+    std::optional<TToken> Scanner::grabDigits() {
+        auto ch = string_buffer.backward_step(1);
+        TToken token;
+
+        if(ch.has_value()) {
+            auto ch_t = token_map.lookup_int8(*ch);
+            decltype(token.getTokenValue()) tok_value;
+            
+            while(true) {
+                ch = string_buffer.getch();
+                if(!ch.has_value()) break;
+                ch_t = token_map.lookup_int8(*ch);
+                if(!ch_t.has_value() || *ch_t != token::CharType::TT_DIGIT) break;
+                tok_value += *ch;    
+            }
+
+            token.setToken(token::TokenType::TT_NUM, tok_value);
+            std::cout << "grabbed number: " << tok_value << "\n";
+            return token;
+        }
+        return std::nullopt;
+    }
+
+    std::optional<TToken> Scanner::grabSymbols() {
+        return std::nullopt;
+    }
+        
+    std::optional<TToken> Scanner::grabString() {
+        return std::nullopt;
+    }
+
 }
 

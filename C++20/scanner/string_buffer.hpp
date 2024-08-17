@@ -8,7 +8,7 @@
 
 namespace scan {
     namespace buffer {
-        template<typename Ch = int8_t, typename String = std::basic_string<Ch, std::char_traits<Ch>>>
+        template<typename Ch = char, typename String = std::basic_string<Ch, std::char_traits<Ch>>>
         class StringBuffer {
         public:
             using ch_type = Ch;
@@ -23,6 +23,8 @@ namespace scan {
             std::optional<ch_type> getch();
             std::optional<ch_type> curch();
             std::optional<ch_type> peekch();
+            std::optional<ch_type> forward_step(int num=1);
+            std::optional<ch_type> backward_step(int num=1);
 
             bool eof(uint64_t pos);
             void reset(uint64_t pos = 0);
@@ -70,6 +72,24 @@ namespace scan {
                 return buffer_[index+1];
             return std::nullopt;
         }
+
+        template<typename Ch, typename String> 
+        std::optional<Ch> StringBuffer<Ch, String>::forward_step(int num) {
+            if(index + num < buffer_.length()) {
+                index = index + num;
+                return buffer_[index];
+            }
+            return std::nullopt;
+        }
+        template<typename Ch, typename String> 
+        std::optional<Ch> StringBuffer<Ch, String>::backward_step(int num) {
+            if(index - num > 0) {
+                index = index - num;
+                return buffer_[index];
+            }
+            return std::nullopt;
+        }
+
         template<typename Ch, typename String>
         bool StringBuffer<Ch,String>::eof(uint64_t pos) {
             if(pos+index > buffer_.size()) {
@@ -85,7 +105,7 @@ namespace scan {
     }
 
     namespace token {
-        enum class TokenType { TT_ID, TT_SYM, TT_STR, TT_NULL };
+        enum class TokenType { TT_ID, TT_SYM, TT_STR, TT_NUM, TT_NULL };
         enum class CharType { TT_NULL, TT_CHAR, TT_DIGIT, TT_SYMBOL, TT_STRING };
         template<int MAX_CHARS=256>
         class TokenMap {
@@ -150,7 +170,7 @@ namespace scan {
             return std::nullopt;
         }
         
-        template<typename Ch = int8_t, typename String = std::basic_string<Ch, std::char_traits<Ch>>>
+        template<typename Ch = char, typename String = std::basic_string<Ch, std::char_traits<Ch>>>
         class Token {
         public:
             using ch_type = Ch;
@@ -158,7 +178,7 @@ namespace scan {
             Token() = default;
             Token(const TokenType &t) : type{t} {}
             Token(const Token<Ch,String> &t) : type{t.type}, value{t.value} {}
-            Token(Token<Ch,String>  &&t);
+            Token(Token<Ch,String>  &&t) : type{t.type}, value{std::move(t.value)} {}
             Token<Ch,String> &operator=(const TokenType &type);
             Token<Ch,String> &operator=(const Token<Ch,String> &t);
             Token<Ch,String> &operator=(Token<Ch,String> &&t);
