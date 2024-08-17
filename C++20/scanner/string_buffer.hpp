@@ -16,9 +16,9 @@ namespace scan {
             StringBuffer(const string_type &buf) : buffer_{buf}, index{0} {}
             StringBuffer(const StringBuffer<Ch,String> &sb) :  buffer_{sb.buffer_}, index{0} {}   
             StringBuffer(StringBuffer<Ch,String> &&sb) :  buffer_{std::move(sb.buffer_)}, index{0} {}
-            StringBuffer &operator=(const StringBuffer<Ch,String> &sb);                                      
-            StringBuffer &operator=(StringBuffer<Ch,String> &&b);
-            StringBuffer &operator=(const string_type &b);
+            StringBuffer<Ch,String> &operator=(const StringBuffer<Ch,String> &sb);                                      
+            StringBuffer<Ch,String> &operator=(StringBuffer<Ch,String> &&b);
+            StringBuffer<Ch,String> &operator=(const String &b);
 
             std::optional<ch_type> getch();
             std::optional<ch_type> curch();
@@ -45,7 +45,7 @@ namespace scan {
                 return *this;
         }
         template<typename Ch, typename String>         
-        StringBuffer<Ch,String> &StringBuffer<Ch,String>::operator=(const string_type &buf) {
+        StringBuffer<Ch,String> &StringBuffer<Ch,String>::operator=(const String &buf) {
             buffer_ =  buf;
             index = 0;
             return *this;
@@ -86,6 +86,30 @@ namespace scan {
 
     namespace token {
         enum class TokenType { TT_ID, TT_SYM, TT_STR, TT_NULL };
+        enum class CharType { TT_NULL, TT_CHAR, TT_DIGIT, TT_SYMBOL, TT_STRING };
+        template<int MAX_CHARS=256>
+        class TokenMap {
+        public:
+            TokenMap();
+
+        private:
+            CharType token_map[MAX_CHARS+1];
+        };
+
+        template<int MAX_CHARS>
+        TokenMap<MAX_CHARS>::TokenMap() {
+            std::size_t i = 0;
+            for(i = 0;  i < MAX_CHARS; ++i) {
+                token_map[i] = CharType::TT_NULL;
+            }
+            for(i = 'a'; i <= 'z'; ++i) {
+                token_map[i] = CharType::TT_CHAR;
+            }
+            for(i = 'A'; i <= 'Z'; ++i) {
+                token_map[i] = CharType::TT_CHAR;
+            }
+        }
+
         template<typename Ch = int8_t, typename String = std::basic_string<Ch, std::char_traits<Ch>>>
         class Token {
         public:
