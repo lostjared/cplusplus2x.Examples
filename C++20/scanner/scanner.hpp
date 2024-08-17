@@ -22,13 +22,19 @@ namespace scan {
         std::optional<TToken> grabDigits();
         std::optional<TToken> grabSymbols();
         std::optional<TToken> grabString();
+
+        TToken &operator[](size_t index);
+        size_t size() const;
     private:
         TString string_buffer;
         TMap token_map;
         std::vector<TToken> tokens;
     };
+
     
 }
+
+  
 
 
 #endif

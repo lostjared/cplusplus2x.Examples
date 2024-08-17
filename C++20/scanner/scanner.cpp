@@ -40,35 +40,35 @@ namespace scan {
                  auto t_ch = token_map.lookup_int8(*ch);
                 if(t_ch.has_value()) {
                     switch(*t_ch) {
-                        case token::CharType::TT_CHAR: {
+                        case types::CharType::TT_CHAR: {
                             auto tok = grabId();
                             if(tok.has_value()) {
                                 tokens.push_back(*tok);
                             }
                         }
                         break;
-                        case token::CharType::TT_DIGIT: {
+                        case types::CharType::TT_DIGIT: {
                             auto tok = grabDigits();
                             if(tok.has_value()) {
                                 tokens.push_back(*tok);
                             }
                         }
                         break;
-                        case token::CharType::TT_SYMBOL: {
+                        case types::CharType::TT_SYMBOL: {
                             auto tok = grabSymbols();
                             if(tok.has_value()) {
                                 tokens.push_back(*tok);
                             }
                         }
                         break;
-                        case token::CharType::TT_STRING: {
+                        case types::CharType::TT_STRING: {
                             auto tok = grabString();
                             if(tok.has_value()) {
                                 tokens.push_back(*tok);
                             }
                         }
                         break;
-                        case token::CharType::TT_NULL:
+                        case types::CharType::TT_NULL:
                         std::cout << "skip char: " << *ch << "\n";
                         continue;
                     }
@@ -90,11 +90,11 @@ namespace scan {
                 ch = string_buffer.getch();
                 if(!ch.has_value()) break;
                 ch_t = token_map.lookup_int8(*ch);
-                if(!ch_t.has_value() || (*ch_t != token::CharType::TT_CHAR && *ch_t != token::CharType::TT_DIGIT)) break;
+                if(!ch_t.has_value() || (*ch_t != types::CharType::TT_CHAR && *ch_t != types::CharType::TT_DIGIT)) break;
                 tok_value += *ch;    
             }
 
-            token.setToken(token::TokenType::TT_ID, tok_value);
+            token.setToken(types::TokenType::TT_ID, tok_value);
             std::cout << "grabbed id: " << tok_value << "\n";
             return token;
         }
@@ -114,11 +114,11 @@ namespace scan {
                 ch = string_buffer.getch();
                 if(!ch.has_value()) break;
                 ch_t = token_map.lookup_int8(*ch);
-                if(!ch_t.has_value() || *ch_t != token::CharType::TT_DIGIT) break;
+                if(!ch_t.has_value() || *ch_t != types::CharType::TT_DIGIT) break;
                 tok_value += *ch;    
             }
 
-            token.setToken(token::TokenType::TT_NUM, tok_value);
+            token.setToken(types::TokenType::TT_NUM, tok_value);
             std::cout << "grabbed number: " << tok_value << "\n";
             return token;
         }
@@ -133,5 +133,54 @@ namespace scan {
         return std::nullopt;
     }
 
+    
+    TToken &Scanner::operator[](size_t index) { return tokens[index]; }
+    size_t Scanner::size() const { return tokens.size(); }
 }
 
+
+
+using types::TokenType;
+using types::CharType;
+
+
+std::ostream &operator<<(std::ostream &out, const TokenType &tt) {
+    switch(tt) {
+        case types::TokenType::TT_ID:
+        out << "Identifier";
+        break;
+        case types::TokenType::TT_NUM:
+        out << "Numeeic Data";
+        break;
+        case types::TokenType::TT_STR:
+        out << "String Data";
+        break;
+        case types::TokenType::TT_SYM:
+        out << "Symbol(s)";
+        break;
+        default:
+            out << "Null Type";
+    }     
+
+    return out;
+}       
+
+std::ostream &operator<<(std::ostream &out, const CharType &c) {
+    switch(c) {
+        case types::CharType::TT_CHAR:
+        out << "Characters";
+        break;
+        case types::CharType::TT_DIGIT:
+        out << "Digits";
+        break;
+        case types::CharType::TT_STRING:
+        out << "String";
+        break;
+        case types::CharType::TT_SYMBOL:
+        out << "Symbol";
+        break;
+        default:
+        out << "[Null Type]";
+    }
+    return out;
+}

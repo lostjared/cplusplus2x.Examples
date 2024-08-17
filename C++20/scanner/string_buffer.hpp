@@ -6,6 +6,8 @@
 #include<cstdint>
 #include<optional>
 #include<unordered_map>
+#include"types.hpp"
+
 
 namespace scan {
     namespace buffer {
@@ -89,7 +91,7 @@ namespace scan {
             }
             return std::nullopt;
 
-        }
+        }                                                                                                                                                              
         template<typename Ch, typename String>
         std::optional<Ch> StringBuffer<Ch, String>::backward_step(int num) {
             if(index - num > 0) {
@@ -109,20 +111,23 @@ namespace scan {
         }
         template<typename Ch, typename String>
         void StringBuffer<Ch,String>::reset(uint64_t pos) {
+        
             index = pos;
         }
     }
 
     namespace token {
-        enum class TokenType { TT_ID, TT_SYM, TT_STR, TT_NUM, TT_NULL };
-        enum class CharType { TT_NULL, TT_CHAR, TT_DIGIT, TT_SYMBOL, TT_STRING };
-        template<typename Ch = char, int MAX_CHARS=256>
+      
+        using types::CharType;
+   
+        template<typename Ch, int MAX_SIZE=256>
         class TokenMap {
         public:
+                    
             TokenMap();
-            std::optional<CharType> lookup_int8(int8_t c);
+            std::optional<types::CharType> lookup_int8(int8_t c);
         private:
-            std::unordered_map<Ch, CharType> token_map;
+            std::unordered_map<Ch, types::CharType> token_map;
         };
 
         template<typename Ch, int MAX_CHARS>
@@ -172,7 +177,7 @@ namespace scan {
             token_map['@'] = CharType::TT_SYMBOL;   
         }
         template<typename Ch, int MAX_CHARS>
-        std::optional<CharType> TokenMap<Ch, MAX_CHARS>::lookup_int8(int8_t c) {
+        std::optional<types::CharType> TokenMap<Ch, MAX_CHARS>::lookup_int8(int8_t c) {
             if(c >= 0 && c < MAX_CHARS) {
                 auto f = token_map.find(c);
                 if(f != token_map.end())
@@ -187,42 +192,51 @@ namespace scan {
             using ch_type = Ch;
             using string_type = String;
             Token() = default;
-            Token(const TokenType &t) : type{t} {}
+            Token(const types::TokenType &t) : type{t} {}
             Token(const Token<Ch,String> &t) : type{t.type}, value{t.value} {}
             Token(Token<Ch,String>  &&t) : type{t.type}, value{std::move(t.value)} {}
-            Token<Ch,String> &operator=(const TokenType &type);
+            Token<Ch,String> &operator=(const types::TokenType &type);
             Token<Ch,String> &operator=(const Token<Ch,String> &t);
             Token<Ch,String> &operator=(Token<Ch,String> &&t);
-            void setToken(const TokenType &type, const String &value);
+            void setToken(const types::TokenType &type, const String &value);
             string_type getTokenValue() const { return value; }
-            TokenType getTokenType() const { return type; }
+            types::TokenType getTokenType() const { return type; }
+            void print(std::ostream &out);
         private:
-            TokenType type;
+            types::TokenType type;
             string_type value;
         };
         
         template<typename Ch, typename String>
-        void Token<Ch, String>::setToken(const TokenType &type, const String &value) {
+        void Token<Ch, String>::setToken(const types::TokenType &type, const String &value) {
             this->type = type;
             this->value = value;
         }
 
         template<typename Ch, typename String>
-        Token<Ch,String> &Token<Ch,String>::operator=(const TokenType &type) {
-
+        Token<Ch,String> &Token<Ch,String>::operator=(const types::TokenType &type) {
+            setToken(type, value);
             return *this;
         }
         template<typename Ch, typename String>
         Token<Ch,String> &Token<Ch,String>::operator=(const Token<Ch,String> &t) {
-
+            setToken(t.type, t.value);
             return *this;
         }
         template<typename Ch, typename String>
         Token<Ch,String> &Token<Ch,String>::operator=(Token<Ch,String> &&t) {
-
+            setToken(t.type, t.value);
             return *this;
         }
+
+        template<typename Ch, typename String>
+        void Token<Ch, String>::print(std::ostream &out) {
+            out << value << ":\t";
+            types::print_type_TokenType(out, this->type);
+            out << "\n"; 
+        }
     }
-}
+       
+  }
 
 #endif

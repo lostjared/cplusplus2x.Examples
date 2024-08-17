@@ -1,16 +1,14 @@
-#include"string_buffer.hpp"
-#include<utility>
-#include<optional>
+#include "types.hpp"
 
-namespace scan {
 
-    void print_type_CharType(std::ostream &out, const types::TokenType &tt) {
+namespace types {
+    void print_type_TokenType(std::ostream &out, const TokenType &tt) {
         switch(tt) {
             case types::TokenType::TT_ID:
             out << "Identifier";
             break;
             case types::TokenType::TT_NUM:
-            out << "Numeeic Data";
+            out << "Numeric Data";
             break;
             case types::TokenType::TT_STR:
             out << "String Data";
@@ -23,7 +21,7 @@ namespace scan {
         }     
     }       
 
-    void print_type_TokenType(std::ostream &out, const types::CharType &c) {
+    void print_type_CharType(std::ostream &out, const CharType &c) {
         switch(c) {
             case types::CharType::TT_CHAR:
             out << "Characters";
@@ -41,10 +39,4 @@ namespace scan {
             out << "[Null Type]";
         }
     }
-
 }
-
-
-
-
-

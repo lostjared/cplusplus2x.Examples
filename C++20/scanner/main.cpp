@@ -4,10 +4,19 @@
 #include<iostream>
 #include<memory>
 
+
+
+
 int scanFile(const std::string &contents) {
+
     std::unique_ptr<scan::Scanner> scan(new scan::Scanner(scan::TString(contents)));
     uint64_t tokens = scan->scan();
     std::cout << "scan returned: " << tokens << "\n";
+
+    for(size_t i = 0; i < scan->size(); ++i) {
+        scan->operator[](i).print(std::cout);
+    }
+                                                                                                                  
     return static_cast<int>(tokens);
 }
 
