@@ -109,12 +109,21 @@ namespace scan {
         if(ch.has_value()) {
             auto ch_t = token_map.lookup_int8(*ch);
             decltype(token.getTokenValue()) tok_value;
-            
+            int decimal = 0;
             while(true) {
                 ch = string_buffer.getch();
                 if(!ch.has_value()) break;
                 ch_t = token_map.lookup_int8(*ch);
-                if(!ch_t.has_value() || *ch_t != types::CharType::TT_DIGIT) break;
+                if(!ch_t.has_value() || (*ch_t != types::CharType::TT_DIGIT && *ch != '.')) break;
+                if(*ch == '.') {
+                    ++decimal;
+                    if(decimal > 1) {
+                        std::ostringstream stream;
+                        auto lp = string_buffer.cur_line();
+                        stream << "Line: " << lp.first << " Col: " << lp.second << " -> Too may precision points for floating point number only one is allowed.";
+                        throw ScanExcept(stream.str());
+                    }
+                }
                 tok_value += *ch;    
             }
 

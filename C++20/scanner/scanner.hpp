@@ -11,6 +11,7 @@
 namespace scan {
 
     using TString = buffer::StringBuffer<char>;
+    using StringType = buffer::StringBuffer<char>::string_type;
     using TToken = token::Token<char>;
     using TMap = token::TokenMap<char>;
 
@@ -31,9 +32,15 @@ namespace scan {
         std::vector<TToken> tokens;
     };
 
-    
+    class ScanExcept {
+    public:
+        ScanExcept() = default;
+        ScanExcept(const StringType &why) : msg{why} {}
+        StringType why() const { return msg; }
+    private:
+        StringType msg;
+    };
 }
-
 std::ostream &operator<<(std::ostream &out, const types::CharType &c);
 std::ostream &operator<<(std::ostream &out, const types::TokenType &t);
 

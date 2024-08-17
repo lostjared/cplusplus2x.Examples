@@ -8,16 +8,19 @@
 
 
 int scanFile(const std::string &contents) {
+    try {
+        std::unique_ptr<scan::Scanner> scan(new scan::Scanner(scan::TString(contents)));
+        uint64_t tokens = scan->scan();
+        std::cout << "scan returned: " << tokens << "\n";
 
-    std::unique_ptr<scan::Scanner> scan(new scan::Scanner(scan::TString(contents)));
-    uint64_t tokens = scan->scan();
-    std::cout << "scan returned: " << tokens << "\n";
-
-    for(size_t i = 0; i < scan->size(); ++i) {
-        scan->operator[](i).print(std::cout);
+        for(size_t i = 0; i < scan->size(); ++i) {
+            scan->operator[](i).print(std::cout);
+        }
+        return static_cast<int>(tokens);
+    } catch(scan::ScanExcept &e) {
+        std::cerr << "Fatal error: " << e.why() << "\n";
     }
-                                                                                                                  
-    return static_cast<int>(tokens);
+    return 0;
 }
 
 int main(int argc, char **argv) {

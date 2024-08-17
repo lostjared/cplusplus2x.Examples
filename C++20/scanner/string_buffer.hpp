@@ -30,6 +30,7 @@ namespace scan {
             std::optional<ch_type> forward_step(int num=1);
             std::optional<ch_type> backward_step(int num=1);
 
+            std::pair<uint64_t, uint64_t> cur_line();
             bool eof(uint64_t pos);
             void reset(uint64_t pos = 0);
 
@@ -102,7 +103,22 @@ namespace scan {
         }
 
         template<typename Ch, typename String>
+        std::pair<uint64_t, uint64_t> StringBuffer<Ch,String>::cur_line() {
+            uint64_t pos = index;
+            uint64_t count = 1;
+            uint64_t col = 0;
+            for(uint64_t i = 0; i < pos; ++i) {
+                if(buffer_[i] == '\n') {
+                    ++count;
+                    col = 0;
+                } else ++col;
+            }
+            return std::make_pair(count, col);
+        }
+
+        template<typename Ch, typename String>
         bool StringBuffer<Ch,String>::eof(uint64_t pos) {
+
             if(pos+index > buffer_.size()) {
                 return true;
             } else {
