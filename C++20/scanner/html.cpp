@@ -55,14 +55,15 @@ int html_scanFile(const std::string &contents, const char *out_filename) {
         uint64_t tokens = scan->scan();
         std::cout << "scan: Sucessfull scan returned: " << tokens << " token(s)...\n";
 
-        file << "<tr><th>Index/Line:Col</th><th>Token</th><th>Type</th></tr>";
+        file << "<tr><th>Index/Line:Col</th><th>Token</th><th>Type</th></tr>\n";
 
         for(size_t i = 0; i < scan->size(); ++i) {
             auto posx = scan->operator[](i).get_pos();
             file << "<tr><td>" << i << "/" << posx.first << ":" << posx.second << "</td><td>" << scan->operator[](i).getTokenValue() << "</td><td>";
             types::print_type_TokenType(file, scan->operator[](i).getTokenType());
-            file << "</td></tr>";
+            file << "</td></tr>\n";
         }
+        file << htmlPage_Footer << "\n";
         file.close();
         file << "scanner: Wrote "<< out_filename << "\n";
         return static_cast<int>(tokens);
