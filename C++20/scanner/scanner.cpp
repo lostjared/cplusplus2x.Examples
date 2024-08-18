@@ -4,7 +4,6 @@
 namespace scan {
 
     Scanner::Scanner(const TString &b) : string_buffer{b} {
-
     }
 
     uint64_t Scanner::scan() {
@@ -80,6 +79,7 @@ namespace scan {
     std::optional<TToken> Scanner::grabId() {
         auto ch = string_buffer.backward_step(1);
         TToken token;
+        auto pos = string_buffer.cur_line();
 
         if(ch.has_value()) {
             auto ch_t = token_map.lookup_int8(*ch);
@@ -92,6 +92,7 @@ namespace scan {
                 if(!ch_t.has_value() || (*ch_t != types::CharType::TT_CHAR && *ch_t != types::CharType::TT_DIGIT)) break;
                 tok_value += *ch;    
             }
+            token.set_pos(pos);
             token.setToken(types::TokenType::TT_ID, tok_value);
             string_buffer.backward_step(1);
             return token;
@@ -103,6 +104,7 @@ namespace scan {
     std::optional<TToken> Scanner::grabDigits() {
         auto ch = string_buffer.backward_step(1);
         TToken token;
+        auto pos = string_buffer.cur_line();
 
         if(ch.has_value()) {
             auto ch_t = token_map.lookup_int8(*ch);
@@ -126,6 +128,7 @@ namespace scan {
             }
 
             string_buffer.backward_step(1);
+            token.set_pos(pos);
             token.setToken(types::TokenType::TT_NUM, tok_value);
             return token;
         }
@@ -146,8 +149,9 @@ namespace scan {
         TToken token;
         std::string tok_value;
         string_buffer.backward_step(1);
+        auto pos = string_buffer.cur_line();
         auto ch = string_buffer.getch();
-        if (ch.has_value()) {
+         if (ch.has_value()) {
             tok_value += *ch;
             std::string temp_value = tok_value;
             int look = 0;
@@ -170,6 +174,7 @@ namespace scan {
             if(found) {
                 string_buffer.forward_step(look);
             }
+            token.set_pos(pos);
             token.setToken(types::TokenType::TT_SYM, tok_value);
             return token;
         }
@@ -179,7 +184,7 @@ namespace scan {
     std::optional<TToken> Scanner::grabString() {
             TToken token;
             std::string tok_value;
-
+            auto pos = string_buffer.cur_line();
             while (true) {
                 auto ch = string_buffer.getch();
                 if (!ch.has_value()) {
@@ -212,6 +217,7 @@ namespace scan {
             }
 
             if (!tok_value.empty()) {
+                token.set_pos(pos);
                 token.setToken(types::TokenType::TT_STR, tok_value);
                 return token;
             }

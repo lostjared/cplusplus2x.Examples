@@ -16,7 +16,7 @@ namespace scan {
         public:
             using ch_type = Ch;
             using string_type = String;
-            StringBuffer(const string_type &buf) : buffer_{buf}, index{0} {}
+            StringBuffer(const string_type &buf) : buffer_{buf+" \n"}, index{0} {}
             StringBuffer(const StringBuffer<Ch,String> &sb) :  buffer_{sb.buffer_}, index{0} {}   
             StringBuffer(StringBuffer<Ch,String> &&sb) :  buffer_{std::move(sb.buffer_)}, index{0} {}
             StringBuffer<Ch,String> &operator=(const StringBuffer<Ch,String> &sb);                                      
@@ -210,8 +210,8 @@ namespace scan {
             using string_type = String;
             Token() = default;
             Token(const types::TokenType &t) : type{t} {}
-            Token(const Token<Ch,String> &t) : type{t.type}, value{t.value} {}
-            Token(Token<Ch,String>  &&t) : type{t.type}, value{std::move(t.value)} {}
+            Token(const Token<Ch,String> &t) : type{t.type}, value{t.value}, line{t.line}, col{t.col} {}
+            Token(Token<Ch,String>  &&t) : type{t.type}, value{std::move(t.value)}, line{t.line}, col{t.col} {}
             Token<Ch,String> &operator=(const types::TokenType &type);
             Token<Ch,String> &operator=(const Token<Ch,String> &t);
             Token<Ch,String> &operator=(Token<Ch,String> &&t);
@@ -219,9 +219,12 @@ namespace scan {
             string_type getTokenValue() const { return value; }
             types::TokenType getTokenType() const { return type; }
             void print(std::ostream &out);
+            const std::pair<uint64_t, uint64_t> get_pos() const { return std::make_pair(line, col); }
+            void set_pos(const std::pair<uint64_t, uint64_t> &p);
         private:
             types::TokenType type;
             string_type value;
+            uint64_t line, col;
         };
         
         template<typename Ch, typename String>
@@ -251,6 +254,11 @@ namespace scan {
             out << value << " -> \t";
             types::print_type_TokenType(out, this->type);
             out << "\n"; 
+        }
+        template<typename Ch, typename String>
+        void Token<Ch, String>::set_pos(const std::pair<uint64_t, uint64_t> &p) {
+            line = p.first;
+            col = p.second;
         }
     }
        
