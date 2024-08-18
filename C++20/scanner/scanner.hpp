@@ -31,7 +31,7 @@ namespace scan {
         TMap token_map;
         std::vector<TToken> tokens;
 
-        bool isCSymbolOrOperator(const std::string& str);
+        bool is_c_sym(const StringType& str);
     };
 
     class ScanExcept {

@@ -132,12 +132,12 @@ namespace scan {
         return std::nullopt;
     }
 
-    bool Scanner::isCSymbolOrOperator(const std::string& str) {
+    bool Scanner::is_c_sym(const StringType  &str) {
         static const std::set<std::string> c_op = {
             "++", "--", ">>=", "<<=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", 
             "==", "!=", ">=", "<=", ">>", "<<", "&&", "||", "->", ".", "&", "*", "+", 
             "-", "~", "!", "/", "%", ">", "<", "=", "^", "|", "?", ":", ";", ",", 
-            "(", ")", "[", "]", "{", "}", "->", "."
+            "(", ")", "[", "]", "{", "}", "->", ".","::"
         };
         return c_op.find(str) != c_op.end();
     }
@@ -156,7 +156,7 @@ namespace scan {
                 auto temp = string_buffer.peekch(look);
                 if (temp.has_value() && token_map.lookup_int8(*temp) == types::CharType::TT_SYMBOL) {
                     temp_value += *temp;
-                    if (isCSymbolOrOperator(temp_value)) {
+                    if (is_c_sym(temp_value)) {
                         tok_value = temp_value;  
                         look++;
                         found = true;
