@@ -66,6 +66,12 @@ namespace scan {
                             }
                         }
                         break;
+                        case types::CharType::TT_SINGLE: {
+                            auto tok = grabSingle();
+                            if(tok.has_value())  {
+                                tokens.push_back(*tok);
+                            }
+                        }
                         case types::CharType::TT_SPACE:
                         case types::CharType::TT_NULL:
                         continue;
@@ -171,7 +177,7 @@ namespace scan {
                     break;  
                 }
             }
-            if(found) {
+            if(found && look != 0) {
                 string_buffer.forward_step(look);
             }
             token.set_pos(pos);
@@ -190,10 +196,9 @@ namespace scan {
                 if (!ch.has_value()) {
                     std::ostringstream stream;
                     auto cpos = string_buffer.cur_line();
-                    stream << "Line: " << cpos.first << " Col:"<< cpos.second << " String quote not terminated.";
+                    stream << "Line: " << cpos.first << " Col:"<< cpos.second << " Double quote not terminated.";
                     throw ScanExcept(stream.str());
                 } 
-                
                 if (*ch == '\\') {
                     auto next_ch = string_buffer.getch();
                     if (!next_ch.has_value()) break;
@@ -224,7 +229,52 @@ namespace scan {
 
             return std::nullopt;
         }
+
+        std::optional<TToken> Scanner::grabSingle() {
+            TToken token;
+            std::string tok_value;
+            auto pos = string_buffer.cur_line();
+            while (true) {
+                auto ch = string_buffer.getch();
+                if (!ch.has_value()) {
+                    std::ostringstream stream;
+                    auto cpos = string_buffer.cur_line();
+                    stream << "Line: " << cpos.first << " Col:"<< cpos.second << " String quote not terminated.";
+                    throw ScanExcept(stream.str());
+                } 
+                if (*ch == '\\') {
+                    auto next_ch = string_buffer.getch();
+                    if (!next_ch.has_value()) break;
+                    switch (*next_ch) {
+                        case 'n': tok_value += '\n'; break;
+                        case 't': tok_value += '\t'; break;
+                        case 'r': tok_value += '\r'; break;
+                        case '\\': tok_value += '\\'; break;
+                        case '\"': tok_value += '\"'; break;
+                        case '\'': tok_value += '\''; break;
+                        default:
+                            tok_value += '\\';
+                            tok_value += *next_ch;
+                            break;
+                    }
+            } else if (*ch == '\'') {
+                    break;
+                } else {
+                    tok_value += *ch;
+                }
+            }
+
+           if (!tok_value.empty()) {
+                token.set_pos(pos);
+                token.setToken(types::TokenType::TT_STR, tok_value);
+                return token;
+            }
+
+            return std::nullopt;
+        }
+
     
+
     TToken &Scanner::operator[](size_t index) { return tokens[index]; }
     size_t Scanner::size() const { return tokens.size(); }
 }

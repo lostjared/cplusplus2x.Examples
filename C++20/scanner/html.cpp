@@ -39,6 +39,20 @@ std::string htmlPage_Footer = R"(
 </html>
 )";
 
+std::string convertToHTML(const std::string &text) {
+    std::ostringstream stream;
+    for(size_t i = 0; i < text.length(); ++i) {
+        if(text[i] == '<') {
+            stream << "&lt;";
+        } else if(text[i] == '>') {
+            stream << "&gt;";
+        } else {
+            stream << text[i];
+        }
+    }
+    return stream.str();
+}
+
 int html_scanFile(const std::string &contents, const char *out_filename) {
     try {
 
@@ -59,7 +73,7 @@ int html_scanFile(const std::string &contents, const char *out_filename) {
 
         for(size_t i = 0; i < scan->size(); ++i) {
             auto posx = scan->operator[](i).get_pos();
-            file << "<tr><td>" << i << "/" << posx.first << ":" << posx.second << "</td><td>" << scan->operator[](i).getTokenValue() << "</td><td>";
+            file << "<tr><td>" << i << "/" << posx.first << ":" << posx.second << "</td><td>" << convertToHTML(scan->operator[](i).getTokenValue()) << "</td><td>";
             types::print_type_TokenType(file, scan->operator[](i).getTokenType());
             file << "</td></tr>\n";
         }

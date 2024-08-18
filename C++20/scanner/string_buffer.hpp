@@ -118,7 +118,6 @@ namespace scan {
 
         template<typename Ch, typename String>
         bool StringBuffer<Ch,String>::eof(uint64_t pos) {
-
             if(pos+index > buffer_.size()) {
                 return true;
             } else {
@@ -189,7 +188,7 @@ namespace scan {
             token_map['#'] = CharType::TT_SYMBOL;
             token_map['_'] = CharType::TT_CHAR;
             token_map['\\'] = CharType::TT_SYMBOL;
-            token_map['\''] = CharType::TT_STRING;
+            token_map['\''] = CharType::TT_SINGLE;
             token_map['\"'] = CharType::TT_STRING;  
             token_map['@'] = CharType::TT_SYMBOL;   
         }

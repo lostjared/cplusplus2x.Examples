@@ -23,6 +23,7 @@ namespace scan {
         std::optional<TToken> grabDigits();
         std::optional<TToken> grabSymbols();
         std::optional<TToken> grabString();
+        std::optional<TToken> grabSingle();
 
         TToken &operator[](size_t index);
         size_t size() const;
