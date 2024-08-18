@@ -182,12 +182,16 @@ namespace scan {
 
             while (true) {
                 auto ch = string_buffer.getch();
-                if (!ch.has_value()) break;
-
+                if (!ch.has_value()) {
+                    std::ostringstream stream;
+                    auto cpos = string_buffer.cur_line();
+                    stream << "Line: " << cpos.first << " Col:"<< cpos.second << " String quote not terminated.";
+                    throw ScanExcept(stream.str());
+                } 
+                
                 if (*ch == '\\') {
                     auto next_ch = string_buffer.getch();
                     if (!next_ch.has_value()) break;
-
                     switch (*next_ch) {
                         case 'n': tok_value += '\n'; break;
                         case 't': tok_value += '\t'; break;
