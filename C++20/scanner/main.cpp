@@ -3,6 +3,7 @@
 #include<sstream>
 #include<iostream>
 #include<memory>
+#include"argz.hpp"
 
 extern int html_main(const char *filename, const char *outfilename);
 
@@ -23,24 +24,49 @@ int scanFile(const std::string &contents) {
 }
 
 int main(int argc, char **argv) {
- 
-    if(argc != 2 && argc != 3) {
-        std::cerr << "Error: requires one argument filename\n";
+    Argz<std::string> argz(argc, argv);
+    argz.addOptionSingleValue('i', "input text").addOptionSingleValue('o', "output file");
+
+    std::string in_file, out_file;
+    int value = 0;
+
+    Argument<std::string> arg;
+    try {
+        while((value = argz.proc(arg)) != -1) {
+            switch(value) {
+                case 'h':
+                case 'v':
+                    argz.help(std::cout);
+                    break;
+                case 'i':
+                    in_file = arg.arg_value;
+                    break;
+                case 'o':
+                    out_file = arg.arg_value;
+                    break;
+            }
+        }
+    } catch(const ArgException<std::string> &e) {
+        std::cerr << "Syntax Error: " << e.text() << "\n";
+    }
+
+    if(in_file.length() == 0) {
+        std::cerr << "Input file must be provided...use -i \n";
         exit(EXIT_FAILURE);
     }
 
     std::fstream file;
-    file.open(argv[1], std::ios::in);
+    file.open(in_file, std::ios::in);
     std::ostringstream stream;
     stream << file.rdbuf();
     file.close();
 
-    if(argc == 2) {
+    if(in_file.length()>0 && out_file.length()==0) {
         if(stream.str().length()>0) {
             return scanFile(stream.str());
         }
-    } else if(argc == 3) {
-        html_main(argv[1], argv[2]);
+    } else if(out_file.length()>0) {
+        html_main(in_file.c_str(), out_file.c_str());
     }
     return 0;
 }
