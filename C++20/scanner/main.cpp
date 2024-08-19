@@ -4,6 +4,7 @@
 #include<iostream>
 #include<memory>
 #include"argz.hpp"
+#include<cstdlib>
 
 extern int html_main(const char *filename, const char *outfilename);
 
@@ -25,8 +26,7 @@ int scanFile(const std::string &contents) {
 
 int main(int argc, char **argv) {
     Argz<std::string> argz(argc, argv);
-    argz.addOptionSingleValue('i', "input text").addOptionSingleValue('o', "output file");
-
+    argz.addOptionSingleValue('i', "input text").addOptionSingleValue('o', "output file").addOptionSingle('h', "help").addOptionSingle('v', "help");
     std::string in_file, out_file;
     int value = 0;
 
@@ -37,6 +37,7 @@ int main(int argc, char **argv) {
                 case 'h':
                 case 'v':
                     argz.help(std::cout);
+                    exit(EXIT_SUCCESS);
                     break;
                 case 'i':
                     in_file = arg.arg_value;

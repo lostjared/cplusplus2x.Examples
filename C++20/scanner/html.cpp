@@ -55,8 +55,6 @@ std::string convertToHTML(const std::string &text) {
 
 int html_scanFile(const std::string &contents, const char *out_filename) {
     try {
-
-
         std::fstream file;
         file.open(out_filename, std::ios::out);
         if(!file.is_open()) {
