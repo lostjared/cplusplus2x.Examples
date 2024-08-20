@@ -44,7 +44,7 @@ install(TARGETS cxx_scan
 install(EXPORT scan_cxxTargets
         FILE scan_cxxTargets.cmake
         NAMESPACE scan_cxx::
-        DESTINATION lib/cxx_scan/cmake)
+        DESTINATION lib/cmake)
 
 add_executable(scanner_html ${CMAKE_SOURCE_DIR}/html.cpp ${CMAKE_SOURCE_DIR}/main.cpp)
 target_compile_options(scanner_html PRIVATE ${COMPILER_FLAGS})
