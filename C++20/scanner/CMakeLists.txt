@@ -25,26 +25,30 @@ else()
 endif()
 
 list(APPEND source_files ${CMAKE_SOURCE_DIR}/scanner.cpp ${CMAKE_SOURCE_DIR}/types.cpp ${CMAKE_SOURCE_DIR}/string_buffer.cpp)
-add_library(cxx_scan ${source_files})
+list(APPEND header ${CMAKE_SOURCE_DIR}/types.hpp ${CMAKE_SOURCE_DIR}/string_buffer.hpp ${CMAKE_SOURCE_DIR}/scanner.hpp ${CMAKE_SOURCE_DIR}/argz.hpp)
+add_library(cxx_scan ${header} ${source_files})
+
 target_compile_options(cxx_scan PRIVATE ${COMPILER_FLAGS})
 
-# Install the library and export it
+# Install header files to cxx_scan/include
+install(FILES ${header} DESTINATION include/cxx_scan)
+
+# Install the library to cxx_scan/lib
 install(TARGETS cxx_scan
         EXPORT scan_cxxTargets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib/cxx_scan
+        ARCHIVE DESTINATION lib/cxx_scan
         RUNTIME DESTINATION bin)
 
 # Create and install the export set
 install(EXPORT scan_cxxTargets
         FILE scan_cxxTargets.cmake
         NAMESPACE scan_cxx::
-        DESTINATION lib/cmake)
+        DESTINATION lib/cxx_scan/cmake)
 
 add_executable(scanner_html ${CMAKE_SOURCE_DIR}/html.cpp ${CMAKE_SOURCE_DIR}/main.cpp)
 target_compile_options(scanner_html PRIVATE ${COMPILER_FLAGS})
 target_link_libraries(scanner_html cxx_scan)
 
+# Install the executable to cxx_scan/bin
 install(TARGETS scanner_html DESTINATION bin)
-
-install(FILES ${install_headers} DESTINATION include)
