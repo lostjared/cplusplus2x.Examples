@@ -46,6 +46,25 @@ install(EXPORT scan_cxxTargets
         NAMESPACE scan_cxx::
         DESTINATION lib/cmake)
 
+# Set variables for include and library destinations
+set(PACKAGE_INCLUDE_DESTINATION "${CMAKE_INSTALL_PREFIX}/include/cxx_scan")
+set(PACKAGE_LIBRARY_DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cxx_scan")
+
+# Configure the package config file
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/scan_cxxConfig.cmake"
+    INSTALL_DESTINATION lib/cmake
+    PATH_VARS PACKAGE_INCLUDE_DESTINATION PACKAGE_LIBRARY_DESTINATION
+)
+
+# Install the package config file
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/scan_cxxConfig.cmake"
+    DESTINATION lib/cmake
+)
+
 add_executable(scanner_html ${CMAKE_SOURCE_DIR}/html.cpp ${CMAKE_SOURCE_DIR}/main.cpp)
 target_compile_options(scanner_html PRIVATE ${COMPILER_FLAGS})
 target_link_libraries(scanner_html cxx_scan)
