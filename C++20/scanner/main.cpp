@@ -5,6 +5,7 @@
 #include<memory>
 #include"argz.hpp"
 #include<cstdlib>
+#include<string>
 
 extern int html_main(const char *filename, const char *outfilename);
 
