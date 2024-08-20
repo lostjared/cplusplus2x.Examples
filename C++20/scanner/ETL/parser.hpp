@@ -16,8 +16,10 @@ namespace parse {
         std::unique_ptr<scan::Scanner> scan;
         uint64_t token_index = 0;
 
-        void match(types::TokenType &type);
+        void match(const types::TokenType &type);
         void match(const string_type &t);
+        void inc(const uint64_t num=1);
+        void dec(const uint64_t num=1);
 
     };
 }

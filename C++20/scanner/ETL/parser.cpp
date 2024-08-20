@@ -4,7 +4,7 @@ namespace parse {
     Parser::~Parser() {
     }
 
-    void Parser::match(types::TokenType &type) {
+    void Parser::match(const types::TokenType &type) {
         if(token_index < scan->size()) {
             scan::TToken &token = scan->operator[](token_index);
             if(token.getTokenType() != type) {
@@ -32,5 +32,17 @@ namespace parse {
                 token_index++;
             }
         } 
+    }
+
+    void Parser::inc(const uint64_t num) {
+        token_index += num;
+    }
+    void Parser::dec(const uint64_t num) {
+        token_index -= num;
+    }
+
+    void Parser::parse() {
+
+
     }
 }
