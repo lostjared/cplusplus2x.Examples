@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+project(ETL_RT LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+# PATHS /usr/local/lib/cmake
+find_package(scan_cxx REQUIRED)
+add_executable(ETL_RT ${CMAKE_SOURCE_DIR}/main.cpp)
+target_link_libraries(ETL_RT PRIVATE scan_cxx::cxx_scan)
+install(TARGETS ETL_RT DESTINATION bin)
