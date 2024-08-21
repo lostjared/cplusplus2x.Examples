@@ -35,6 +35,21 @@ namespace parse {
         } 
     }
 
+    bool Parser::test(const types::TokenType &type) {
+        scan::TToken  &token = scan->operator[](token_index);
+        if(token.getTokenType() == type)
+            return true;
+        return false;
+    }
+    
+    bool Parser::test(const string_type &t) {
+        scan::TToken  &token = scan->operator[](token_index);
+        if(token.getTokenValue() == t)
+            return true;
+        return false;
+    }
+
+
     void Parser::inc(const uint64_t num) {
         token_index += num;
     }

@@ -18,6 +18,8 @@ namespace parse {
 
         void match(const types::TokenType &type);
         void match(const string_type &t);
+        bool test(const types::TokenType &type);
+        bool test(const string_type &t);
         void inc(const uint64_t num=1);
         void dec(const uint64_t num=1);
         void proc_tokens();
