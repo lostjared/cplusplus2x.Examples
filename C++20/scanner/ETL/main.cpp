@@ -7,7 +7,7 @@ extern void test_parse(const std::string &);
 
 int main(int argc, char **argv)  {
     Argz<std::string> argz(argc, argv);
-    argz.addOptionSingleValue('i', "input text").addOptionSingleValue('o', "output file").addOptionSingle('h', "help").addOptionSingle('v', "help");
+    argz.addOptionSingleValue('i', "input text file").addOptionSingleValue('o', "output file").addOptionSingle('h', "help").addOptionSingle('v', "help");
     std::string in_file, out_file;
     int value = 0;
 
@@ -34,6 +34,7 @@ int main(int argc, char **argv)  {
 
     if(in_file.length() == 0) {
         std::cerr << "Input file must be provided...use -i \n";
+        argz.help(std::cerr);
         exit(EXIT_FAILURE);
     }
 

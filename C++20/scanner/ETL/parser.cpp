@@ -2,6 +2,7 @@
 namespace parse {
  
     Parser::~Parser() {
+    
     }
 
     void Parser::match(const types::TokenType &type) {
@@ -42,7 +43,20 @@ namespace parse {
     }
 
     void Parser::parse() {
+        uint64_t num = scan->scan();
+        if(num > 0) {
+            std::cout << "ETL: Scanned " << num << " tokens.\n";
+            std::cout << "ETL: parsing ... ";
+            proc_tokens();
+            std::cout << " [complete]\n";
 
+        } else {
+            std::cerr << "ETL: Error zero tokens or failure...\n";
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    void Parser::proc_tokens() {
 
     }
 }
