@@ -54,7 +54,8 @@ namespace types {
         OP_COLON,           // ':'
         OP_DOT,             // '.'
         OP_QUESTION,        // '?'
-        OP_HASH,            // '#'  
+        OP_HASH,            // '#' 
+        OP_SCOPE,           // '::' 
         OP_TILDE            // '~'q
     };
 
@@ -104,6 +105,7 @@ namespace types {
         "Dot",                 // OP_DOT             -> '.'
         "Question Mark",       // OP_QUESTION        -> '?'
         "Hash",                // OP_HASH            -> '#'
+        "Scope",               // OP_SCOPE           -> '::'
         "Tilde"                // OP_TILDE           -> '~'
     };
 
@@ -153,6 +155,7 @@ namespace types {
         ".",        // OP_DOT
         "?",        // OP_QUESTION
         "#",        // OP_HASH
+        "::",
         "~"         // OP_TILDE
     };
     
