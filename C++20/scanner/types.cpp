@@ -17,4 +17,13 @@ namespace types {
         if(t_type < strCharType.size())
            out << strCharType[t_type];
     }
+
+    std::optional<OperatorType> lookUp(const std::string &op) {
+        for(size_t i = 0; i < opStrings.size(); ++i) {
+            if(opStrings[i] == op) 
+                return static_cast<OperatorType>(i);
+        }
+        return std::nullopt;
+    }
+
 }

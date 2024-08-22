@@ -279,4 +279,3 @@ namespace scan {
     size_t Scanner::size() const { return tokens.size(); }
 }
 
-

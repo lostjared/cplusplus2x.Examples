@@ -105,7 +105,16 @@ int html_scanFile(const std::string &contents, const char *out_filename) {
             file << "<tr><td>" << i << "/" << posx.first << ":" << posx.second << "</td><td>";
             if(!isKeyword(scan->operator[](i).getTokenValue())) {
                 file << convertToHTML(scan->operator[](i).getTokenValue()) << "</td><td>";
-                types::print_type_TokenType(file, scan->operator[](i).getTokenType());
+                if(scan->operator[](i).getTokenType() == types::TokenType::TT_SYM) {
+                    auto t = types::lookUp(scan->operator[](i).getTokenValue());
+                    if(t.has_value()) {
+                        file << types::opName[static_cast<int>(*t)];
+                    } else {
+                        file << "Not Recognized";
+                    }
+                }
+                else 
+                    types::print_type_TokenType(file, scan->operator[](i).getTokenType());
             } else {
                 file << "<b>" << convertToHTML(scan->operator[](i).getTokenValue()) << "</b>" << "</td><td>";
                 file << "Keyword";
