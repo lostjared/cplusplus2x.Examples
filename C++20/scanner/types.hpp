@@ -54,55 +54,57 @@ namespace types {
         OP_COLON,           // ':'
         OP_DOT,             // '.'
         OP_QUESTION,        // '?'
-        OP_TILDE            // '~'
+        OP_HASH,            // '#'  
+        OP_TILDE            // '~'q
     };
 
     inline std::vector<std::string> opName = {
-        "Increment",                // OP_INC
-        "Decrement",                // OP_DEC
-        "Left Shift Assignment",    // OP_LSHIFT_ASSIGN
-        "Right Shift Assignment",   // OP_RSHIFT_ASSIGN
-        "Plus Assignment",          // OP_PLUS_ASSIGN
-        "Minus Assignment",         // OP_MINUS_ASSIGN
-        "Multiplication Assignment",// OP_MUL_ASSIGN
-        "Division Assignment",      // OP_DIV_ASSIGN
-        "Modulus Assignment",       // OP_MOD_ASSIGN
-        "Bitwise AND Assignment",   // OP_AND_ASSIGN
-        "Bitwise OR Assignment",    // OP_OR_ASSIGN
-        "Bitwise XOR Assignment",   // OP_XOR_ASSIGN
-        "Left Shift",               // OP_LSHIFT
-        "Right Shift",              // OP_RSHIFT
-        "Equal",                    // OP_EQ
-        "Not Equal",                // OP_NEQ
-        "Less Than or Equal",       // OP_LE
-        "Greater Than or Equal",    // OP_GE
-        "Logical AND",              // OP_AND_AND
-        "Logical OR",               // OP_OR_OR
-        "Arrow",                    // OP_ARROW
-        "Plus",                     // OP_PLUS
-        "Minus",                    // OP_MINUS
-        "Multiplication",           // OP_MUL
-        "Division",                 // OP_DIV
-        "Modulus",                  // OP_MOD
-        "Assignment",               // OP_ASSIGN
-        "Bitwise AND",              // OP_AND
-        "Bitwise OR",               // OP_OR
-        "Bitwise XOR",              // OP_XOR
-        "Logical NOT",              // OP_NOT
-        "Less Than",                // OP_LT
-        "Greater Than",             // OP_GT
-        "Left Parenthesis",         // OP_LPAREN
-        "Right Parenthesis",        // OP_RPAREN
-        "Left Bracket",             // OP_LBRACKET
-        "Right Bracket",            // OP_RBRACKET
-        "Left Brace",               // OP_LBRACE
-        "Right Brace",              // OP_RBRACE
-        "Comma",                    // OP_COMMA
-        "Semicolon",                // OP_SEMICOLON
-        "Colon",                    // OP_COLON
-        "Dot",                      // OP_DOT
-        "Question Mark",            // OP_QUESTION
-        "Bitwise NOT"               // OP_TILDE
+        "Increment",           // OP_INC             -> '++'
+        "Decrement",           // OP_DEC             -> '--'
+        "Left Shift Assign",   // OP_LSHIFT_ASSIGN   -> '<<='
+        "Right Shift Assign",  // OP_RSHIFT_ASSIGN   -> '>>='
+        "Plus Assign",         // OP_PLUS_ASSIGN     -> '+='
+        "Minus Assign",        // OP_MINUS_ASSIGN    -> '-='
+        "Multiply Assign",     // OP_MUL_ASSIGN      -> '*='
+        "Divide Assign",       // OP_DIV_ASSIGN      -> '/='
+        "Modulo Assign",       // OP_MOD_ASSIGN      -> '%='
+        "Bitwise And Assign",  // OP_AND_ASSIGN      -> '&='
+        "Bitwise Or Assign",   // OP_OR_ASSIGN       -> '|='
+        "Bitwise Xor Assign",  // OP_XOR_ASSIGN      -> '^='
+        "Left Shift",          // OP_LSHIFT          -> '<<'
+        "Right Shift",         // OP_RSHIFT          -> '>>'
+        "Equal",               // OP_EQ              -> '=='
+        "Not Equal",           // OP_NEQ             -> '!='
+        "Less Than Or Equal",  // OP_LE              -> '<='
+        "Greater Than Or Equal", // OP_GE            -> '>='
+        "Logical And",         // OP_AND_AND         -> '&&'
+        "Logical Or",          // OP_OR_OR           -> '||'
+        "Arrow",               // OP_ARROW           -> '->'
+        "Plus",                // OP_PLUS            -> '+'
+        "Minus",               // OP_MINUS           -> '-'
+        "Multiply",            // OP_MUL             -> '*'
+        "Divide",              // OP_DIV             -> '/'
+        "Modulo",              // OP_MOD             -> '%'
+        "Assign",              // OP_ASSIGN          -> '='
+        "Bitwise And",         // OP_AND             -> '&'
+        "Bitwise Or",          // OP_OR              -> '|'
+        "Bitwise Xor",         // OP_XOR             -> '^'
+        "Not",                 // OP_NOT             -> '!'
+        "Less Than",           // OP_LT              -> '<'
+        "Greater Than",        // OP_GT              -> '>'
+        "Left Parenthesis",    // OP_LPAREN          -> '('
+        "Right Parenthesis",   // OP_RPAREN          -> ')'
+        "Left Bracket",        // OP_LBRACKET        -> '['
+        "Right Bracket",       // OP_RBRACKET        -> ']'
+        "Left Brace",          // OP_LBRACE          -> '{'
+        "Right Brace",         // OP_RBRACE          -> '}'
+        "Comma",               // OP_COMMA           -> ','
+        "Semicolon",           // OP_SEMICOLON       -> ';'
+        "Colon",               // OP_COLON           -> ':'
+        "Dot",                 // OP_DOT             -> '.'
+        "Question Mark",       // OP_QUESTION        -> '?'
+        "Hash",                // OP_HASH            -> '#'
+        "Tilde"                // OP_TILDE           -> '~'
     };
 
     inline std::vector<std::string> opStrings = {
@@ -150,6 +152,7 @@ namespace types {
         ":",        // OP_COLON
         ".",        // OP_DOT
         "?",        // OP_QUESTION
+        "#",        // OP_HASH
         "~"         // OP_TILDE
     };
     
