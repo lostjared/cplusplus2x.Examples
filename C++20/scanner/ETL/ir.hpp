@@ -14,6 +14,7 @@ namespace ir {
         LOAD_CONST,  // Load constant into a temporary variable: t0 = const
         LOAD_VAR,    // Load variable value into a temporary variable: t0 = var
         LABEL,       // Function or block label: label:
+        NEG,         // NEGATE
         // Add more instruction types as needed
     };
 
@@ -25,7 +26,8 @@ namespace ir {
         "ASSIGN",
         "LOAD_CONST",
         "LOAD_VAR",
-        "LABEL"
+        "LABEL",
+        "NEG"
     };
 
     struct IRInstruction {
@@ -58,6 +60,8 @@ namespace parse {
                 generateAssignment(assign, code);
             } else if (auto binOp = dynamic_cast<const ast::BinaryOp*>(node)) {
                 generateBinaryOp(binOp, code);
+            } else if (auto unaryOp = dynamic_cast<const ast::UnaryOp*>(node)) {
+                generateUnaryOp(unaryOp, code);
             } else if (auto func = dynamic_cast<const ast::Function*>(node)) {
                 generateFunction(func, code);
             } else if (auto literal = dynamic_cast<const ast::Literal*>(node)) {
@@ -112,6 +116,20 @@ namespace parse {
                 default:
                     std::cerr << "Error: Unsupported operator in binary operation\n";
                     exit(EXIT_FAILURE);
+            }
+        }
+
+        void generateUnaryOp(const ast::UnaryOp *unaryOp, ir::IRCode &code) {
+            generate(unaryOp->operand.get(), code);
+
+            std::string dest = "t0";  // Simplification: assume result goes into "t0"
+            std::string op1 = "t0";   // Operand should be in "t0" after generate()
+
+            if (unaryOp->op == types::OperatorType::OP_MINUS) {
+                code.emplace_back(ir::InstructionType::NEG, dest, op1);
+            } else {
+                std::cerr << "Error: Unsupported unary operator\n";
+                exit(EXIT_FAILURE);
             }
         }
 

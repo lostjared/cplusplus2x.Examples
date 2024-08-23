@@ -158,18 +158,23 @@ namespace parse {
         return left;
     }
 
-    std::unique_ptr<ast::Expression> Parser::parseFactor() {
-        if (test(types::OperatorType::OP_LPAREN)) {
-            inc();  
-            auto expr = parseExpression();
-            match(types::OperatorType::OP_RPAREN);
-            return expr;
-        } else {
-            return parsePrimary();
-        }
+std::unique_ptr<ast::Expression> Parser::parseFactor() {
+    if (test(types::OperatorType::OP_MINUS)) {
+        inc();  
+        auto operand = parseFactor();  
+        return std::make_unique<ast::UnaryOp>(types::OperatorType::OP_MINUS, std::move(operand));
+    } else if (test(types::OperatorType::OP_LPAREN)) {
+        inc();  
+        auto expr = parseExpression();
+        match(types::OperatorType::OP_RPAREN);  
+        return expr;
+    } else {
+        return parsePrimary();  
     }
+}
 
     std::unique_ptr<ast::Expression> Parser::parsePrimary() {
+
         if (test(types::TokenType::TT_NUM) || test(types::TokenType::TT_STR)) {
             auto token = scan->operator[](token_index);
             inc();

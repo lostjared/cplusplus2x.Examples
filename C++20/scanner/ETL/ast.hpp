@@ -39,6 +39,14 @@ namespace ast {
             : op(o), left(std::move(l)), right(std::move(r)) {}
     };
 
+    struct UnaryOp : Expression {
+        types::OperatorType op;
+        std::unique_ptr<Expression> operand;
+
+        UnaryOp(types::OperatorType o, std::unique_ptr<Expression> e)
+            : op(o), operand(std::move(e)) {}
+    };
+
     struct Literal : Expression {
         std::string value;
         Literal(const std::string &v) : value(v) {}
