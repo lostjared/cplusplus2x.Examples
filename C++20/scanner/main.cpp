@@ -1,12 +1,36 @@
+#include"scanner.hpp"
+#include<fstream>
+#include<sstream>
+#include<iostream>
+#include<memory>
 #include"argz.hpp"
+#include<cstdlib>
+#include<string>
 
-extern void test_parse(const std::string &);
+extern int html_main(const char *filename, const char *outfilename);
 
-int main(int argc, char **argv)  {
+int scanFile(const std::string &contents) {
+    try {
+        std::unique_ptr<scan::Scanner> scan(new scan::Scanner(scan::TString(contents)));
+        uint64_t tokens = scan->scan();
+        std::cout << "Sucessfull scan returned: " << tokens << " token(s)...\n";
+
+        for(size_t i = 0; i < scan->size(); ++i) {
+            scan->operator[](i).print(std::cout);
+        }
+        return static_cast<int>(tokens);
+    } catch(scan::ScanExcept &e) {
+        std::cerr << "Fatal error: " << e.why() << "\n";
+    }
+    return 0;
+}
+
+int main(int argc, char **argv) {
     Argz<std::string> argz(argc, argv);
-    argz.addOptionSingleValue('i', "input text file").addOptionSingleValue('o', "output file").addOptionSingle('h', "help").addOptionSingle('v', "help");
+    argz.addOptionSingleValue('i', "input text").addOptionSingleValue('o', "output file").addOptionSingle('h', "help").addOptionSingle('v', "help");
     std::string in_file, out_file;
     int value = 0;
+
     Argument<std::string> arg;
     try {
         while((value = argz.proc(arg)) != -1) {
@@ -30,11 +54,21 @@ int main(int argc, char **argv)  {
 
     if(in_file.length() == 0) {
         std::cerr << "Input file must be provided...use -i \n";
-        argz.help(std::cerr);
         exit(EXIT_FAILURE);
     }
 
-    test_parse(in_file);
+    std::fstream file;
+    file.open(in_file, std::ios::in);
+    std::ostringstream stream;
+    stream << file.rdbuf();
+    file.close();
 
+    if(in_file.length()>0 && out_file.length()==0) {
+        if(stream.str().length()>0) {
+            return scanFile(stream.str());
+        }
+    } else if(out_file.length()>0) {
+        html_main(in_file.c_str(), out_file.c_str());
+    }
     return 0;
 }

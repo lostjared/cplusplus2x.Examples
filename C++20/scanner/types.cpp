@@ -26,4 +26,12 @@ namespace types {
         return std::nullopt;
     }
 
+    std::optional<KeywordType> lookUp_Keyword(const std::string &op) {
+        for(size_t i = 0; i < kwStr.size(); ++i) {
+            if(kwStr[i] == op)
+                return static_cast<KeywordType>(i);
+        }
+        return std::nullopt;
+    }
+
 }

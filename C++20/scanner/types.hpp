@@ -158,12 +158,17 @@ namespace types {
         "::",
         "~"         // OP_TILDE
     };
+
+    enum class KeywordType { KW_LET, KW_PROC, KW_IF, KW_SWITCH, KW_WHILE, KW_FOR, KW_RETURN };
+    inline std::vector<std::string> kwStr { "let", "proc", "if", "switch", "while", "for", "return" };
+
     
     extern std::vector<std::string> strTokenType;
     extern std::vector<std::string> sstrCharType;
     void print_type_TokenType(std::ostream &out, const TokenType &tt);
     void print_type_CharType(std::ostream &out, const CharType &c);
     std::optional<OperatorType> lookUp(const std::string &op);
+    std::optional<KeywordType> lookUp_Keyword(const std::string &op);
 }
 
 #endif
