@@ -111,10 +111,10 @@ namespace parse {
                 return true;
             } else {
                 std::cerr << "ETL: Error zero tokens or failure...\n";
-                exit(EXIT_FAILURE);
+                return false;
             }
         } catch (scan::ScanExcept &e) {
-            std::cerr << "Fatal: " << e.why() << "\n";
+            std::cerr << "ETL: Fatal: " << e.why() << "\n";
         }
         return false;
     }
