@@ -7,7 +7,7 @@
 #include<cstdlib>
 #include<string>
 
-extern int html_main(const char *filename, const char *outfilename);
+extern int html_main(const char *filename, std::ostream &out);
 
 int scanFile(const std::string &contents) {
     try {
@@ -68,7 +68,13 @@ int main(int argc, char **argv) {
             return scanFile(stream.str());
         }
     } else if(out_file.length()>0) {
-        html_main(in_file.c_str(), out_file.c_str());
+        std::fstream file;
+        file.open(out_file, std::ios::out);
+        if(!file.is_open()) {
+            std::cerr << "Error could not open output file: " << out_file << "\n";
+            exit(EXIT_FAILURE);
+        }
+        html_main(in_file.c_str(), file);
     }
     return 0;
 }

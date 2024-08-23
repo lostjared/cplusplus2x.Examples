@@ -84,16 +84,9 @@ bool isKeyword(const std::string& word) {
     return keywordSet.find(word) != keywordSet.end();
 }
 
-int html_scanFile(const std::string &contents, const char *out_filename) {
+int html_scanFile(const std::string &contents, std::ostream &file) {
     try {
-        std::fstream file;
-        file.open(out_filename, std::ios::out);
-        if(!file.is_open()) {
-            std::cerr << "Error could not open output file: " << out_filename << "\n";
-            exit(EXIT_FAILURE);
-        }
         file << htmlPage_Header << "\n";
-
         std::unique_ptr<scan::Scanner> scan(new scan::Scanner(scan::TString(contents)));
         uint64_t tokens = scan->scan();
         std::cout << "scan: Sucessfull scan returned: " << tokens << " token(s)...\n";
@@ -122,8 +115,6 @@ int html_scanFile(const std::string &contents, const char *out_filename) {
             file << "</td></tr>\n";
         }
         file << htmlPage_Footer << "\n";
-        file.close();
-        file << "scanner: Wrote "<< out_filename << "\n";
         return static_cast<int>(tokens);
 
     } catch(scan::ScanExcept &e) {
@@ -132,15 +123,15 @@ int html_scanFile(const std::string &contents, const char *out_filename) {
     return 0;
 }
 
-int html_main(const char *filename, const char *outfilename) {
+
+extern int html_main(const char *filename, std::ostream &out) {
     std::fstream file;
     file.open(filename, std::ios::in);
     std::ostringstream stream;
     stream << file.rdbuf();
     file.close();
-
     if(stream.str().length()>0) {
-        return html_scanFile(stream.str(), outfilename);
+        return html_scanFile(stream.str(), out);
     }
     return 0;
 }
