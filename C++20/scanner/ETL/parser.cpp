@@ -215,13 +215,13 @@ namespace parse {
     }
 
     std::unique_ptr<ast::Assignment> Parser::parseAssignment() {
-        if(test(types::TokenType::TT_ID)) {
-            auto lhs = parsePrimary();
+        if (test(types::TokenType::TT_ID)) {
+            auto lhs = parsePrimary(); 
             if (test(types::OperatorType::OP_ASSIGN)) {
-                inc();
-                auto rhs = parseExpression();
-                match(types::OperatorType::OP_SEMICOLON);
-                return std::make_unique<ast::Assignment>(std::move(lhs), std::move(rhs));
+                inc(); 
+                auto rhs = parseExpression(); 
+                match(types::OperatorType::OP_SEMICOLON); 
+                return std::make_unique<ast::Assignment>(std::move(lhs), std::move(rhs)); // Correctly return an Assignment node
             }
         }
         return nullptr;
@@ -242,6 +242,14 @@ namespace parse {
                         if (stmt) {
                             function->body.push_back(std::move(stmt));
                         } 
+                    } else if(test(types::TokenType::TT_ID)) {
+                        auto token = scan->operator[](token_index);
+                        inc();
+                        auto call_st = parseCall(token.getTokenValue());
+                        inc(); // eat ';'
+                        if(call_st) {
+                            function->body.push_back(std::move(call_st));
+                        }
                     } else break;
             }
             match(types::OperatorType::OP_RBRACE);

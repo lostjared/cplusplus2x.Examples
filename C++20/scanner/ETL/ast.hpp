@@ -10,7 +10,10 @@ namespace ast {
     };
 
     struct Expression : ASTNode {
-        // Base class for all expressions
+    };
+
+    struct Statement : ASTNode {
+        ~Statement() override = default;
     };
 
     struct Literal : Expression {
@@ -19,7 +22,7 @@ namespace ast {
         Literal(const std::string &v) : value(v) {}
 
         std::string text() const override {
-            return value;  // Return the literal value
+            return value;  
         }
     };
 
@@ -29,7 +32,7 @@ namespace ast {
         Identifier(const std::string &n) : name(n) {}
 
         std::string text() const override {
-            return name;  // Return the identifier name
+            return name;  
         }
     };
 
@@ -42,7 +45,6 @@ namespace ast {
             : op(o), left(std::move(l)), right(std::move(r)) {}
 
         std::string text() const override {
-            // Concatenate the left and right operands with the operator in between
             return "(" + left->text() + " " + types::opName[static_cast<unsigned int>(op)] + " " + right->text() + ")";
         }
     };
@@ -55,12 +57,11 @@ namespace ast {
             : op(o), operand(std::move(e)) {}
 
         std::string text() const override {
-            // Display unary operation with the operand
             return types::opName[static_cast<unsigned int>(op)] + operand->text();
         }
     };
 
-    struct Call : Expression {
+    struct Call : Statement, Expression {
         std::string functionName;
         std::vector<std::unique_ptr<Expression>> arguments;
 
@@ -68,7 +69,6 @@ namespace ast {
             : functionName(name), arguments(std::move(args)) {}
 
         std::string text() const override {
-            // Concatenate function name with its arguments
             std::string result = functionName + "(";
             for (size_t i = 0; i < arguments.size(); ++i) {
                 result += arguments[i]->text();
@@ -81,7 +81,7 @@ namespace ast {
         }
     };
 
-    struct Assignment : ASTNode {
+    struct Assignment : Statement {
         std::unique_ptr<Expression> left;
         std::unique_ptr<Expression> right;
 
@@ -89,7 +89,6 @@ namespace ast {
             : left(std::move(l)), right(std::move(r)) {}
 
         std::string text() const override {
-            // Concatenate left-hand side with right-hand side of assignment
             return left->text() + " = " + right->text() + ";";
         }
     };
@@ -101,7 +100,6 @@ namespace ast {
         Function(const std::string &n) : name(n) {}
 
         std::string text() const override {
-            // Function declaration with body
             std::string result = "function " + name + "() {\n";
             for (const auto& stmt : body) {
                 result += "  " + stmt->text() + "\n";
@@ -117,7 +115,6 @@ namespace ast {
         Program() = default;
 
         std::string text() const override {
-            // Concatenate all statements in the program
             std::string result;
             for (const auto& stmt : body) {
                 result += stmt->text() + "\n";
