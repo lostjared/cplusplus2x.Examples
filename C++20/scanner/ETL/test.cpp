@@ -24,7 +24,7 @@ void test_parse(const std::string &filename) {
             parse::IRGenerator irGen;
             auto irCode = irGen.generateIR(rootAST);
             for (const auto &instr : irCode) {
-                std::cout << "Instruction: " << ir::InstructionStrings[static_cast<int>(instr.type)] << " " << instr.dest << " " << instr.op1 << " " << instr.op2 << "\n";
+                std::cout << instr.toString() << "\n";
             }
         }
     } else {

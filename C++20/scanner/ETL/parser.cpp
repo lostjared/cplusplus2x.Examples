@@ -158,23 +158,22 @@ namespace parse {
         return left;
     }
 
-std::unique_ptr<ast::Expression> Parser::parseFactor() {
-    if (test(types::OperatorType::OP_MINUS)) {
-        inc();  
-        auto operand = parseFactor();  
-        return std::make_unique<ast::UnaryOp>(types::OperatorType::OP_MINUS, std::move(operand));
-    } else if (test(types::OperatorType::OP_LPAREN)) {
-        inc();  
-        auto expr = parseExpression();
-        match(types::OperatorType::OP_RPAREN);  
-        return expr;
-    } else {
-        return parsePrimary();  
+    std::unique_ptr<ast::Expression> Parser::parseFactor() {
+        if (test(types::OperatorType::OP_MINUS)) {
+            inc();  
+            auto operand = parseFactor();  
+            return std::make_unique<ast::UnaryOp>(types::OperatorType::OP_MINUS, std::move(operand));
+        } else if (test(types::OperatorType::OP_LPAREN)) {
+            inc();  
+            auto expr = parseExpression();
+            match(types::OperatorType::OP_RPAREN);  
+            return expr;
+        } else {
+            return parsePrimary();  
+        }
     }
-}
 
     std::unique_ptr<ast::Expression> Parser::parsePrimary() {
-
         if (test(types::TokenType::TT_NUM) || test(types::TokenType::TT_STR)) {
             auto token = scan->operator[](token_index);
             inc();
@@ -182,9 +181,31 @@ std::unique_ptr<ast::Expression> Parser::parseFactor() {
         } else if (test(types::TokenType::TT_ID)) {
             auto token = scan->operator[](token_index);
             inc();
+            if (test(types::OperatorType::OP_LPAREN)) {
+                return parseCall(token.getTokenValue());
+            }
             return std::make_unique<ast::Identifier>(token.getTokenValue());
+        } else if (test(types::OperatorType::OP_LPAREN)) {
+            inc();  
+            auto expr = parseExpression();  
+            match(types::OperatorType::OP_RPAREN);  
+            return expr;
         }
-        return nullptr;
+        return nullptr;  // Error handling should be added here
+    }
+    
+    std::unique_ptr<ast::Expression> Parser::parseCall(const std::string &functionName) {
+        match(types::OperatorType::OP_LPAREN);  
+        std::vector<std::unique_ptr<ast::Expression>> arguments;
+
+        if (!test(types::OperatorType::OP_RPAREN)) {  
+            do {
+                arguments.push_back(parseExpression());  
+            } while (test(types::OperatorType::OP_COMMA) && token_index++ < scan->size());
+        }
+
+        match(types::OperatorType::OP_RPAREN);  // Consume ')'
+        return std::make_unique<ast::Call>(functionName, std::move(arguments));
     }
 
     std::unique_ptr<ast::Assignment> Parser::parseAssignment() {
