@@ -12,7 +12,7 @@ namespace parse {
         using string_type = scan::token::Token<char>::string_type;
         Parser(scan::Scanner *scanner);
         ~Parser();
-        void parse();
+        bool parse();
 
         std::unique_ptr<ast::ASTNode> getAST() { return std::move(root); }
 

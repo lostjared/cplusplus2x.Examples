@@ -10,7 +10,6 @@ int main(int argc, char **argv)  {
     argz.addOptionSingleValue('i', "input text file").addOptionSingleValue('o', "output file").addOptionSingle('h', "help").addOptionSingle('v', "help");
     std::string in_file, out_file;
     int value = 0;
-
     Argument<std::string> arg;
     try {
         while((value = argz.proc(arg)) != -1) {

@@ -18,14 +18,17 @@ void test_parse(const std::string &filename) {
     file.close();
     if(stream.str().length()>0) {
         parse::Parser parser(new scan::Scanner(scan::TString(stream.str())));
-        parser.parse();
-        auto rootAST = parser.getAST();  
-        if (rootAST) {
-            parse::IRGenerator irGen;
-            auto irCode = irGen.generateIR(rootAST);
-            for (const auto &instr : irCode) {
-                std::cout << instr.toString() << "\n";
+        if(parser.parse()) {
+            auto rootAST = parser.getAST();  
+            if (rootAST) {
+                parse::IRGenerator irGen;
+                auto irCode = irGen.generateIR(rootAST);
+                for (const auto &instr : irCode) {
+                    std::cout << instr.toString() << "\n";
+                }
             }
+        } else {
+            std::cerr << " Parsing failed...\n";
         }
     } else {
         std::cerr << " Zero bytes to read..\n";

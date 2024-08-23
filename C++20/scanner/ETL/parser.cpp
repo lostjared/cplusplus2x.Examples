@@ -100,17 +100,23 @@ namespace parse {
         }
     }
 
-    void Parser::parse() {
-        uint64_t num = scan->scan();
-        if (num > 0) {
-            std::cout << "ETL: Scanned " << num << " tokens.\n";
-            std::cout << "ETL: parsing ... ";
-            proc_tokens();
-            std::cout << " [complete]\n";
-        } else {
-            std::cerr << "ETL: Error zero tokens or failure...\n";
-            exit(EXIT_FAILURE);
+    bool Parser::parse() {
+        try {
+            uint64_t num = scan->scan();
+            if (num > 0) {
+                std::cout << "ETL: Scanned " << num << " tokens.\n";
+                std::cout << "ETL: parsing ... ";
+                proc_tokens();
+                std::cout << " [complete]\n";
+                return true;
+            } else {
+                std::cerr << "ETL: Error zero tokens or failure...\n";
+                exit(EXIT_FAILURE);
+            }
+        } catch (scan::ScanExcept &e) {
+            std::cerr << "Fatal: " << e.why() << "\n";
         }
+        return false;
     }
 
     void Parser::proc_tokens() {
