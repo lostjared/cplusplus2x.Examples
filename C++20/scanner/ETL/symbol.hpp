@@ -1,8 +1,9 @@
 #ifndef _SYMBOL_H_
 #define _SYMBOL_H_
 
-#include<unordered_map>
-#include<optional>
+#include <unordered_map>
+#include <optional>
+#include <string>
 
 namespace symbol {
 
@@ -14,27 +15,48 @@ namespace symbol {
         Symbol() : name{}, value{}, ivalue{}, dvalue{} {}
     };
 
-    class SymbolTable  {
+    class SymbolTable {
     public:
-        SymbolTable() { }
-        void enter(const std::string &sym) {
-            symbols[sym] = Symbol();
+        SymbolTable() {
+            symbols["global"] = std::unordered_map<std::string, Symbol>();
+            cur_scope = &symbols["global"];  // Initialize cur_scope to point to the global scope
         }
+
+        void enter(const std::string &sym) {
+            (*cur_scope)[sym] = Symbol();
+        }
+
+        void enterScope(const std::string &fname) {
+            if (symbols.find(fname) == symbols.end()) {
+                symbols[fname] = std::unordered_map<std::string, Symbol>();
+            }
+            cur_scope = &symbols[fname];
+        }
+
+        void exitScope() {
+            cur_scope = &symbols["global"];
+        }
+
         std::optional<Symbol> lookup(const std::string &sym) {
-            auto it = symbols.find(sym);
-            if(it != symbols.end())
+            auto it = cur_scope->find(sym);
+            if (it != cur_scope->end())
                 return it->second;
             return std::nullopt;
         }
-
-        std::unordered_map<std::string, Symbol> &getSymbols() { return symbols; }
+        
+        int getCurrentScopeSize() const {
+            return cur_scope->size();
+        }
+        
+        auto getSymbols() {
+            return symbols;
+        }
 
     private:
-        std::unordered_map<std::string, Symbol> symbols;
+        std::unordered_map<std::string, std::unordered_map<std::string, Symbol>> symbols;
+        std::unordered_map<std::string, Symbol> *cur_scope;  // Pointer to the current scope
     };
 
 }
-
-
 
 #endif

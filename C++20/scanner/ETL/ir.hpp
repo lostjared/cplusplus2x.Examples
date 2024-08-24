@@ -23,7 +23,7 @@ namespace ir {
         NEG,
         CALL,
         RETURN,
-        CONCAT  // New instruction type for string concatenation
+        CONCAT
     };
 
     inline std::vector<std::string> InstructionStrings {
@@ -38,7 +38,7 @@ namespace ir {
         "NEG",
         "CALL",
         "RETURN",
-        "CONCAT"  // String representation for CONCAT
+        "CONCAT"
     };
 
     struct IRInstruction {
@@ -47,7 +47,7 @@ namespace ir {
         std::string op1;
         std::string op2;
         std::vector<std::string> args;
-        std::string functionName;  
+        std::string functionName;
 
         IRInstruction(InstructionType t, const std::string &d, const std::string &o1 = "", const std::string &o2 = "")
             : type(t), dest(d), op1(o1), op2(o2) {}
@@ -75,6 +75,7 @@ namespace parse {
     class IRGenerator {
     public:
         symbol::SymbolTable table;
+        std::unordered_map<std::string, int> functionLocalVarCount;
 
         ir::IRCode generateIR(const std::unique_ptr<ast::ASTNode> &ast) {
             ir::IRCode code;
@@ -83,7 +84,7 @@ namespace parse {
         }
 
     private:
-        int tempVarCounter = 0; 
+        int tempVarCounter = 0;
 
         void generate(const ast::ASTNode *node, ir::IRCode &code) {
             if (auto program = dynamic_cast<const ast::Program*>(node)) {
@@ -115,11 +116,12 @@ namespace parse {
 
         void generateAssignment(const ast::Assignment *assign, ir::IRCode &code) {
             generate(assign->right.get(), code);
-            std::string rhs = "t" + std::to_string(tempVarCounter - 1);  
+            std::string rhs = "t" + std::to_string(tempVarCounter - 1);
             auto lhs = dynamic_cast<const ast::Identifier*>(assign->left.get());
             if (lhs) {
                 table.enter(lhs->name);
                 code.emplace_back(ir::InstructionType::ASSIGN, lhs->name, rhs);
+                updateLocalVariableCount(lhs->name);
             } else {
                 std::cerr << "Error: LHS of assignment is not an identifier\n";
                 exit(EXIT_FAILURE);
@@ -139,18 +141,18 @@ namespace parse {
         void generateBinaryOp(const ast::BinaryOp *binOp, ir::IRCode &code) {
             generate(binOp->left.get(), code);
             std::string leftResult = "t" + std::to_string(tempVarCounter - 1);
-            
+
             generate(binOp->right.get(), code);
             std::string rightResult = "t" + std::to_string(tempVarCounter - 1);
-            
+
             std::string dest = "t" + std::to_string(tempVarCounter++);
-            
+
             const ast::Literal* leftLiteral = dynamic_cast<const ast::Literal*>(binOp->left.get());
             const ast::Literal* rightLiteral = dynamic_cast<const ast::Literal*>(binOp->right.get());
-            
+
             bool isStringOperation = (leftLiteral && leftLiteral->type == types::TokenType::TT_STR) ||
                                     (rightLiteral && rightLiteral->type == types::TokenType::TT_STR);
-            
+
             switch (binOp->op) {
                 case types::OperatorType::OP_PLUS:
                     if (isStringOperation) {
@@ -188,45 +190,41 @@ namespace parse {
 
         void generateFunction(const ast::Function *func, ir::IRCode &code) {
             code.emplace_back(ir::InstructionType::LABEL, func->name, "");
+            table.enterScope(func->name);
             for (const auto &stmt : func->body) {
                 generate(stmt.get(), code);
             }
+            functionLocalVarCount[func->name] = table.getCurrentScopeSize(); // Store the count for this function
+            table.exitScope();
         }
 
         void generateLiteral(const ast::Literal *literal, ir::IRCode &code) {
             std::string tempVar = "t" + std::to_string(tempVarCounter++);
             code.emplace_back(ir::InstructionType::LOAD_CONST, tempVar, literal->value);
             table.enter(tempVar);
-            auto s = table.lookup(tempVar);
-            if (s.has_value()) {
-                s->name = "[literal]";
-                s->value = literal->value;
-                s->ivalue = 0; // No integer value for strings
-            }
         }
 
         void generateIdentifier(const ast::Identifier *identifier, ir::IRCode &code) {
             std::string tempVar = "t" + std::to_string(tempVarCounter++);
             code.emplace_back(ir::InstructionType::LOAD_VAR, tempVar, identifier->name);
             table.enter(tempVar);
-            auto s = table.lookup(tempVar);
-            if (s.has_value()) {
-                s->name = identifier->name;
-                s->value = "";
-                s->ivalue = 0;
-            }
         }
 
         void generateCall(const ast::Call *call, ir::IRCode &code) {
             std::vector<std::string> argRegisters;
             for (const auto &arg : call->arguments) {
                 generate(arg.get(), code);
-
                 std::string tempVar = "t" + std::to_string(tempVarCounter - 1);
                 argRegisters.push_back(tempVar);
             }
             std::string callDest = "t" + std::to_string(tempVarCounter++);
             code.emplace_back(ir::InstructionType::CALL, callDest, call->functionName, argRegisters);
+        }
+
+        void updateLocalVariableCount(const std::string &varName) {
+            if (table.lookup(varName).has_value()) {
+                table.enter(varName); 
+            }
         }
     };
 
