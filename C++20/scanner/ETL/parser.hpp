@@ -7,6 +7,16 @@
 
 
 namespace parse {
+
+    class ParseException {
+    public:
+        using string_type = scan::token::Token<char>::string_type;
+        ParseException(const string_type &w) : what{w} {}
+        string_type why() const { return what; }
+    private:
+        string_type what;
+    };
+
     class Parser {
     public:
         using string_type = scan::token::Token<char>::string_type;

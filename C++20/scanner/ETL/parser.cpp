@@ -1,6 +1,7 @@
 #include "parser.hpp"
-#include <iostream>
+#include<iostream>
 #include<memory>
+#include<sstream>
 
 namespace parse {
 
@@ -115,6 +116,8 @@ namespace parse {
             }
         } catch (scan::ScanExcept &e) {
             std::cerr << "ETL: Fatal: " << e.why() << "\n";
+        } catch (ParseException &p) {
+            std::cerr << "ETL: Parse Error: " << p.why() << "\n";
         }
         return false;
     }
@@ -131,8 +134,10 @@ namespace parse {
                 auto assignment = parseAssignment();
                 program->body.push_back(std::move(assignment));
             } else {
-                std::cerr << "Unknown token: " << scan->operator[](token_index).getTokenValue() << " at index " << token_index << "\n";
-                exit(EXIT_FAILURE);
+                std::ostringstream stream;
+                auto pos = scan->operator[](token_index).get_pos();
+                stream << "Unknown token: " << scan->operator[](token_index).getTokenValue() << " at Line: " << pos.first << " Col: " << pos.second << "\n";
+                throw ParseException(stream.str());
             }
         }
         root = std::move(program);
@@ -197,7 +202,11 @@ namespace parse {
             match(types::OperatorType::OP_RPAREN);  
             return expr;
         }
-        return nullptr;  // Error handling should be added here
+        std::ostringstream stream;
+        auto pos = scan->operator[](token_index).get_pos();
+        stream << "Parse Error: Excepted Type on Line: " << pos.first << " Col: " << pos.second << "\n";
+        throw ParseException(stream.str());
+        return nullptr;  
     }
     
     std::unique_ptr<ast::Expression> Parser::parseCall(const std::string &functionName) {
@@ -224,6 +233,10 @@ namespace parse {
                 return std::make_unique<ast::Assignment>(std::move(lhs), std::move(rhs)); // Correctly return an Assignment node
             }
         }
+        std::ostringstream stream;
+        auto pos = scan->operator[](token_index).get_pos();
+        stream << "Parse Error: Excepted Assignment on Line: " << pos.first << " Col: " << pos.second << "\n";
+        throw ParseException(stream.str());
         return nullptr;
     }
 
@@ -255,7 +268,10 @@ namespace parse {
             match(types::OperatorType::OP_RBRACE);
             return function;
         }
+        std::ostringstream stream;
+        auto pos = scan->operator[](token_index).get_pos();
+        stream << "Parse Error: Excepted Function on Line: " << pos.first << " Col: " << pos.second << "\n";
+        throw ParseException(stream.str());
         return nullptr;
     }
-
 }
