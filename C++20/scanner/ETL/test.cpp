@@ -23,9 +23,11 @@ void test_parse(const std::string &filename, const std::string &out_file) {
             if (rootAST) {
                 parse::IRGenerator irGen;
                 auto irCode = irGen.generateIR(rootAST);
+                std::cout << "IR code: {\n";
                 for (const auto &instr : irCode) {
-                    std::cout << instr.toString() << "\n";
+                    std::cout << "\t" << instr.toString() << "\n";
                 }
+                std::cout << "}\n";
                 codegen::CodeEmitter emiter(irGen.table);
                 std::string text = emiter.emit(irCode);
                 std::fstream ofile;
@@ -33,7 +35,7 @@ void test_parse(const std::string &filename, const std::string &out_file) {
                 ofile << text << "\n";
                 ofile.close();
                 std::cout << "ETL: compiled [" << out_file << "]\n";
-                
+
             }
         } else {
             std::cerr << "ETL: Parsing failed...\n";
