@@ -248,6 +248,8 @@ namespace parse {
             match(types::OperatorType::OP_LPAREN);
             match(types::OperatorType::OP_RPAREN);
             match(types::OperatorType::OP_LBRACE);
+            bool return_found = false;
+
             auto function = std::make_unique<ast::Function>(name);
             while (!test(types::OperatorType::OP_RBRACE)) {
                     if(test(types::KeywordType::KW_RETURN)) {
@@ -256,6 +258,7 @@ namespace parse {
                         if(e) {
                             match(types::OperatorType::OP_SEMICOLON);
                             function->body.push_back(std::make_unique<ast::Return>(std::move(e)));
+                            return_found = true;
                         }
                     } else
                     if(test(types::KeywordType::KW_LET)) {
@@ -275,6 +278,11 @@ namespace parse {
                     } else break;
             }
             match(types::OperatorType::OP_RBRACE);
+            if(return_found == false) {
+                std::ostringstream stream;
+                stream << "Error: Function " << name << " does not incldue a return statement.\n";
+                throw ParseException(stream.str());
+            }
             return function;
         }
         std::ostringstream stream;
