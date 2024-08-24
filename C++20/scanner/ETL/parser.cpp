@@ -189,7 +189,7 @@ namespace parse {
         if (test(types::TokenType::TT_NUM) || test(types::TokenType::TT_STR)) {
             auto token = scan->operator[](token_index);
             inc();
-            return std::make_unique<ast::Literal>(token.getTokenValue());
+            return std::make_unique<ast::Literal>(token.getTokenValue(), token.getTokenType());
         } else if (test(types::TokenType::TT_ID)) {
             auto token = scan->operator[](token_index);
             inc();

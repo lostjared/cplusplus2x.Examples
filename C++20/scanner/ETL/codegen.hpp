@@ -16,33 +16,65 @@ namespace codegen {
 
         std::string emit(const ir::IRCode &code) {
             std::ostringstream output;
-
-            emitPreamble(output);
+            collectStringLiterals(code);
+            int stackSize = calculateRequiredStackSize(code);
+            emitDataSection(output);
+            emitPreamble(output, stackSize);
             emitCode(code, output);
             emitPostamble(output);
-
             return output.str();
         }
 
     private:
         symbol::SymbolTable &table;
-        int currentStackOffset;  
-        std::unordered_map<std::string, int> variableOffsets;  
+        int currentStackOffset;
+        std::unordered_map<std::string, int> variableOffsets;
         bool init = false;
+        std::unordered_map<std::string, std::string> stringLiterals;
 
-        void emitPreamble(std::ostringstream &output) {
+        void collectStringLiterals(const ir::IRCode &code) {
+            for (const auto &instr : code) {
+                if (instr.type == ir::InstructionType::LOAD_CONST && instr.op1[0] == '\"') {
+                    std::string label = "str" + std::to_string(stringLiterals.size());
+                    stringLiterals[instr.op1] = label;
+                }
+            }
+        }
+
+        int calculateRequiredStackSize(const ir::IRCode &code) {
+            int stackSlots = 0;
+            for (const auto &instr : code) {
+                if (variableOffsets.find(instr.dest) == variableOffsets.end() && !instr.dest.empty()) {
+                    stackSlots++;
+                    variableOffsets[instr.dest] = stackSlots * -8;
+                }
+            }
+            return stackSlots * 8;
+        }
+
+        void emitDataSection(std::ostringstream &output) {
+            output << ".section .data\n";
+            for (const auto &entry : stringLiterals) {
+                output << entry.second << ": .asciz " << ir::escapeString(entry.first) << "\n";
+            }
+        }
+
+        void emitPreamble(std::ostringstream &output, int stackSize) {
             output << ".section .text\n";
             output << ".globl main\n";
             output << "main:\n";
-            output << "    pushq %rbp\n";   
-            output << "    movq %rsp, %rbp\n";  
+            output << "    pushq %rbp\n";
+            output << "    movq %rsp, %rbp\n";
+            if (stackSize > 0) {
+                output << "    subq $" << stackSize << ", %rsp\n";
+            }
         }
 
         void emitPostamble(std::ostringstream &output) {
-            if(init == false) {
-                output << "    movq $0, %rax\n";  
-                output << "    leave\n";  
-                output << "    ret\n";  
+            if (!init) {
+                output << "    movq $0, %rax\n";
+                output << "    leave\n";
+                output << "    ret\n";
             }
         }
 
@@ -89,34 +121,37 @@ namespace codegen {
             }
         }
 
+        void emitLoadConst(std::ostringstream &output, const ir::IRInstruction &instr) {
+            allocateStackSpace(instr.dest);
+            if (instr.op1[0] == '\"') {
+                std::string label = stringLiterals[instr.op1];
+                output << "    leaq " << label << "(%rip), %rax\n";
+                output << "    movq %rax, " << getOperand(instr.dest) << "\n";
+            } else {
+                output << "    movq $" << instr.op1 << ", %rax\n";
+                output << "    movq %rax, " << getOperand(instr.dest) << "\n";
+            }
+        }
+
         void emitBinaryOp(std::ostringstream &output, const ir::IRInstruction &instr, const std::string &op) {
             output << "    movq " << getOperand(instr.op1) << ", %rax\n";
             output << "    " << op << " " << getOperand(instr.op2) << ", %rax\n";
-            allocateStackSpace(instr.dest);
             output << "    movq %rax, " << getOperand(instr.dest) << "\n";
         }
 
         void emitDiv(std::ostringstream &output, const ir::IRInstruction &instr) {
             output << "    movq " << getOperand(instr.op1) << ", %rax\n";
-            output << "    cqto\n";  // Sign extend RAX into RDX:RAX
+            output << "    cqto\n";
             output << "    idivq " << getOperand(instr.op2) << "\n";
-            allocateStackSpace(instr.dest);
             output << "    movq %rax, " << getOperand(instr.dest) << "\n";
         }
 
         void emitAssign(std::ostringstream &output, const ir::IRInstruction &instr) {
             output << "    movq " << getOperand(instr.op1) << ", %rax\n";
-            allocateStackSpace(instr.dest);
             output << "    movq %rax, " << getOperand(instr.dest) << "\n";
         }
 
-        void emitLoadConst(std::ostringstream &output, const ir::IRInstruction &instr) {
-            allocateStackSpace(instr.dest);
-            output << "    movq $" << instr.op1 << ", " << getOperand(instr.dest) << "\n";
-        }
-
         void emitLoadVar(std::ostringstream &output, const ir::IRInstruction &instr) {
-            allocateStackSpace(instr.dest);
             output << "    movq " << getOperand(instr.op1) << ", %rax\n";
             output << "    movq %rax, " << getOperand(instr.dest) << "\n";
         }
@@ -124,27 +159,35 @@ namespace codegen {
         void emitNeg(std::ostringstream &output, const ir::IRInstruction &instr) {
             output << "    movq " << getOperand(instr.op1) << ", %rax\n";
             output << "    negq %rax\n";
-            allocateStackSpace(instr.dest);
             output << "    movq %rax, " << getOperand(instr.dest) << "\n";
         }
 
         void emitCall(std::ostringstream &output, const ir::IRInstruction &instr) {
-            for (const auto &arg : instr.args) {
-                output << "    movq " << getOperand(arg) << ", %rax\n";
+            static const std::vector<std::string> argumentRegisters = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
+            size_t numArgs = instr.args.size();
+            for (size_t i = 0; i < numArgs && i < argumentRegisters.size(); ++i) {
+                output << "    movq " << getOperand(instr.args[i]) << ", " << argumentRegisters[i] << "\n";
+            }
+            for (size_t i = numArgs; i > argumentRegisters.size(); --i) {
+                output << "    movq " << getOperand(instr.args[i - 1]) << ", %rax\n";
                 output << "    pushq %rax\n";
             }
             output << "    call " << instr.functionName << "\n";
-            output << "    addq $" << instr.args.size() * 8 << ", %rsp\n";  
+            if (numArgs > argumentRegisters.size()) {
+                size_t extraArgs = numArgs - argumentRegisters.size();
+                output << "    addq $" << (extraArgs * 8) << ", %rsp\n";
+            }
             allocateStackSpace(instr.dest);
             output << "    movq %rax, " << getOperand(instr.dest) << "\n";
         }
 
         void emitLabel(std::ostringstream &output, const ir::IRInstruction &instr) {
-            if(instr.dest == "init") 
+            if (instr.dest == "init") {
                 init = true;
+            }
             output << instr.dest << ":\n";
         }
-        
+
         void emitReturn(std::ostringstream &output, const ir::IRInstruction &instr) {
             if (!instr.dest.empty()) {
                 output << "    movq " << getOperand(instr.dest) << ", %rax\n";
@@ -155,7 +198,7 @@ namespace codegen {
 
         void allocateStackSpace(const std::string &var) {
             if (variableOffsets.find(var) == variableOffsets.end()) {
-                currentStackOffset -= 8;  
+                currentStackOffset -= 8;
                 variableOffsets[var] = currentStackOffset;
             }
         }
@@ -165,7 +208,6 @@ namespace codegen {
                 int offset = variableOffsets[operand];
                 return std::to_string(offset) + "(%rbp)";
             }
-
             std::cerr << "Error: Undefined variable " << operand << std::endl;
             exit(EXIT_FAILURE);
         }

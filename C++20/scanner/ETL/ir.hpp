@@ -1,12 +1,16 @@
 #ifndef _IR_X_H_
 #define _IR_X_H_
 
-#include<string>
-#include<vector>
-#include<iostream> 
-#include"symbol.hpp"
+#include <string>
+#include <vector>
+#include <iostream>
+#include <iomanip>
+#include "symbol.hpp"
 
 namespace ir {
+
+    extern std::string escapeString(const std::string &input);
+
     enum class InstructionType {
         ADD,
         SUB,
@@ -18,7 +22,8 @@ namespace ir {
         LABEL,
         NEG,
         CALL,
-        RETURN
+        RETURN,
+        CONCAT  // New instruction type for string concatenation
     };
 
     inline std::vector<std::string> InstructionStrings {
@@ -32,7 +37,8 @@ namespace ir {
         "LABEL",
         "NEG",
         "CALL",
-        "RETURN"
+        "RETURN",
+        "CONCAT"  // String representation for CONCAT
     };
 
     struct IRInstruction {
@@ -43,7 +49,6 @@ namespace ir {
         std::vector<std::string> args;
         std::string functionName;  
 
-
         IRInstruction(InstructionType t, const std::string &d, const std::string &o1 = "", const std::string &o2 = "")
             : type(t), dest(d), op1(o1), op2(o2) {}
 
@@ -53,8 +58,8 @@ namespace ir {
         std::string toString() const {
             std::string result = InstructionStrings[static_cast<int>(type)] + " " + dest;
             if (!functionName.empty()) result += " " + functionName;
-            if (!op1.empty()) result += " " + op1;
-            if (!op2.empty()) result += " " + op2;
+            if (!op1.empty()) result += " " + escapeString(op1);
+            if (!op2.empty()) result += " " + escapeString(op2);
             for (const auto& arg : args) {
                 result += " " + arg;
             }
@@ -70,6 +75,7 @@ namespace parse {
     class IRGenerator {
     public:
         symbol::SymbolTable table;
+
         ir::IRCode generateIR(const std::unique_ptr<ast::ASTNode> &ast) {
             ir::IRCode code;
             generate(ast.get(), code);
@@ -78,7 +84,6 @@ namespace parse {
 
     private:
         int tempVarCounter = 0; 
-
 
         void generate(const ast::ASTNode *node, ir::IRCode &code) {
             if (auto program = dynamic_cast<const ast::Program*>(node)) {
@@ -120,27 +125,39 @@ namespace parse {
                 exit(EXIT_FAILURE);
             }
         }
+
         void generateReturn(const ast::Return *return_value, ir::IRCode &code) {
             if (return_value->return_value) {
-                generate(return_value->return_value.get(), code);  // Generate code for the return expression
-                std::string result = "t" + std::to_string(tempVarCounter - 1);  // Use the most recent tempVar
-                code.emplace_back(ir::InstructionType::RETURN, result);  // Add a RETURN instruction with the result
+                generate(return_value->return_value.get(), code);
+                std::string result = "t" + std::to_string(tempVarCounter - 1);
+                code.emplace_back(ir::InstructionType::RETURN, result);
             } else {
-                code.emplace_back(ir::InstructionType::RETURN, "");  // Add a RETURN instruction with no result
+                code.emplace_back(ir::InstructionType::RETURN, "");
             }
         }
 
         void generateBinaryOp(const ast::BinaryOp *binOp, ir::IRCode &code) {
             generate(binOp->left.get(), code);
-            std::string leftResult = "t" + std::to_string(tempVarCounter - 1);  
+            std::string leftResult = "t" + std::to_string(tempVarCounter - 1);
+            
             generate(binOp->right.get(), code);
-            std::string rightResult = "t" + std::to_string(tempVarCounter - 1);  
-
-            std::string dest = "t" + std::to_string(tempVarCounter++);  
-
+            std::string rightResult = "t" + std::to_string(tempVarCounter - 1);
+            
+            std::string dest = "t" + std::to_string(tempVarCounter++);
+            
+            const ast::Literal* leftLiteral = dynamic_cast<const ast::Literal*>(binOp->left.get());
+            const ast::Literal* rightLiteral = dynamic_cast<const ast::Literal*>(binOp->right.get());
+            
+            bool isStringOperation = (leftLiteral && leftLiteral->type == types::TokenType::TT_STR) ||
+                                    (rightLiteral && rightLiteral->type == types::TokenType::TT_STR);
+            
             switch (binOp->op) {
                 case types::OperatorType::OP_PLUS:
-                    code.emplace_back(ir::InstructionType::ADD, dest, leftResult, rightResult);
+                    if (isStringOperation) {
+                        code.emplace_back(ir::InstructionType::CONCAT, dest, leftResult, rightResult);
+                    } else {
+                        code.emplace_back(ir::InstructionType::ADD, dest, leftResult, rightResult);
+                    }
                     break;
                 case types::OperatorType::OP_MINUS:
                     code.emplace_back(ir::InstructionType::SUB, dest, leftResult, rightResult);
@@ -159,7 +176,7 @@ namespace parse {
 
         void generateUnaryOp(const ast::UnaryOp *unaryOp, ir::IRCode &code) {
             generate(unaryOp->operand.get(), code);
-            std::string result = "t" + std::to_string(tempVarCounter - 1);  // Latest tempVar
+            std::string result = "t" + std::to_string(tempVarCounter - 1);
 
             if (unaryOp->op == types::OperatorType::OP_MINUS) {
                 code.emplace_back(ir::InstructionType::NEG, result, result);
@@ -181,11 +198,11 @@ namespace parse {
             code.emplace_back(ir::InstructionType::LOAD_CONST, tempVar, literal->value);
             table.enter(tempVar);
             auto s = table.lookup(tempVar);
-            if(s.has_value()) {
+            if (s.has_value()) {
                 s->name = "[literal]";
                 s->value = literal->value;
-                s->ivalue = atoi(literal->value.c_str());
-            } 
+                s->ivalue = 0; // No integer value for strings
+            }
         }
 
         void generateIdentifier(const ast::Identifier *identifier, ir::IRCode &code) {
@@ -193,7 +210,7 @@ namespace parse {
             code.emplace_back(ir::InstructionType::LOAD_VAR, tempVar, identifier->name);
             table.enter(tempVar);
             auto s = table.lookup(tempVar);
-            if(s.has_value()) {
+            if (s.has_value()) {
                 s->name = identifier->name;
                 s->value = "";
                 s->ivalue = 0;
@@ -203,15 +220,16 @@ namespace parse {
         void generateCall(const ast::Call *call, ir::IRCode &code) {
             std::vector<std::string> argRegisters;
             for (const auto &arg : call->arguments) {
-                generate(arg.get(), code);  
+                generate(arg.get(), code);
 
-                std::string tempVar = "t" + std::to_string(tempVarCounter - 1);  
-                argRegisters.push_back(tempVar);  
+                std::string tempVar = "t" + std::to_string(tempVarCounter - 1);
+                argRegisters.push_back(tempVar);
             }
-            std::string callDest = "t" + std::to_string(tempVarCounter++);  
+            std::string callDest = "t" + std::to_string(tempVarCounter++);
             code.emplace_back(ir::InstructionType::CALL, callDest, call->functionName, argRegisters);
         }
     };
+
 }
 
 #endif

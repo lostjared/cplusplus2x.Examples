@@ -1,6 +1,9 @@
-#include<memory>
-#include<string>
-#include<vector>
+#ifndef AST_HPP
+#define AST_HPP
+
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace ast {
 
@@ -9,8 +12,7 @@ namespace ast {
         virtual std::string text() const = 0;  // Pure virtual method to be implemented by subclasses
     };
 
-    struct Expression : ASTNode {
-    };
+    struct Expression : ASTNode {};
 
     struct Statement : ASTNode {
         ~Statement() override = default;
@@ -18,8 +20,14 @@ namespace ast {
 
     struct Literal : Expression {
         std::string value;
+        types::TokenType type;
 
         Literal(const std::string &v) : value(v) {}
+        Literal(const std::string &v, const types::TokenType &t) : value(v), type{t} {
+            if(type == types::TokenType::TT_STR) {
+                value = "\"" + value + "\"";
+            }
+        }
 
         std::string text() const override {
             return value;  
@@ -95,7 +103,9 @@ namespace ast {
 
     struct Return : Statement {
         std::unique_ptr<Expression> return_value;
+
         Return(std::unique_ptr<Expression> rt) : return_value(std::move(rt)) {}
+
         std::string text() const override {
             return "return " + return_value->text() + ";";
         }
@@ -132,3 +142,5 @@ namespace ast {
     };
 
 }
+
+#endif
