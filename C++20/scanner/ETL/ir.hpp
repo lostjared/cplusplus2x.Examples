@@ -41,6 +41,14 @@ namespace ir {
         "CONCAT"
     };
 
+    class IRException {
+    public:
+        IRException(const std::string &what) : why_{what} {}
+        std::string why() const { return why_; }
+    private:
+        std::string why_;
+    };
+
     struct IRInstruction {
         InstructionType type;
         std::string dest;
@@ -123,8 +131,7 @@ namespace parse {
                 code.emplace_back(ir::InstructionType::ASSIGN, lhs->name, rhs);
                 updateLocalVariableCount(lhs->name);
             } else {
-                std::cerr << "Error: LHS of assignment is not an identifier\n";
-                exit(EXIT_FAILURE);
+                throw ir::IRException("IR Fatal Error: LHS of assignment is not an identifier");
             }
         }
 
@@ -171,8 +178,7 @@ namespace parse {
                     code.emplace_back(ir::InstructionType::DIV, dest, leftResult, rightResult);
                     break;
                 default:
-                    std::cerr << "Error: Unsupported operator in binary operation\n";
-                    exit(EXIT_FAILURE);
+                    throw ir::IRException("Error: Unsupported operator in binary operation");
             }
         }
 
@@ -183,8 +189,7 @@ namespace parse {
             if (unaryOp->op == types::OperatorType::OP_MINUS) {
                 code.emplace_back(ir::InstructionType::NEG, result, result);
             } else {
-                std::cerr << "Error: Unsupported unary operator\n";
-                exit(EXIT_FAILURE);
+                throw ir::IRException("Error: Unsupported unary operator");
             }
         }
 

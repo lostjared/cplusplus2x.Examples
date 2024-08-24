@@ -21,21 +21,29 @@ void test_parse(const std::string &filename, const std::string &out_file) {
         if(parser.parse()) {
             auto rootAST = parser.getAST();  
             if (rootAST) {
-                parse::IRGenerator irGen;
-                auto irCode = irGen.generateIR(rootAST);
-                std::cout << "IR code: {\n";
-                for (const auto &instr : irCode) {
-                    std::cout << "\t" << instr.toString() << "\n";
+                try {
+                    parse::IRGenerator irGen;
+                    auto irCode = irGen.generateIR(rootAST);
+                    std::cout << "ETL: IR code: {\n";
+                    for (const auto &instr : irCode) {
+                        std::cout << "\t" << instr.toString() << "\n";
+                    }
+                    std::cout << "}\n";
+                    codegen::CodeEmitter emiter(irGen.table, irGen.functionLocalVarCount);
+                    std::string text = emiter.emit(irCode);
+                    std::fstream ofile;
+                    ofile.open(out_file, std::ios::out);
+                    ofile << text << "\n";
+                    ofile.close();
+                    std::cout << "ETL: compiled [" << out_file << "]\n";
+                    exit(EXIT_SUCCESS);
+                } catch(ir::IRException &e) {
+                    std::cerr << "ETL: IR Exception: " << e.why() << "\n";
+                    exit(EXIT_FAILURE);
+                } catch(...) {
+                    std::cerr << "ETL: Unknown Exception\n";
+                    exit(EXIT_FAILURE);
                 }
-                std::cout << "}\n";
-                codegen::CodeEmitter emiter(irGen.table, irGen.functionLocalVarCount);
-                std::string text = emiter.emit(irCode);
-                std::fstream ofile;
-                ofile.open(out_file, std::ios::out);
-                ofile << text << "\n";
-                ofile.close();
-                std::cout << "ETL: compiled [" << out_file << "]\n";
-                exit(EXIT_SUCCESS);
             }
         } else {
             std::cerr << "ETL: Parsing failed...\n";
