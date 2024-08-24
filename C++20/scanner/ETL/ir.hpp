@@ -4,6 +4,7 @@
 #include<string>
 #include<vector>
 #include<iostream> 
+#include"symbol.hpp"
 
 namespace ir {
     enum class InstructionType {
@@ -66,6 +67,7 @@ namespace parse {
 
     class IRGenerator {
     public:
+        symbol::SymbolTable table;
         ir::IRCode generateIR(const std::unique_ptr<ast::ASTNode> &ast) {
             ir::IRCode code;
             generate(ast.get(), code);
@@ -73,7 +75,8 @@ namespace parse {
         }
 
     private:
-        int tempVarCounter = 0;  
+        int tempVarCounter = 0; 
+
 
         void generate(const ast::ASTNode *node, ir::IRCode &code) {
             if (auto program = dynamic_cast<const ast::Program*>(node)) {
@@ -106,6 +109,7 @@ namespace parse {
             std::string rhs = "t" + std::to_string(tempVarCounter - 1);  
             auto lhs = dynamic_cast<const ast::Identifier*>(assign->left.get());
             if (lhs) {
+                table.enter(lhs->name);
                 code.emplace_back(ir::InstructionType::ASSIGN, lhs->name, rhs);
             } else {
                 std::cerr << "Error: LHS of assignment is not an identifier\n";
@@ -162,11 +166,25 @@ namespace parse {
         void generateLiteral(const ast::Literal *literal, ir::IRCode &code) {
             std::string tempVar = "t" + std::to_string(tempVarCounter++);
             code.emplace_back(ir::InstructionType::LOAD_CONST, tempVar, literal->value);
+            table.enter(tempVar);
+            auto s = table.lookup(tempVar);
+            if(s.has_value()) {
+                s->name = "[literal]";
+                s->value = literal->value;
+                s->ivalue = atoi(literal->value.c_str());
+            } 
         }
 
         void generateIdentifier(const ast::Identifier *identifier, ir::IRCode &code) {
             std::string tempVar = "t" + std::to_string(tempVarCounter++);
             code.emplace_back(ir::InstructionType::LOAD_VAR, tempVar, identifier->name);
+            table.enter(tempVar);
+            auto s = table.lookup(tempVar);
+            if(s.has_value()) {
+                s->name = identifier->name;
+                s->value = "";
+                s->ivalue = 0;
+            }
         }
 
         void generateCall(const ast::Call *call, ir::IRCode &code) {

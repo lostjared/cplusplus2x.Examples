@@ -4,9 +4,9 @@
 #include<fstream>
 #include<sstream>
 #include"ir.hpp"
+#include"codegen.hpp"
 
-
-void test_parse(const std::string &filename) {
+void test_parse(const std::string &filename, const std::string &out_file) {
     std::fstream file;
     file.open(filename, std::ios::in);
     if(!file.is_open()) {
@@ -26,6 +26,12 @@ void test_parse(const std::string &filename) {
                 for (const auto &instr : irCode) {
                     std::cout << instr.toString() << "\n";
                 }
+                codegen::CodeEmitter emiter(irGen.table);
+                std::string text = emiter.emit(irCode);
+                std::fstream ofile;
+                ofile.open(out_file, std::ios::out);
+                ofile << text << "\n";
+                ofile.close();
             }
         } else {
             std::cerr << "ETL: Parsing failed...\n";
@@ -34,4 +40,4 @@ void test_parse(const std::string &filename) {
         std::cerr << "ETL: Zero bytes to read..\n";
         exit(EXIT_FAILURE);
     }
-} 
+}

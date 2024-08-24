@@ -1,6 +1,6 @@
 #include"argz.hpp"
 
-extern void test_parse(const std::string &);
+extern void test_parse(const std::string &, const std::string &);
 
 int main(int argc, char **argv)  {
     Argz<std::string> argz(argc, argv);
@@ -27,14 +27,11 @@ int main(int argc, char **argv)  {
     } catch(const ArgException<std::string> &e) {
         std::cerr << "Syntax Error: " << e.text() << "\n";
     }
-
-    if(in_file.length() == 0) {
-        std::cerr << "Input file must be provided...use -i \n";
+    if(in_file.length() == 0 || out_file.length() == 0) {
+        std::cerr << "Input/Output file(s) must be provided...use -i and -o\n";
         argz.help(std::cerr);
         exit(EXIT_FAILURE);
     }
-
-    test_parse(in_file);
-
+    test_parse(in_file, out_file);
     return 0;
 }
