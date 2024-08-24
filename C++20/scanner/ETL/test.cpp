@@ -32,6 +32,8 @@ void test_parse(const std::string &filename, const std::string &out_file) {
                 ofile.open(out_file, std::ios::out);
                 ofile << text << "\n";
                 ofile.close();
+                std::cout << "ETL: compiled [" << out_file << "]\n";
+                
             }
         } else {
             std::cerr << "ETL: Parsing failed...\n";

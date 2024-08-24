@@ -47,7 +47,8 @@ namespace parse {
                 if (op == *op_t) {
                     token_index++;
                 } else {
-                    std::cerr << "Error: Operator type mismatch found: " << token.getTokenValue() << " expected: " << types::opStrings[static_cast<int>(op)] << "\n";
+                    auto pos = token.get_pos();
+                    std::cerr << "Error: Operator type mismatch found: " << token.getTokenValue() << " expected: " << types::opStrings[static_cast<int>(op)] << " Line: " << pos.first << " Col: " << pos.second << "\n";
                     exit(EXIT_FAILURE);
                 }
             }
@@ -249,6 +250,14 @@ namespace parse {
             match(types::OperatorType::OP_LBRACE);
             auto function = std::make_unique<ast::Function>(name);
             while (!test(types::OperatorType::OP_RBRACE)) {
+                    if(test(types::KeywordType::KW_RETURN)) {
+                        inc();
+                        auto e = parseExpression();
+                        if(e) {
+                            match(types::OperatorType::OP_SEMICOLON);
+                            function->body.push_back(std::make_unique<ast::Return>(std::move(e)));
+                        }
+                    } else
                     if(test(types::KeywordType::KW_LET)) {
                         inc();
                         auto stmt = parseAssignment();  

@@ -17,7 +17,8 @@ namespace ir {
         LOAD_VAR,
         LABEL,
         NEG,
-        CALL
+        CALL,
+        RETURN
     };
 
     inline std::vector<std::string> InstructionStrings {
@@ -30,7 +31,8 @@ namespace ir {
         "LOAD_VAR",
         "LABEL",
         "NEG",
-        "CALL"
+        "CALL",
+        "RETURN"
     };
 
     struct IRInstruction {
@@ -95,6 +97,8 @@ namespace parse {
                 generateLiteral(literal, code);
             } else if (auto identifier = dynamic_cast<const ast::Identifier*>(node)) {
                 generateIdentifier(identifier, code);
+            } else if (auto rt = dynamic_cast<const ast::Return*>(node)) {
+                generateReturn(rt, code);
             }
         }
 
@@ -114,6 +118,15 @@ namespace parse {
             } else {
                 std::cerr << "Error: LHS of assignment is not an identifier\n";
                 exit(EXIT_FAILURE);
+            }
+        }
+        void generateReturn(const ast::Return *return_value, ir::IRCode &code) {
+            if (return_value->return_value) {
+                generate(return_value->return_value.get(), code);  // Generate code for the return expression
+                std::string result = "t" + std::to_string(tempVarCounter - 1);  // Use the most recent tempVar
+                code.emplace_back(ir::InstructionType::RETURN, result);  // Add a RETURN instruction with the result
+            } else {
+                code.emplace_back(ir::InstructionType::RETURN, "");  // Add a RETURN instruction with no result
             }
         }
 

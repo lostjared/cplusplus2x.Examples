@@ -93,6 +93,14 @@ namespace ast {
         }
     };
 
+    struct Return : Statement {
+        std::unique_ptr<Expression> return_value;
+        Return(std::unique_ptr<Expression> rt) : return_value(std::move(rt)) {}
+        std::string text() const override {
+            return "return " + return_value->text() + ";";
+        }
+    };
+
     struct Function : ASTNode {
         std::string name;
         std::vector<std::unique_ptr<ASTNode>> body;

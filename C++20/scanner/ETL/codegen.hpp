@@ -76,6 +76,9 @@ namespace codegen {
                     case ir::InstructionType::LABEL:
                         emitLabel(output, instr);
                         break;
+                    case ir::InstructionType::RETURN:
+                        emitReturn(output, instr);
+                        break;
                     default:
                         std::cerr << "Unsupported IR Instruction: " << instr.toString() << std::endl;
                         break;
@@ -135,6 +138,14 @@ namespace codegen {
 
         void emitLabel(std::ostringstream &output, const ir::IRInstruction &instr) {
             output << instr.dest << ":\n";
+        }
+        
+        void emitReturn(std::ostringstream &output, const ir::IRInstruction &instr) {
+            if (!instr.dest.empty()) {
+                output << "    movq " << getOperand(instr.dest) << ", %rax\n";
+            }
+            output << "    leave\n";
+            output << "    ret\n";
         }
 
         void allocateStackSpace(const std::string &var) {
