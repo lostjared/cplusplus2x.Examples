@@ -28,6 +28,7 @@ namespace codegen {
         symbol::SymbolTable &table;
         int currentStackOffset;  
         std::unordered_map<std::string, int> variableOffsets;  
+        bool init = false;
 
         void emitPreamble(std::ostringstream &output) {
             output << ".section .text\n";
@@ -38,9 +39,11 @@ namespace codegen {
         }
 
         void emitPostamble(std::ostringstream &output) {
-            output << "    movq $0, %rax\n";  
-            output << "    leave\n";  
-            output << "    ret\n";  
+            if(init == false) {
+                output << "    movq $0, %rax\n";  
+                output << "    leave\n";  
+                output << "    ret\n";  
+            }
         }
 
         void emitCode(const ir::IRCode &code, std::ostringstream &output) {
@@ -137,6 +140,8 @@ namespace codegen {
         }
 
         void emitLabel(std::ostringstream &output, const ir::IRInstruction &instr) {
+            if(instr.dest == "init") 
+                init = true;
             output << instr.dest << ":\n";
         }
         
