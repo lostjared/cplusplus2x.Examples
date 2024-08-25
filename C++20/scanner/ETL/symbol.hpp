@@ -52,6 +52,11 @@ namespace symbol {
             return symbols;
         }
 
+        // New method to check if a symbol is in memory
+        bool isInMemory(const std::string &sym) const {
+            return cur_scope->find(sym) != cur_scope->end();
+        }
+
     private:
         std::unordered_map<std::string, std::unordered_map<std::string, Symbol>> symbols;
         std::unordered_map<std::string, Symbol> *cur_scope;  // Pointer to the current scope

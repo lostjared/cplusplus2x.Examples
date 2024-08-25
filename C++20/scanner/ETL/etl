@@ -1,5 +1,5 @@
 #!/bin/bash
 
-ETL_RT -i $1 -o asm.s && gcc -fPIE -pie asm.s -o $2
+ETL_RT -i $1 -o asm.s && as asm.s -o asm.o && gcc -O3 -fPIE -pie asm.o -o $2
 echo "executable: [$2]"
 

@@ -3,13 +3,17 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
+#include <unordered_set>
 #include <iostream>
 #include <iomanip>
+#include <memory>
+#include <algorithm>
 #include "symbol.hpp"
 
 namespace ir {
 
-    extern std::string escapeString(const std::string &input);
+    std::string escapeString(const std::string &input);
 
     enum class InstructionType {
         ADD,
@@ -26,7 +30,7 @@ namespace ir {
         CONCAT
     };
 
-    inline std::vector<std::string> InstructionStrings {
+    inline std::vector<std::string> InstructionStrings{
         "ADD",
         "SUB",
         "MUL",
@@ -39,14 +43,6 @@ namespace ir {
         "CALL",
         "RETURN",
         "CONCAT"
-    };
-
-    class IRException {
-    public:
-        IRException(const std::string &what) : why_{what} {}
-        std::string why() const { return why_; }
-    private:
-        std::string why_;
     };
 
     struct IRInstruction {
@@ -68,7 +64,7 @@ namespace ir {
             if (!functionName.empty()) result += " " + functionName;
             if (!op1.empty()) result += " " + escapeString(op1);
             if (!op2.empty()) result += " " + escapeString(op2);
-            for (const auto& arg : args) {
+            for (const auto &arg : args) {
                 result += " " + arg;
             }
             return result;
@@ -76,6 +72,23 @@ namespace ir {
     };
 
     using IRCode = std::vector<IRInstruction>;
+
+    struct IRContext {
+        IRCode instructions;
+        symbol::SymbolTable table;
+        std::unordered_map<std::string, int> functionLocalVarCount;
+
+        IRContext() : instructions(), table(), functionLocalVarCount() {}
+    };
+
+    class IRException {
+    public:
+        IRException(const std::string &what) : why_{what} {}
+        std::string why() const { return why_; }
+    private:
+        std::string why_;
+    };
+
 }
 
 namespace parse {
@@ -85,14 +98,32 @@ namespace parse {
         symbol::SymbolTable table;
         std::unordered_map<std::string, int> functionLocalVarCount;
 
-        ir::IRCode generateIR(const std::unique_ptr<ast::ASTNode> &ast) {
-            ir::IRCode code;
-            generate(ast.get(), code);
-            return code;
+        ir::IRContext generateIR(const std::unique_ptr<ast::ASTNode> &ast) {
+            ir::IRContext context;
+            generate(ast.get(), context.instructions);
+            context.table = table;
+            context.functionLocalVarCount = functionLocalVarCount;
+            return context;
         }
 
     private:
         int tempVarCounter = 0;
+        std::unordered_set<std::string> availableTemps; // Pool of reusable temporary variables
+        std::unordered_map<std::string, std::string> lastComputedValue;
+
+        std::string getTempVar() {
+            if (!availableTemps.empty()) {
+                auto it = availableTemps.begin();
+                std::string tempVar = *it;
+                availableTemps.erase(it);
+                return tempVar;
+            }
+            return "t" + std::to_string(tempVarCounter++);
+        }
+
+        void releaseTempVar(const std::string& tempVar) {
+            availableTemps.insert(tempVar);
+        }
 
         void generate(const ast::ASTNode *node, ir::IRCode &code) {
             if (auto program = dynamic_cast<const ast::Program*>(node)) {
@@ -124,12 +155,15 @@ namespace parse {
 
         void generateAssignment(const ast::Assignment *assign, ir::IRCode &code) {
             generate(assign->right.get(), code);
-            std::string rhs = "t" + std::to_string(tempVarCounter - 1);
+            std::string rhs = lastComputedValue["result"];
             auto lhs = dynamic_cast<const ast::Identifier*>(assign->left.get());
             if (lhs) {
+                std::string dest = getTempVar();
                 table.enter(lhs->name);
                 code.emplace_back(ir::InstructionType::ASSIGN, lhs->name, rhs);
                 updateLocalVariableCount(lhs->name);
+                lastComputedValue[lhs->name] = dest;  // Update the computed value with a new temp var
+                releaseTempVar(rhs);
             } else {
                 throw ir::IRException("IR Fatal Error: LHS of assignment is not an identifier");
             }
@@ -138,8 +172,9 @@ namespace parse {
         void generateReturn(const ast::Return *return_value, ir::IRCode &code) {
             if (return_value->return_value) {
                 generate(return_value->return_value.get(), code);
-                std::string result = "t" + std::to_string(tempVarCounter - 1);
+                std::string result = lastComputedValue["result"];
                 code.emplace_back(ir::InstructionType::RETURN, result);
+                releaseTempVar(result);
             } else {
                 code.emplace_back(ir::InstructionType::RETURN, "");
             }
@@ -147,18 +182,17 @@ namespace parse {
 
         void generateBinaryOp(const ast::BinaryOp *binOp, ir::IRCode &code) {
             generate(binOp->left.get(), code);
-            std::string leftResult = "t" + std::to_string(tempVarCounter - 1);
+            std::string leftResult = lastComputedValue["result"];
 
             generate(binOp->right.get(), code);
-            std::string rightResult = "t" + std::to_string(tempVarCounter - 1);
+            std::string rightResult = lastComputedValue["result"];
 
-            std::string dest = "t" + std::to_string(tempVarCounter++);
+            std::string dest = getTempVar();
 
-            const ast::Literal* leftLiteral = dynamic_cast<const ast::Literal*>(binOp->left.get());
-            const ast::Literal* rightLiteral = dynamic_cast<const ast::Literal*>(binOp->right.get());
-
+            const ast::Literal *leftLiteral = dynamic_cast<const ast::Literal *>(binOp->left.get());
+            const ast::Literal *rightLiteral = dynamic_cast<const ast::Literal *>(binOp->right.get());
             bool isStringOperation = (leftLiteral && leftLiteral->type == types::TokenType::TT_STR) ||
-                                    (rightLiteral && rightLiteral->type == types::TokenType::TT_STR);
+                                     (rightLiteral && rightLiteral->type == types::TokenType::TT_STR);
 
             switch (binOp->op) {
                 case types::OperatorType::OP_PLUS:
@@ -180,17 +214,21 @@ namespace parse {
                 default:
                     throw ir::IRException("Error: Unsupported operator in binary operation");
             }
+
+            lastComputedValue["result"] = dest;
+            releaseTempVar(leftResult);
+            releaseTempVar(rightResult);
+            table.enter(dest);
         }
 
         void generateUnaryOp(const ast::UnaryOp *unaryOp, ir::IRCode &code) {
             generate(unaryOp->operand.get(), code);
-            std::string result = "t" + std::to_string(tempVarCounter - 1);
+            std::string result = lastComputedValue["result"];
 
-            if (unaryOp->op == types::OperatorType::OP_MINUS) {
-                code.emplace_back(ir::InstructionType::NEG, result, result);
-            } else {
-                throw ir::IRException("Error: Unsupported unary operator");
-            }
+            std::string dest = getTempVar();
+            code.emplace_back(ir::InstructionType::NEG, dest, result);
+            lastComputedValue["result"] = dest;
+            releaseTempVar(result);
         }
 
         void generateFunction(const ast::Function *func, ir::IRCode &code) {
@@ -199,36 +237,42 @@ namespace parse {
             for (const auto &stmt : func->body) {
                 generate(stmt.get(), code);
             }
-            functionLocalVarCount[func->name] = table.getCurrentScopeSize(); // Store the count for this function
+            functionLocalVarCount[func->name] = table.getCurrentScopeSize();
             table.exitScope();
         }
 
         void generateLiteral(const ast::Literal *literal, ir::IRCode &code) {
-            std::string tempVar = "t" + std::to_string(tempVarCounter++);
+            std::string tempVar = getTempVar();
             code.emplace_back(ir::InstructionType::LOAD_CONST, tempVar, literal->value);
+            lastComputedValue["result"] = tempVar;
             table.enter(tempVar);
         }
 
         void generateIdentifier(const ast::Identifier *identifier, ir::IRCode &code) {
-            std::string tempVar = "t" + std::to_string(tempVarCounter++);
-            code.emplace_back(ir::InstructionType::LOAD_VAR, tempVar, identifier->name);
-            table.enter(tempVar);
+            if (lastComputedValue.find(identifier->name) != lastComputedValue.end()) {
+                lastComputedValue["result"] = lastComputedValue[identifier->name];
+            } else {
+                std::string tempVar = getTempVar();
+                code.emplace_back(ir::InstructionType::LOAD_VAR, tempVar, identifier->name);
+                lastComputedValue["result"] = tempVar;
+                table.enter(tempVar);
+            }
         }
 
         void generateCall(const ast::Call *call, ir::IRCode &code) {
             std::vector<std::string> argRegisters;
             for (const auto &arg : call->arguments) {
                 generate(arg.get(), code);
-                std::string tempVar = "t" + std::to_string(tempVarCounter - 1);
-                argRegisters.push_back(tempVar);
+                argRegisters.push_back(lastComputedValue["result"]);
             }
-            std::string callDest = "t" + std::to_string(tempVarCounter++);
+            std::string callDest = getTempVar();
             code.emplace_back(ir::InstructionType::CALL, callDest, call->functionName, argRegisters);
+            lastComputedValue["result"] = callDest;
         }
 
         void updateLocalVariableCount(const std::string &varName) {
             if (table.lookup(varName).has_value()) {
-                table.enter(varName); 
+                table.enter(varName);
             }
         }
     };

@@ -22,22 +22,23 @@ void test_parse(const std::string &filename, const std::string &out_file) {
             auto rootAST = parser.getAST();  
             if (rootAST) {
                 try {
-                    parse::IRGenerator irGen;
-                    auto irCode = irGen.generateIR(rootAST);
-                    std::cout << "ETL: IR code: {\n";
-                    for (const auto &instr : irCode) {
-                        std::cout << "\t" << instr.toString() << "\n";
-                    }
-                    std::cout << "}\n";
-                    codegen::CodeEmitter emiter(irGen.table, irGen.functionLocalVarCount);
-                    std::string text = emiter.emit(irCode);
-                    std::fstream ofile;
-                    ofile.open(out_file, std::ios::out);
-                    ofile << text << "\n";
-                    ofile.close();
-                    std::cout << "ETL: compiled [" << out_file << "]\n";
-                    exit(EXIT_SUCCESS);
-                } catch(ir::IRException &e) {
+                        parse::IRGenerator irGen;
+                        auto irContext = irGen.generateIR(rootAST);  
+                        std::cout << "ETL: IR code: {\n";
+                        for (const auto &instr : irContext.instructions) {
+                            std::cout << "\t" << instr.toString() << "\n";
+                        }
+                        std::cout << "}\n";
+                        exit(EXIT_FAILURE);
+                        codegen::CodeEmitter emitter(irContext.table, irContext.functionLocalVarCount);
+                        std::string text = emitter.emit(irContext.instructions);
+                        std::fstream ofile;
+                        ofile.open(out_file, std::ios::out);
+                        ofile << text << "\n";
+                        ofile.close();
+                        std::cout << "ETL: compiled [" << out_file << "]\n";
+                        exit(EXIT_SUCCESS);
+                    } catch(ir::IRException &e) {
                     std::cerr << "ETL: IR Exception: " << e.why() << "\n";
                     exit(EXIT_FAILURE);
                 } catch(...) {
