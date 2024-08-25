@@ -4,6 +4,7 @@
 #include<fstream>
 #include<sstream>
 #include"ir.hpp"
+#include"ir_opt.hpp"
 #include"codegen.hpp"
 
 void test_parse(const std::string &filename, const std::string &out_file) {
@@ -24,6 +25,8 @@ void test_parse(const std::string &filename, const std::string &out_file) {
                 try {
                         parse::IRGenerator irGen;
                         auto irContext = irGen.generateIR(rootAST);  
+                        ir::IROptimizer opt;
+                        irContext.instructions = std::move(opt.optimize(irContext.instructions));
                         std::cout << "ETL: IR code: {\n";
                         for (const auto &instr : irContext.instructions) {
                             std::cout << "\t" << instr.toString() << "\n";

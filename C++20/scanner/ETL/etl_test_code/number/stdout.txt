@@ -2,31 +2,27 @@ ETL: Scanned 59 tokens.
 ETL: parsing ...  [complete]
 ETL: IR code: {
 	LABEL print_numbers
-	LOAD_CONST t0 25
-	ASSIGN x t0
-	LOAD_CONST t1 100
-	ASSIGN y t1
-	LOAD_CONST t2 50
-	ASSIGN z t2
-	LOAD_VAR t3 x
-	LOAD_VAR t4 y
-	MUL t5 t3 t4
-	LOAD_VAR t6 z
-	DIV t7 t5 t6
-	LOAD_CONST t8 2
-	LOAD_CONST t9 4
-	ADD t10 t8 t9
-	ADD t11 t7 t10
-	ASSIGN value t11
-	LOAD_CONST t12 "The Value is: %d\n"
-	LOAD_VAR t13 value
-	CALL t14 printf t12 t13
-	LOAD_CONST t15 0
-	RETURN t15
+	LOAD_CONST x 25
+	LOAD_CONST y 100
+	LOAD_CONST z 50
+	LOAD_VAR t0 x
+	LOAD_VAR t1 y
+	MUL t2 t0 t1
+	LOAD_VAR t3 z
+	DIV t4 t2 t3
+	LOAD_CONST t5 2
+	LOAD_CONST t6 4
+	ADD t7 t5 t6
+	ADD t8 t4 t7
+	ASSIGN value t8
+	LOAD_CONST t9 "The Value is: %d\n"
+	CALL t10 printf t9 value
+	LOAD_CONST t11 0
+	RETURN t11
 	LABEL init
-	CALL t16 print_numbers
-	LOAD_CONST t17 0
-	RETURN t17
+	CALL t12 print_numbers
+	LOAD_CONST t13 0
+	RETURN t13
 }
 ETL: compiled [asm.s]
 executable: [program]

@@ -8,6 +8,7 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+#include <regex>
 #include "ir.hpp"
 #include "symbol.hpp"
 
@@ -20,7 +21,8 @@ namespace codegen {
 
         std::string emit(const ir::IRCode &code) {
             std::ostringstream output;
-            collectStringLiterals(code);
+            collectLiteralsAndConstants(code);
+            analyzeTempVarUsage(code);
             emitDataSection(output);
             emitPreamble(output);
             emitCallInit(output);
@@ -35,12 +37,40 @@ namespace codegen {
         int maxStackUsage;
         std::unordered_map<std::string, int> variableOffsets;
         std::unordered_map<std::string, std::string> stringLiterals;
+        std::unordered_map<std::string, std::string> numericConstants;
+        std::unordered_map<std::string, std::string> valueLocations;
+        std::unordered_map<std::string, int> valueToStackOffset;
+        std::unordered_map<std::string, int> tempVarCountPerFunction;
 
-        void collectStringLiterals(const ir::IRCode &code) {
+        void collectLiteralsAndConstants(const ir::IRCode &code) {
             for (const auto &instr : code) {
-                if (instr.type == ir::InstructionType::LOAD_CONST && instr.op1[0] == '\"') {
-                    std::string label = "str" + std::to_string(stringLiterals.size());
-                    stringLiterals[instr.op1] = label;
+                if (instr.type == ir::InstructionType::LOAD_CONST) {
+                    if (instr.op1[0] == '\"') {
+                        std::string label = "str" + std::to_string(stringLiterals.size());
+                        stringLiterals[instr.op1] = label;
+                    } else {
+                        std::string label = "num" + std::to_string(numericConstants.size());
+                        numericConstants[instr.op1] = label;
+                    }
+                }
+            }
+        }
+
+        void analyzeTempVarUsage(const ir::IRCode &code) {
+            std::unordered_map<std::string, int> tempVarIndices;
+            std::string currentFunction;
+
+            for (const auto &instr : code) {
+                if (instr.type == ir::InstructionType::LABEL) {
+                    currentFunction = instr.dest;
+                    tempVarCountPerFunction[currentFunction] = 0;
+                    tempVarIndices.clear();
+                }
+
+                if (instr.dest[0] == 't') {  
+                    if (tempVarIndices.find(instr.dest) == tempVarIndices.end()) {
+                        tempVarIndices[instr.dest] = tempVarCountPerFunction[currentFunction]++;
+                    }
                 }
             }
         }
@@ -49,6 +79,9 @@ namespace codegen {
             output << ".section .data\n";
             for (const auto &entry : stringLiterals) {
                 output << entry.second << ": .asciz " << ir::escapeString(entry.first) << "\n";
+            }
+            for (const auto &entry : numericConstants) {
+                output << entry.second << ": .quad " << entry.first << "\n";
             }
         }
 
@@ -69,11 +102,17 @@ namespace codegen {
             output << "    ret\n";
         }
 
-        void emitFunctionPrologue(std::ostringstream &output, int localVariableCount) {
+        void emitFunctionPrologue(std::ostringstream &output, const std::string &functionName) {
             output << "    pushq %rbp\n";
             output << "    movq %rsp, %rbp\n";
-            int stackSpace = ((localVariableCount * 8 + 15) / 16) * 16; // Align to 16 bytes
-            output << "    subq $" << stackSpace << ", %rsp\n";
+
+            int tempVarCount = tempVarCountPerFunction[functionName];
+            int stackSpace = tempVarCount * 8;
+            stackSpace = ((stackSpace + 15) / 16) * 16;
+
+            if (stackSpace > 0) {
+                output << "    subq $" << stackSpace << ", %rsp\n";
+            }
         }
 
         void emitFunctionEpilogue(std::ostringstream &output) {
@@ -82,7 +121,13 @@ namespace codegen {
         }
 
         void emitCode(const ir::IRCode &code, std::ostringstream &output) {
+            std::string currentFunction;
+
             for (const auto &instr : code) {
+                if (instr.type == ir::InstructionType::LABEL) {
+                    currentFunction = instr.dest;
+                }
+
                 switch (instr.type) {
                     case ir::InstructionType::ADD:
                         emitBinaryOp(output, instr, "addq");
@@ -129,7 +174,8 @@ namespace codegen {
                 std::string label = stringLiterals[instr.op1];
                 output << "    leaq " << label << "(%rip), %rax\n";
             } else {
-                output << "    movq $" << instr.op1 << ", %rax\n";
+                std::string label = numericConstants[instr.op1];
+                output << "    movq " << label << "(%rip), %rax\n";
             }
             storeToTemp(output, instr.dest, "%rax");
         }
@@ -148,6 +194,10 @@ namespace codegen {
         }
 
         void emitAssign(std::ostringstream &output, const ir::IRInstruction &instr) {
+            if (instr.dest[0] == 't') {
+                return; 
+            }
+
             loadToRegister(output, instr.op1, "%rax");
             storeToTemp(output, instr.dest, "%rax");
         }
@@ -169,7 +219,7 @@ namespace codegen {
             for (size_t i = 0; i < numArgs && i < argumentRegisters.size(); ++i) {
                 loadToRegister(output, instr.args[i], argumentRegisters[i]);
             }
-            output << "    movq $0, %rax\n"; // Clear RAX for variadic function calls
+            output << "    movq $0, %rax\n"; 
             output << "    call " << instr.functionName << "\n";
             storeToTemp(output, instr.dest, "%rax");
         }
@@ -177,14 +227,13 @@ namespace codegen {
         void emitLabel(std::ostringstream &output, const ir::IRInstruction &instr) {
             output << instr.dest << ":\n";
             if (instr.dest != "main") {
-                int localVarCount = functionLocalVarCount[instr.dest];
-                emitFunctionPrologue(output, localVarCount);
+                emitFunctionPrologue(output, instr.dest);
             }
         }
 
         void emitReturn(std::ostringstream &output, const ir::IRInstruction &instr) {
             if (!instr.dest.empty()) {
-                output << "    movq " << getOperand(instr.dest) << ", %rax\n";
+                loadToRegister(output, instr.dest, "%rax");
             } else {
                 output << "    movq $0, %rax\n";
             }
@@ -201,8 +250,13 @@ namespace codegen {
         }
 
         void storeToTemp(std::ostringstream &output, const std::string &temp, const std::string &reg) {
+            if (valueLocations[temp] == reg) {
+                return; 
+            }
             int offset = getVariableOffset(temp);
+            valueToStackOffset[temp] = offset;
             output << "    movq " << reg << ", " << offset << "(%rbp)\n";
+            valueLocations[temp] = reg;
         }
 
         int getVariableOffset(const std::string &varName) {
@@ -222,21 +276,49 @@ namespace codegen {
             return std::to_string(offset) + "(%rbp)";
         }
 
-        std::string applyPeephole(std::ostringstream &output) {
-            std::istringstream stream(output.str());
-            std::ostringstream out;
-            std::string lastLine;
+        std::string optimizeRedundantLoadStore(const std::string &assemblyCode) {
+            std::istringstream input(assemblyCode);
+            std::ostringstream output;
             std::string line;
+            std::string lastStoreLine;
+            std::string lastStoreLocation;
+            std::string lastStoreRegister;
+            bool lastWasStore = false;
 
-            while (std::getline(stream, line)) {
-                if (!lastLine.empty() && line == lastLine) {
-                    continue; // Skip redundant instruction
+            std::regex movqRegex(R"(movq\s+([^\s,]+)\s*,\s*([^\s]+))");
+
+            while (std::getline(input, line)) {
+                std::smatch match;
+                if (std::regex_search(line, match, movqRegex)) {
+                    std::string src = match[1];
+                    std::string dest = match[2];
+
+                    if (lastWasStore) {
+                        if (src == lastStoreLocation && dest == lastStoreRegister) {
+                            lastWasStore = false; 
+                            continue;
+                        }
+                    }
+
+                    if (dest.find("(%rbp)") != std::string::npos) {
+                        lastStoreLine = line;
+                        lastStoreLocation = dest;
+                        lastStoreRegister = src;
+                        lastWasStore = true;
+                    } else {
+                        lastWasStore = false;
+                    }
+                } else {
+                    lastWasStore = false;
                 }
-                out << line << "\n";
-                lastLine = line;
-            }
 
-            return out.str();
+                output << line << "\n";
+            }
+            return output.str();
+        }
+
+        std::string applyPeephole(std::ostringstream &output) {
+            return optimizeRedundantLoadStore(output.str());
         }
     };
 
