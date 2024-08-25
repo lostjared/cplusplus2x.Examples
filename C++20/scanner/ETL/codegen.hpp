@@ -14,6 +14,23 @@
 #include "symbol.hpp"
 
 namespace codegen {
+    
+    enum class VariableType {
+        STRING,
+        NUMERIC,
+        STRING_CONST,
+        NUMERIC_CONST,
+        STRING_VAR,
+        NUMERIC_VAR
+    };
+
+    struct VariableInfo {
+        VariableType type;
+        bool isAllocated;
+
+        VariableInfo(VariableType t, bool alloc = false) : type(t), isAllocated(alloc) {}
+        VariableInfo() : type(VariableType::NUMERIC), isAllocated(false) {} // Default constructor
+    };
 
     class CodeEmitter {
     public:
@@ -42,17 +59,20 @@ namespace codegen {
         std::unordered_map<std::string, std::string> valueLocations;
         std::unordered_map<std::string, int> valueToStackOffset;
         std::unordered_map<std::string, int> tempVarCountPerFunction;
-        std::unordered_set<std::string> allocatedMemory;  // Set to track allocated memory
+        std::unordered_set<std::string> allocatedMemory;  
+        std::unordered_map<std::string, VariableInfo> variableInfo;
 
-        void collectLiteralsAndConstants(const ir::IRCode &code) {
+          void collectLiteralsAndConstants(const ir::IRCode &code) {
             for (const auto &instr : code) {
                 if (instr.type == ir::InstructionType::LOAD_CONST) {
                     if (instr.op1[0] == '\"') {
                         std::string label = "str" + std::to_string(stringLiterals.size());
                         stringLiterals[instr.op1] = label;
+                        variableInfo[instr.dest] = VariableInfo(VariableType::STRING_CONST);
                     } else {
                         std::string label = "num" + std::to_string(numericConstants.size());
                         numericConstants[instr.op1] = label;
+                        variableInfo[instr.dest] = VariableInfo(VariableType::NUMERIC_CONST);
                     }
                 }
             }
@@ -173,56 +193,45 @@ namespace codegen {
                 }
             }
         }
-
+        
         void emitLoadConst(std::ostringstream &output, const ir::IRInstruction &instr) {
-            if (instr.op1[0] == '\"') {
+            auto varType = variableInfo[instr.dest].type;
+            if (varType == VariableType::STRING_CONST) {
                 std::string label = stringLiterals[instr.op1];
                 output << "    leaq " << label << "(%rip), %rax\n";
-            } else {
+            } else if (varType == VariableType::NUMERIC_CONST) {
                 std::string label = numericConstants[instr.op1];
                 output << "    movq " << label << "(%rip), %rax\n";
             }
             storeToTemp(output, instr.dest, "%rax");
         }
-
+        
         void emitConcat(std::ostringstream &output, const ir::IRInstruction &instr) {
-            // Load string addresses into registers
             loadToRegister(output, instr.op1, "%rsi");
             loadToRegister(output, instr.op2, "%rdx");
 
-            // Calculate total length
             output << "    movq %rsi, %rdi\n";
-            output << "    xor %rax, %rax\n";
             output << "    call strlen\n";
             output << "    movq %rax, %rcx\n";
 
             output << "    movq %rdx, %rdi\n";
-            output << "    xor %rax, %rax\n";
             output << "    call strlen\n";
             output << "    addq %rax, %rcx\n";
             output << "    addq $1, %rcx\n";
 
-            // Allocate memory for concatenated string
             output << "    movq %rcx, %rdi\n";
-            output << "    xor %rax, %rax\n";
             output << "    call malloc\n";
             storeToTemp(output, instr.dest, "%rax");
 
-            // Copy and concatenate strings
             output << "    movq " << getOperand(instr.op1) << ", %rsi\n";
             output << "    movq %rax, %rdi\n";
-            output << "    xor %rax, %rax\n";
             output << "    call strcpy\n";
 
             output << "    movq " << getOperand(instr.op2) << ", %rsi\n";
             output << "    movq " << getOperand(instr.dest) << ", %rdi\n";
-            output << "    xor %rax, %rax\n";
             output << "    call strcat\n";
 
-            // Store result back in destination
             output << "    movq %rax, " << getOperand(instr.dest) << "\n";
-
-            // Track allocated memory
             allocatedMemory.insert(instr.dest);
         }
 
