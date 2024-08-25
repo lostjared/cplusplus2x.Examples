@@ -29,7 +29,6 @@ void test_parse(const std::string &filename, const std::string &out_file) {
                             std::cout << "\t" << instr.toString() << "\n";
                         }
                         std::cout << "}\n";
-                        exit(EXIT_FAILURE);
                         codegen::CodeEmitter emitter(irContext.table, irContext.functionLocalVarCount);
                         std::string text = emitter.emit(irContext.instructions);
                         std::fstream ofile;

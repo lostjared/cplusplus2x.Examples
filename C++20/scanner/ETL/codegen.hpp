@@ -13,15 +13,6 @@
 
 namespace codegen {
 
-    struct ValueState {
-        bool inRegister;
-        bool inMemory;
-        std::string registerName;
-        int memoryOffset;
-
-        ValueState() : inRegister(false), inMemory(false), registerName(""), memoryOffset(0) {}
-    };
-
     class CodeEmitter {
     public:
         CodeEmitter(symbol::SymbolTable &symbolTable, std::unordered_map<std::string, int> &functionVarCount)
@@ -34,57 +25,16 @@ namespace codegen {
             emitPreamble(output);
             emitCallInit(output);
             emitCode(code, output);
-            return output.str();
-            //return applyPeephole(output);
+            return applyPeephole(output);
         }
 
-        std::string applyPeephole(std::ostringstream &output) {
-            std::istringstream stream(output.str());
-            std::ostringstream out;
-            int reg = 0;
-            std::string r;
-            std::string line;
-
-            while (std::getline(stream, line)) {
-                auto movqPos = line.find("movq");
-                if (movqPos != std::string::npos) {
-                    auto rightStart = movqPos + 5;
-                    auto commaPos = line.find(",", rightStart);
-                    if (commaPos != std::string::npos) {
-                        std::string left = line.substr(rightStart, commaPos - rightStart);
-                        std::string rightof = line.substr(commaPos + 1);
-
-                        if (!left.empty() && left[0] == '%') {
-                            r = left;
-                            reg = 1;
-                            out << line << "\n";
-                        } else if(!left.empty() && left[0] == '$') {
-                            r = rightof;
-                            reg = 1;
-                            out << line << "\n";
-                        } 
-                        else if (reg == 1 && rightof.find("(") != std::string::npos && rightof.find(left) == std::string::npos) {
-                            reg = 0;
-                            continue;
-                        }
-                    }
-                } else {
-                    reg = 0;
-                    out << line << "\n";
-                }
-            }
-            return out.str();
-        }
     private:
         symbol::SymbolTable &table;
         std::unordered_map<std::string, int> &functionLocalVarCount;
         int currentStackOffset;
         int maxStackUsage;
         std::unordered_map<std::string, int> variableOffsets;
-        std::unordered_map<std::string, ValueState> valueStateMap;
         std::unordered_map<std::string, std::string> stringLiterals;
-
-        std::unordered_map<std::string, std::string> registerValueCache;
 
         void collectStringLiterals(const ir::IRCode &code) {
             for (const auto &instr : code) {
@@ -108,7 +58,7 @@ namespace codegen {
             output << "main:\n";
             output << "    pushq %rbp\n";
             output << "    movq %rsp, %rbp\n";
-            output << "    subq $16, %rsp\n";  // Align stack to 16 bytes for safety
+            output << "    subq $16, %rsp\n";
         }
 
         void emitCallInit(std::ostringstream &output) {
@@ -120,10 +70,10 @@ namespace codegen {
         }
 
         void emitFunctionPrologue(std::ostringstream &output, int localVariableCount) {
-            int requiredStackSpace = localVariableCount * 8; // Only allocate what's needed
-            if (requiredStackSpace > 0) {
-                output << "    subq $" << requiredStackSpace << ", %rsp\n";
-            }
+            output << "    pushq %rbp\n";
+            output << "    movq %rsp, %rbp\n";
+            int stackSpace = ((localVariableCount * 8 + 15) / 16) * 16; // Align to 16 bytes
+            output << "    subq $" << stackSpace << ", %rsp\n";
         }
 
         void emitFunctionEpilogue(std::ostringstream &output) {
@@ -132,11 +82,6 @@ namespace codegen {
         }
 
         void emitCode(const ir::IRCode &code, std::ostringstream &output) {
-            currentStackOffset = 0;  // Reset stack offset tracking for each function
-            maxStackUsage = 0;       // Reset max stack usage
-            variableOffsets.clear(); // Clear variable offsets
-            valueStateMap.clear();   // Clear value states
-
             for (const auto &instr : code) {
                 switch (instr.type) {
                     case ir::InstructionType::ADD:
@@ -182,51 +127,40 @@ namespace codegen {
         void emitLoadConst(std::ostringstream &output, const ir::IRInstruction &instr) {
             if (instr.op1[0] == '\"') {
                 std::string label = stringLiterals[instr.op1];
-                output << "    leaq " << label << "(%rip), %rdi\n";  // Load address of format string into %rdi
+                output << "    leaq " << label << "(%rip), %rax\n";
             } else {
                 output << "    movq $" << instr.op1 << ", %rax\n";
-                storeToStack(output, instr.dest, "%rax");  // Store the constant into stack slot
-                registerValueCache["%rax"] = instr.op1; // Update cache
             }
+            storeToTemp(output, instr.dest, "%rax");
         }
 
         void emitBinaryOp(std::ostringstream &output, const ir::IRInstruction &instr, const std::string &op) {
             loadToRegister(output, instr.op1, "%rax");
-            loadToRegister(output, instr.op2, "%rbx");
-            output << "    " << op << " %rbx, %rax\n";
-            storeToStack(output, instr.dest, "%rax");
-            registerValueCache["%rax"] = instr.dest; // Update cache
+            output << "    " << op << " " << getOperand(instr.op2) << ", %rax\n";
+            storeToTemp(output, instr.dest, "%rax");
         }
 
         void emitDiv(std::ostringstream &output, const ir::IRInstruction &instr) {
             loadToRegister(output, instr.op1, "%rax");
             output << "    cqto\n";
-            loadToRegister(output, instr.op2, "%rbx");
-            output << "    idivq %rbx\n";
-            storeToStack(output, instr.dest, "%rax");
-            registerValueCache["%rax"] = instr.dest; // Update cache
+            output << "    idivq " << getOperand(instr.op2) << "\n";
+            storeToTemp(output, instr.dest, "%rax");
         }
 
         void emitAssign(std::ostringstream &output, const ir::IRInstruction &instr) {
-            if (instr.dest == instr.op1) {
-                return; // Skip redundant assignment
-            }
             loadToRegister(output, instr.op1, "%rax");
-            storeToStack(output, instr.dest, "%rax");
-            registerValueCache["%rax"] = instr.dest; // Update cache
+            storeToTemp(output, instr.dest, "%rax");
         }
 
         void emitLoadVar(std::ostringstream &output, const ir::IRInstruction &instr) {
             loadToRegister(output, instr.op1, "%rax");
-            storeToStack(output, instr.dest, "%rax");
-            registerValueCache["%rax"] = instr.dest; // Update cache
+            storeToTemp(output, instr.dest, "%rax");
         }
 
         void emitNeg(std::ostringstream &output, const ir::IRInstruction &instr) {
             loadToRegister(output, instr.op1, "%rax");
             output << "    negq %rax\n";
-            storeToStack(output, instr.dest, "%rax");
-            registerValueCache["%rax"] = instr.dest; // Update cache
+            storeToTemp(output, instr.dest, "%rax");
         }
 
         void emitCall(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -235,8 +169,9 @@ namespace codegen {
             for (size_t i = 0; i < numArgs && i < argumentRegisters.size(); ++i) {
                 loadToRegister(output, instr.args[i], argumentRegisters[i]);
             }
-            output << "    movq $0, %rax\n"; // Clear %rax for syscall convention (variadic functions)
+            output << "    movq $0, %rax\n"; // Clear RAX for variadic function calls
             output << "    call " << instr.functionName << "\n";
+            storeToTemp(output, instr.dest, "%rax");
         }
 
         void emitLabel(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -249,58 +184,59 @@ namespace codegen {
 
         void emitReturn(std::ostringstream &output, const ir::IRInstruction &instr) {
             if (!instr.dest.empty()) {
-                loadToRegister(output, instr.dest, "%rax");
+                output << "    movq " << getOperand(instr.dest) << ", %rax\n";
             } else {
                 output << "    movq $0, %rax\n";
             }
             emitFunctionEpilogue(output);
         }
 
-        // Load a variable into a register, using value caching to avoid redundant loads
-        void loadToRegister(std::ostringstream &output, const std::string &variable, const std::string &reg) {
-            auto &state = valueStateMap[variable];
-            if (state.inRegister && state.registerName == reg) {
-                return;  // Already in the desired register
-            }
-
-            // Check cache to avoid redundant loads
-            if (registerValueCache[reg] == variable) {
-                return;
-            }
-
-            if (state.inMemory) {
-                output << "    movq " << state.memoryOffset << "(%rbp), " << reg << "\n";
-                state.inRegister = true;
-                state.registerName = reg;
-                registerValueCache[reg] = variable; // Update cache
+        void loadToRegister(std::ostringstream &output, const std::string &operand, const std::string &reg) {
+            if (operand[0] == '$' || operand[0] == '%') {
+                output << "    movq " << operand << ", " << reg << "\n";
             } else {
-                state.inRegister = true;
-                state.registerName = reg;
-                registerValueCache[reg] = variable; // Update cache
+                int offset = getVariableOffset(operand);
+                output << "    movq " << offset << "(%rbp), " << reg << "\n";
             }
         }
 
-        // Store a value into the stack, optimizing redundant store cases
-        void storeToStack(std::ostringstream &output, const std::string &variable, const std::string &reg) {
-            auto &state = valueStateMap[variable];
-
-            // Check if the value is already stored in the memory location
-            if (state.inMemory && state.memoryOffset == variableOffsets[variable] && state.registerName == reg) {
-                return; // Already stored in the correct location
-            }
-
-            if (variableOffsets.find(variable) == variableOffsets.end()) {
-                currentStackOffset -= 8;
-                maxStackUsage = std::max(maxStackUsage, -currentStackOffset / 8);
-                variableOffsets[variable] = currentStackOffset;
-            }
-
-            int offset = variableOffsets[variable];
+        void storeToTemp(std::ostringstream &output, const std::string &temp, const std::string &reg) {
+            int offset = getVariableOffset(temp);
             output << "    movq " << reg << ", " << offset << "(%rbp)\n";
+        }
 
-            state.inMemory = true;
-            state.memoryOffset = offset;
-            state.registerName = reg;
+        int getVariableOffset(const std::string &varName) {
+            if (variableOffsets.find(varName) == variableOffsets.end()) {
+                currentStackOffset -= 8;
+                variableOffsets[varName] = currentStackOffset;
+                maxStackUsage = std::min(maxStackUsage, currentStackOffset);
+            }
+            return variableOffsets[varName];
+        }
+
+        std::string getOperand(const std::string &operand) {
+            if (operand.empty() || operand[0] == '$' || operand[0] == '%') {
+                return operand;
+            }
+            int offset = getVariableOffset(operand);
+            return std::to_string(offset) + "(%rbp)";
+        }
+
+        std::string applyPeephole(std::ostringstream &output) {
+            std::istringstream stream(output.str());
+            std::ostringstream out;
+            std::string lastLine;
+            std::string line;
+
+            while (std::getline(stream, line)) {
+                if (!lastLine.empty() && line == lastLine) {
+                    continue; // Skip redundant instruction
+                }
+                out << line << "\n";
+                lastLine = line;
+            }
+
+            return out.str();
         }
     };
 
