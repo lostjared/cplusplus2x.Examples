@@ -2,6 +2,7 @@
 #define _CODEGEN_H_
 
 #include <unordered_map>
+#include <unordered_set>
 #include <stack>
 #include <sstream>
 #include <vector>
@@ -41,6 +42,7 @@ namespace codegen {
         std::unordered_map<std::string, std::string> valueLocations;
         std::unordered_map<std::string, int> valueToStackOffset;
         std::unordered_map<std::string, int> tempVarCountPerFunction;
+        std::unordered_set<std::string> allocatedMemory;  // Set to track allocated memory
 
         void collectLiteralsAndConstants(const ir::IRCode &code) {
             for (const auto &instr : code) {
@@ -67,7 +69,7 @@ namespace codegen {
                     tempVarIndices.clear();
                 }
 
-                if (instr.dest[0] == 't') {  
+                if (instr.dest[0] == 't') {
                     if (tempVarIndices.find(instr.dest) == tempVarIndices.end()) {
                         tempVarIndices[instr.dest] = tempVarCountPerFunction[currentFunction]++;
                     }
@@ -162,6 +164,9 @@ namespace codegen {
                     case ir::InstructionType::RETURN:
                         emitReturn(output, instr);
                         break;
+                    case ir::InstructionType::CONCAT:
+                        emitConcat(output, instr);
+                        break;
                     default:
                         std::cerr << "Unsupported IR Instruction: " << instr.toString() << std::endl;
                         break;
@@ -178,6 +183,47 @@ namespace codegen {
                 output << "    movq " << label << "(%rip), %rax\n";
             }
             storeToTemp(output, instr.dest, "%rax");
+        }
+
+        void emitConcat(std::ostringstream &output, const ir::IRInstruction &instr) {
+            // Load string addresses into registers
+            loadToRegister(output, instr.op1, "%rsi");
+            loadToRegister(output, instr.op2, "%rdx");
+
+            // Calculate total length
+            output << "    movq %rsi, %rdi\n";
+            output << "    xor %rax, %rax\n";
+            output << "    call strlen\n";
+            output << "    movq %rax, %rcx\n";
+
+            output << "    movq %rdx, %rdi\n";
+            output << "    xor %rax, %rax\n";
+            output << "    call strlen\n";
+            output << "    addq %rax, %rcx\n";
+            output << "    addq $1, %rcx\n";
+
+            // Allocate memory for concatenated string
+            output << "    movq %rcx, %rdi\n";
+            output << "    xor %rax, %rax\n";
+            output << "    call malloc\n";
+            storeToTemp(output, instr.dest, "%rax");
+
+            // Copy and concatenate strings
+            output << "    movq " << getOperand(instr.op1) << ", %rsi\n";
+            output << "    movq %rax, %rdi\n";
+            output << "    xor %rax, %rax\n";
+            output << "    call strcpy\n";
+
+            output << "    movq " << getOperand(instr.op2) << ", %rsi\n";
+            output << "    movq " << getOperand(instr.dest) << ", %rdi\n";
+            output << "    xor %rax, %rax\n";
+            output << "    call strcat\n";
+
+            // Store result back in destination
+            output << "    movq %rax, " << getOperand(instr.dest) << "\n";
+
+            // Track allocated memory
+            allocatedMemory.insert(instr.dest);
         }
 
         void emitBinaryOp(std::ostringstream &output, const ir::IRInstruction &instr, const std::string &op) {
@@ -237,6 +283,13 @@ namespace codegen {
             } else {
                 output << "    movq $0, %rax\n";
             }
+
+            // Free allocated memory before returning
+            for (const auto &var : allocatedMemory) {
+                output << "    movq " << getOperand(var) << ", %rdi\n";
+                output << "    call free\n";
+            }
+
             emitFunctionEpilogue(output);
         }
 
