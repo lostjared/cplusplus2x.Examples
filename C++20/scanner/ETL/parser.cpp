@@ -131,9 +131,15 @@ namespace parse {
                 auto function = parseFunction(); 
                 program->body.push_back(std::move(function));
             } else if (test(types::KeywordType::KW_LET)) {
+                /*
                 inc();
                 auto assignment = parseAssignment();
-                program->body.push_back(std::move(assignment));
+                program->body.push_back(std::move(assignment));*/
+                std::ostringstream stream;
+                auto pos = scan->operator[](token_index).get_pos();
+                stream << "Let statement must be in function body Line: " << pos.first << " Col: " << pos.second;
+                throw ParseException(stream.str());
+
             } else {
                 std::ostringstream stream;
                 auto pos = scan->operator[](token_index).get_pos();
