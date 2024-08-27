@@ -22,3 +22,5 @@ target_link_libraries(ETL_C PRIVATE scan_cxx::cxx_scan)
 
 install(TARGETS ETL_C DESTINATION bin)
 install(TARGETS etl DESTINATION lib)
+
+install(PROGRAMS ${CMAKE_SOURCE_DIR}/etl DESTINATION bin)
