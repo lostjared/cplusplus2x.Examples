@@ -103,7 +103,6 @@ namespace parse {
             generate(ast.get(), context.instructions);
             context.table = table;
             context.functionLocalVarCount = functionLocalVarCount;
-            table.print();
             return context;
         }
 
