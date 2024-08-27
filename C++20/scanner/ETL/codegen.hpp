@@ -12,6 +12,7 @@
 #include <regex>
 #include "ir.hpp"
 #include "symbol.hpp"
+#include "clib.hpp"
 
 namespace codegen {
     
@@ -243,9 +244,11 @@ namespace codegen {
             if (instr.op1[0] == '\"') {
                 std::string label = stringLiterals[curFunction][instr.op1];
                 output << "    leaq " << label << "(%rip), %rax\n";
+                variableInfo[curFunction][instr.op1].type == VariableType::STRING_CONST;
             } else {
                 std::string label = numericConstants[curFunction][instr.op1];
                 output << "    movq " << "$" << instr.op1 << ", %rax\n";
+                variableInfo[curFunction][instr.op1].type == VariableType::NUMERIC_CONST;
             } 
             storeToTemp(output, instr.dest, "%rax");
         }
@@ -377,21 +380,56 @@ namespace codegen {
             output << "    movq $0, %rax\n"; 
             output << "    call " << instr.functionName << "\n";
             storeToTemp(output, instr.dest, "%rax");
-            auto it = funcReturn.find(instr.functionName);
-            if(it != funcReturn.end()) {
-                switch(it->second) {
-                    case ReturnType::POINTER:
+           auto fn = clib::clibrary.find(instr.functionName);
+           if(fn != clib::clibrary.end()) {
+                switch(fn->second.return_type) {
+                    case clib::VarType::POINTER:
                     variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
-                    allocatedMemory[curFunction].insert(instr.dest);
                     break;
-                    case ReturnType::INTEGER:
-                    case ReturnType::VOID:
+                    case clib::VarType::INTEGER:
                     variableInfo[curFunction][instr.dest].type = VariableType::VAR;
                     break;
                     default:
+                    std::cerr << "ETL: Not supported yet.\n";
+                    exit(EXIT_FAILURE);
                     break;
                 }
-            }
+
+                if(instr.args.size() != fn->second.args.size()  && instr.functionName != "printf") {
+                    std::cerr << "ETL: Fatal, incorrec number of argumeents for: " << instr.functionName << "\n";
+                    exit(EXIT_FAILURE);
+                }
+
+                if(instr.functionName != "printf") {
+                    for(size_t i = 0; i < fn->second.args.size(); ++i) {
+                        auto val_type = variableInfo[curFunction][instr.args.at(i)].type;
+                        switch(val_type) {
+                            case VariableType::VAR:
+                            case VariableType::NUMERIC_CONST:
+                            if(fn->second.args.at(i) != clib::VarType::INTEGER) {
+                                std::cerr << "ETL: Fatal Error argument typpe mismatch. Unexpected Type in function: " << instr.functionName << "\n";
+                                exit(EXIT_FAILURE);
+                            }
+                            break;
+                            case VariableType::VAR_STRING:
+                            case VariableType::STRING_CONST:
+                            if(fn->second.args.at(i) != clib::VarType::POINTER) {
+                                std::cerr << "ETL: Fatal Error argument type mismatch. Found: " << instr.args.at(i) << " Unexpected Type in function: " << instr.functionName << "\n";
+                                exit(EXIT_FAILURE);
+
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                if(fn->second.allocaated) {
+                    allocatedMemory[curFunction].insert(instr.dest);
+                }
+
+           }
+
+
             variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
         }
 
