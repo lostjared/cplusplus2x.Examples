@@ -27,17 +27,17 @@ void test_parse(const std::string &filename, const std::string &out_file) {
                         auto irContext = irGen.generateIR(rootAST);  
                         ir::IROptimizer opt;
                         irContext.instructions = std::move(opt.optimize(irContext.instructions));
-                        std::cout << "ETL: IR code: {\n";
-                        for (const auto &instr : irContext.instructions) {
-                            std::cout << "\t" << instr.toString() << "\n";
-                        }
-                        std::cout << "}\n";
                         codegen::CodeEmitter emitter(irContext.table, irContext.functionLocalVarCount);
                         std::string text = emitter.emit(irContext.instructions);
                         std::fstream ofile;
                         ofile.open(out_file, std::ios::out);
                         ofile << text << "\n";
                         ofile.close();
+                        std::cout << "ETL: IR code: {\n";
+                        for (const auto &instr : irContext.instructions) {
+                            std::cout << "\t" << instr.toString() << "\n";
+                        }
+                        std::cout << "}\n";
                         std::cout << "ETL: compiled [" << out_file << "]\n";
                         exit(EXIT_SUCCESS);
                     } catch(ir::IRException &e) {
