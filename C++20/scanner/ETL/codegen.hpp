@@ -15,6 +15,23 @@
 
 namespace codegen {
     
+    enum class ReturnType {
+        INTEGER,
+        POINTER,
+        VOID, 
+        FLOAT,
+        DOUBLE,
+    };
+
+    inline std::unordered_map<std::string, ReturnType> funcReturn = {
+        {"malloc", ReturnType::POINTER},
+        {"free", ReturnType::VOID},
+        {"strlen", ReturnType::INTEGER},
+        {"printf", ReturnType::INTEGER}, 
+        {"atoi", ReturnType::INTEGER},
+        {"str", ReturnType::POINTER},
+    };
+
     enum class VariableType {
         STRING_CONST,
         NUMERIC_CONST,
@@ -49,6 +66,7 @@ namespace codegen {
 
     private:
         symbol::SymbolTable &table;
+        symbol::SymbolTable local;
         std::unordered_map<std::string, int> &functionLocalVarCount;
         std::unordered_map<std::string, int> currentStackOffset;
         std::unordered_map<std::string, int> maxStackUsage;
@@ -63,8 +81,6 @@ namespace codegen {
         std::string curFunction;
 
         void collectLiteralsAndConstants(const ir::IRCode &code) {
-            int string_const_values = 0;
-            int numeric_const_values = 0;
             for (const auto &instr : code) {
 
                 if(instr.type == ir::InstructionType::LABEL) {
@@ -76,12 +92,25 @@ namespace codegen {
                         std::string label =  instr.dest;
                         stringLiterals[curFunction][instr.op1] = label;
                         variableInfo[curFunction][instr.dest] = VariableInfo(VariableType::STRING_CONST, false, label, instr.op1);
+                        local.enter(label);
+                        auto it = local.lookup(label);
+                        if(it.has_value()) {
+                            symbol::Symbol *s = it.value();
+                            s->name = label;
+                            s->value = instr.op1;
+                        }
                     } else {
                         std::string label = instr.dest;
                         if(numericConstants[curFunction].find(instr.op1) == numericConstants[curFunction].end()) {
                             numericConstants[curFunction][instr.op1] = label;
                             variableInfo[curFunction][instr.dest] = VariableInfo(VariableType::NUMERIC_CONST, false, label, instr.op1);
-                            numeric_const_values++;      
+                            local.enter(label);
+                            auto it = local.lookup(label);
+                            if(it.has_value()) {
+                                symbol::Symbol *s = it.value();
+                                 s->name = label;
+                                s->value = instr.op1;
+                            }
                         }
                     }
                 }
@@ -322,9 +351,6 @@ namespace codegen {
         }
 
         void emitAssign(std::ostringstream &output, const ir::IRInstruction &instr) {
-            if (instr.dest[0] == 't') {
-                return; 
-            }
             variableInfo[curFunction][instr.dest].type = variableInfo[curFunction][instr.op1].type;
             loadToRegister(output, instr.op1, "%rax");
             storeToTemp(output, instr.dest, "%rax");
@@ -351,6 +377,22 @@ namespace codegen {
             output << "    movq $0, %rax\n"; 
             output << "    call " << instr.functionName << "\n";
             storeToTemp(output, instr.dest, "%rax");
+            auto it = funcReturn.find(instr.functionName);
+            if(it != funcReturn.end()) {
+                switch(it->second) {
+                    case ReturnType::POINTER:
+                    variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
+                    allocatedMemory[curFunction].insert(instr.dest);
+                    break;
+                    case ReturnType::INTEGER:
+                    case ReturnType::VOID:
+                    variableInfo[curFunction][instr.dest].type = VariableType::VAR;
+                    break;
+                    default:
+                    break;
+                }
+            }
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
         }
 
         void emitLabel(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -359,6 +401,7 @@ namespace codegen {
             if (instr.dest != "main") {
                 emitFunctionPrologue(output, instr.dest);
             }
+            local.enterScope(curFunction);
         }
 
         void emitReturn(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -373,6 +416,7 @@ namespace codegen {
                 output << "    call free\n";
             }
             emitFunctionEpilogue(output);
+            local.exitScope();
         }
 
         void loadToRegister(std::ostringstream &output, const std::string &operand, const std::string &reg) {

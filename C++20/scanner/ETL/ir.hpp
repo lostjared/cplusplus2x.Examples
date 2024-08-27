@@ -192,21 +192,45 @@ namespace parse {
             const ast::Literal *rightLiteral = dynamic_cast<const ast::Literal *>(binOp->right.get());
             bool isStringOperation = (leftLiteral && leftLiteral->type == types::TokenType::TT_STR) ||
                                      (rightLiteral && rightLiteral->type == types::TokenType::TT_STR);
+            
+            table.enter(dest);
+            auto d = table.lookup(dest);
 
-        
-            auto l = table.lookup(leftResult);
-            if(l.has_value()) {
-                symbol::Symbol *s = l.value();
-                if(s->value[0] == '\"') 
-                    isStringOperation = true;
+            if(d.has_value()) {
+                symbol::Symbol *s = d.value();
+                s->name = dest;
             }
-            auto r = table.lookup(rightResult);
-            if(r.has_value()) {
-                symbol::Symbol *s = r.value();
-                if(s->value[0] == '\"') 
+            bool values[2] = {false};
+            auto i = table.lookup(leftResult);
+            if(i.has_value()) {
+                symbol::Symbol *s = i.value();
+                if(!s->value.empty() && s->value[0] == '\"') {
                     isStringOperation = true;
+                    values[0] = true;
+                } else {
+                    values[0] = false;
+                }
             }
-             
+            if(isStringOperation == false) {
+                auto e = table.lookup(rightResult);
+                if(e.has_value()) {
+                    symbol::Symbol *s = e.value();
+                    if(!s->value.empty() && s->value[0] == '\"') {
+                        values[1] = true;
+                        isStringOperation = true;
+                    } else {
+                        values[1] = false;
+                    }
+                }
+            }
+
+            if((values[0] == true && values[1] == false) || (values[0] == false && values[1] == true)) {
+                std::ostringstream stream;
+                stream << leftResult << " + " << rightResult << " operator requires string type use str()";
+                std::cout << stream.str() << "\n";
+                //throw ir::IRException(stream.str());
+            }
+
             switch (binOp->op) {
                 case types::OperatorType::OP_PLUS:
                     if (isStringOperation) {
@@ -291,6 +315,14 @@ namespace parse {
                 argRegisters.push_back(lastComputedValue["result"]);
             }
             std::string callDest = getNextTempVar();
+            table.enter(callDest);
+            auto e = table.lookup(callDest);
+            if(e.has_value()) {
+                symbol::Symbol *s = e.value();
+                s->name = callDest;
+                if(call->functionName == "str")
+                    s->value = "\"";
+            }
             code.emplace_back(ir::InstructionType::CALL, callDest, call->functionName, argRegisters);
             lastComputedValue["result"] = callDest;
         }
