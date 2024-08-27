@@ -260,7 +260,7 @@ namespace codegen {
             if (variableInfo[curFunction][instr.op1].type == VariableType::STRING_CONST) {
                 if(!variableInfo[curFunction][instr.op1].text.empty()  && variableInfo[curFunction][instr.op1].text[0] == '\"') {
                     auto len = variableInfo[curFunction][instr.op1].text.length()+1;
-                    output << "    addq $" << len << ", %rcx\n";
+                    output << "     addq $" << len << ", %rcx\n";
                 } else {
                     loadToRegister(output, instr.op1, "%rdi");
                     output << "     call strlen\n";
@@ -277,7 +277,7 @@ namespace codegen {
             } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR_STRING) {
                 loadToRegister(output, instr.op1, "%rdi");
                 output << "    call strlen\n";
-                output <<"     addq %rax, %rcx\n";
+                output << "    addq %rax, %rcx\n";
             } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR) {
                 loadToRegister(output, instr.op1 , "%rdi");
                 output << "    leaq tempBufferRHS(%rip), %rsi\n";
