@@ -103,6 +103,7 @@ namespace parse {
             generate(ast.get(), context.instructions);
             context.table = table;
             context.functionLocalVarCount = functionLocalVarCount;
+            table.print();
             return context;
         }
 
@@ -146,6 +147,13 @@ namespace parse {
             if (lhs) {
                 auto rhsLiteral = dynamic_cast<const ast::Literal*>(assign->right.get());
                 if (rhsLiteral) {
+                    table.enter(lhs->name);
+                    auto entry = table.lookup(lhs->name);
+                    if(entry.has_value()) {
+                        symbol::Symbol *e = entry.value();
+                        e->name = lhs->name;
+                        e->value = rhsLiteral->value;      
+                    }
                     code.emplace_back(ir::InstructionType::LOAD_CONST, lhs->name, rhsLiteral->value);
                 } else {
                     generate(assign->right.get(), code);
@@ -186,6 +194,20 @@ namespace parse {
             bool isStringOperation = (leftLiteral && leftLiteral->type == types::TokenType::TT_STR) ||
                                      (rightLiteral && rightLiteral->type == types::TokenType::TT_STR);
 
+        
+            auto l = table.lookup(leftResult);
+            if(l.has_value()) {
+                symbol::Symbol *s = l.value();
+                if(s->value[0] == '\"') 
+                    isStringOperation = true;
+            }
+            auto r = table.lookup(rightResult);
+            if(r.has_value()) {
+                symbol::Symbol *s = r.value();
+                if(s->value[0] == '\"') 
+                    isStringOperation = true;
+            }
+             
             switch (binOp->op) {
                 case types::OperatorType::OP_PLUS:
                     if (isStringOperation) {
@@ -232,6 +254,13 @@ namespace parse {
         void generateLiteral(const ast::Literal *literal, ir::IRCode &code) {
             std::string tempVar = getNextTempVar();
             code.emplace_back(ir::InstructionType::LOAD_CONST, tempVar, literal->value);
+            table.enter(tempVar);
+            auto value = table.lookup(tempVar);
+            if(value.has_value()) {
+                symbol::Symbol *v = value.value();
+                v->value = literal->value;
+                v->name = tempVar;
+            }
             lastComputedValue["result"] = tempVar;
         }
 
@@ -240,6 +269,17 @@ namespace parse {
                 lastComputedValue["result"] = lastComputedValue[identifier->name];
             } else {
                 std::string tempVar = getNextTempVar();
+
+                table.enter(tempVar);
+                auto v = table.lookup(tempVar);
+                if(v.has_value()) {
+                    symbol::Symbol *vx = v.value();
+                    vx->name = tempVar;
+                    auto cpx = table.lookup(identifier->name);
+                    if(cpx.has_value()) {
+                        vx->value = cpx.value()->value;
+                    }
+                }
                 code.emplace_back(ir::InstructionType::LOAD_VAR, tempVar, identifier->name);
                 lastComputedValue["result"] = tempVar;
             }

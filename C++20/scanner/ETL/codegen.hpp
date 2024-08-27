@@ -73,11 +73,11 @@ namespace codegen {
 
                 if (instr.type == ir::InstructionType::LOAD_CONST) {
                     if (instr.op1[0] == '\"') {
-                        std::string label = "etl_" + curFunction + "_str_" + instr.dest + "_" + std::to_string(string_const_values++);
+                        std::string label =  instr.dest;
                         stringLiterals[curFunction][instr.op1] = label;
                         variableInfo[curFunction][instr.dest] = VariableInfo(VariableType::STRING_CONST, false, label, instr.op1);
                     } else {
-                        std::string label = "etl_" + curFunction + "_num_" + instr.dest + "_" + std::to_string(numeric_const_values);
+                        std::string label = instr.dest;
                         if(numericConstants[curFunction].find(instr.op1) == numericConstants[curFunction].end()) {
                             numericConstants[curFunction][instr.op1] = label;
                             variableInfo[curFunction][instr.dest] = VariableInfo(VariableType::NUMERIC_CONST, false, label, instr.op1);
@@ -211,61 +211,145 @@ namespace codegen {
         }
         
         void emitLoadConst(std::ostringstream &output, const ir::IRInstruction &instr) {
-            auto varType = variableInfo[curFunction][instr.dest].type;
-            if (varType == VariableType::STRING_CONST) {
+            if (instr.op1[0] == '\"') {
                 std::string label = stringLiterals[curFunction][instr.op1];
                 output << "    leaq " << label << "(%rip), %rax\n";
-            } else if (varType == VariableType::NUMERIC_CONST) {
+            } else {
                 std::string label = numericConstants[curFunction][instr.op1];
-                output << "    movq " << label << "(%rip), %rax\n";
+                output << "    movq " << "$" << instr.op1 << ", %rax\n";
             } 
             storeToTemp(output, instr.dest, "%rax");
         }
         
         void emitConcat(std::ostringstream &output, const ir::IRInstruction &instr) {
+
+            output << "    xorq %rcx, %rcx\n";
+
+            if (variableInfo[curFunction][instr.op1].type == VariableType::STRING_CONST) {
+                if(!variableInfo[curFunction][instr.op1].text.empty()  && variableInfo[curFunction][instr.op1].text[0] == '\"') {
+                    auto len = variableInfo[curFunction][instr.op1].text.length()+1;
+                    output << "    addq $" << len << ", %rcx\n";
+                } else {
+                    loadToRegister(output, instr.op1, "%rdi");
+                    output << "     call strlen\n";
+                    output << "     addq  %rax, %rcx\n";
+                }
+            } else if(variableInfo[curFunction][instr.op1].type == VariableType::NUMERIC_CONST) {
+                loadToRegister(output, instr.op1 , "%rdi");
+                output << "    leaq tempBufferLHS(%rip), %rsi\n"; 
+                output << "    pushq %rcx\n";
+                output << "    call intToString\n"; 
+                output << "    popq %rcx\n";
+                output << "    addq %rax, %rcx\n"; 
+                output << "    movq %rsi, " << getOperand(instr.op1) << "\n";
+            } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR_STRING) {
+                loadToRegister(output, instr.op1, "%rdi");
+                output << "    call strlen\n";
+                output <<"     addq %rax, %rcx\n";
+            } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR) {
+                loadToRegister(output, instr.op1 , "%rdi");
+                output << "    leaq tempBufferRHS(%rip), %rsi\n";
+                output << "    pushq %rcx\n"; 
+                output << "    call intToString\n"; 
+                output << "    popq %rcx\n";
+                output << "    addq %rax, %rcx\n";
+            }
+
+            if (variableInfo[curFunction][instr.op2].type == VariableType::STRING_CONST) {
+                if(!variableInfo[curFunction][instr.op2].text.empty()  && variableInfo[curFunction][instr.op2].text[0] == '\"') {
+                    auto len = variableInfo[curFunction][instr.op1].text.length()+1;
+                    output << "    addq $" << len << ", %rcx\n";
+                } else {
+                    loadToRegister(output, instr.op2, "%rdi");
+                    output << "    call strlen\n";
+                    output << "    addq %rax, %rcx\n";
+                }
+            } else if(variableInfo[curFunction][instr.op2].type == VariableType::NUMERIC_CONST) {
+                loadToRegister(output, instr.op2 , "%rdi");
+                output << "    leaq tempBufferRHS(%rip), %rsi\n";
+                output << "    pushq %rcx\n"; 
+                output << "    call intToString\n"; 
+                output << "    popq %rcx\n";
+                output << "    addq %rax, %rcx\n"; 
+                
+            } else if (variableInfo[curFunction][instr.op2].type == VariableType::VAR_STRING) {
+                loadToRegister(output, instr.op2, "%rdi");
+                output << "    call strlen\n";
+                output << "    addq %rax, %rcx\n";
+            } else if(variableInfo[curFunction][instr.op2].type == VariableType::VAR) {
+                loadToRegister(output, instr.op2 , "%rdi");
+                output << "    leaq tempBufferRHS(%rip), %rsi\n";
+                output << "    pushq %rcx\n"; 
+                output << "    call intToString\n"; 
+                output << "    popq %rcx\n";
+                output << "    addq %rax, %rcx\n"; 
+            }
+            output << "    addq $1, %rcx\n";
+            output << "    movq %rcx, %rdi\n";
+            output << "    xorq %rax, %rax\n";
+            output << "    call malloc\n";
+            storeToTemp(output, instr.dest, "%rax");
+            output << "    movq %rax, %rdi\n";
+            if(variableInfo[curFunction][instr.op1].type == VariableType::NUMERIC_CONST || variableInfo[curFunction][instr.op1].type == VariableType::VAR) {
+                output << "    leaq tempBufferLHS(%rip), %rsi\n"; 
+            } else  {
+                 loadToRegister(output,instr.op1,"%rsi");
+            }
+            output << "    call strcpy\n";
+            if(variableInfo[curFunction][instr.op2].type == VariableType::NUMERIC_CONST || variableInfo[curFunction][instr.op2].type == VariableType::VAR) {
+                output << "    leaq tempBufferRHS(%rip), %rsi\n";
+            } else {
+                loadToRegister(output,instr.op2,"%rsi");
+            }
+            output << "    call strcat\n";
+            allocatedMemory[curFunction].insert(instr.dest);  
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
+
+
+/*
+            output << "     xorq %rcx, %rcx\n";
+
             if (variableInfo[curFunction][instr.op1].type == VariableType::NUMERIC_CONST) {
                 loadToRegister(output, instr.op1 , "%rdi");
                 output << "    leaq tempBufferLHS(%rip), %rsi\n"; 
                 output << "    call intToString\n"; 
-                output << "    movq %rax, %rcx\n"; 
+                output << "    addq %rax, %rcx\n"; 
+                storeToTemp(output, instr.op1, "%rsi");
+                variableInfo[curFunction][instr.op1].type = VariableType::VAR;
             } else if (variableInfo[curFunction][instr.op1].type == VariableType::STRING_CONST) {
                 loadToRegister(output, instr.op1, "%rsi");
                 output << "    movq %rsi, %rdi\n";  
                 output << "    call strlen\n";
-                output << "    movq %rax, %rcx\n";  
+                output << "    addq %rax, %rcx\n";  
             } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR_STRING) {
-                loadToRegister(output, instr.op1, "%rsi");
-                output << "    movq %rsi, %rdi\n";  
+                loadToRegister(output, instr.op1, "%rdi");
                 output << "    call strlen\n";
-                output << "    movq %rax, %rcx\n";  
+                output << "    addq %rax, %rcx\n"; 
             } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR) {
-                output << "    movq " << getOperand(instr.op1)<< ", %rdi\n";
+                loadToRegister(output, instr.op1, "%rdi");
                 output << "    leaq tempBufferLHS(%rip), %rsi\n";   
                 output << "    call intToString\n";
-                output << "    movq %rax, %rcx\n";
+                output << "    addq %rax, %rcx\n";
+                storeToTemp(output, instr.op1, "%rsi");
             }
             if (variableInfo[curFunction][instr.op2].type == VariableType::NUMERIC_CONST) {
-                output << "    movq " << getOperand(instr.op2)<< ", %rdi\n";
+                loadToRegister(output, instr.op2, "%rdi");
                 output << "    leaq tempBufferRHS(%rip), %rsi\n";   
                 output << "    pushq %rcx\n";     
                 output << "    call intToString\n";
                 output << "    popq %rcx\n";                      
-                output << "    addq %rax, %rcx\n";  
+                output << "    addq %rax, %rcx\n";
+                storeToTemp(output, instr.op2, "%rsi");
             } else if (variableInfo[curFunction][instr.op2].type == VariableType::STRING_CONST) {
                 loadToRegister(output, instr.op2, "%rdx");
                 output << "    movq %rdx, %rdi\n";  
-                output << "    pushq %rcx\n";
                 output << "    call strlen\n";
-                output << "    popq %rcx\n";
-                output << "    addq %rax, %rcx\n";  
-            } else if(variableInfo[curFunction][instr.op2].type == VariableType::VAR_STRING) {
-                loadToRegister(output, instr.op2, "%rdx");
-                output << "    movq %rdx, %rdi\n";  
-                output << "    pushq %rcx\n";
-                output << "    call strlen\n";
-                output << "    popq %rcx\n";
                 output << "    addq %rax, %rcx\n"; 
-                std::cout << "HERE\n";
+            } else if(variableInfo[curFunction][instr.op2].type == VariableType::VAR_STRING) {
+                loadToRegister(output, instr.op2, "%rdi");
+                output << "    call strlen\n";
+                output << "    addq %rax, %rcx\n"; 
+                
             } else if(variableInfo[curFunction][instr.op2].type == VariableType::VAR) {
                 output << "    movq " << getOperand(instr.op2)<< ", %rdi\n";
                 output << "    leaq tempBufferRHS(%rip), %rsi\n";   
@@ -273,30 +357,23 @@ namespace codegen {
                 output << "    call intToString\n";
                 output << "    popq %rcx\n";                      
                 output << "    addq %rax, %rcx\n";
-            }
-        
+            } 
             output << "    addq $1 , %rcx\n";    
             output << "    movq %rcx, %rdi\n";  
             output << "    xorq %rax, %rax\n";
             output << "    call malloc\n";
             storeToTemp(output, instr.dest, "%rax");  
-            output << "    movq " << getOperand(instr.dest) << ", %rdi\n"; 
-            if (variableInfo[curFunction][instr.op1].type == VariableType::NUMERIC_CONST ) {
-                output << "    leaq tempBufferLHS(%rip), %rsi\n";              
-            } else {
-                loadToRegister(output, instr.op1, "%rsi");
-            }
+            output << "    movq %rax, %rdi\n";;
+            loadToRegister(output, instr.op1, "%rsi");
             output << "    call strcpy\n";
-            output << "    movq " << getOperand(instr.dest) << ", %rdi\n"; 
-            if (variableInfo[curFunction][instr.op2].type == VariableType::NUMERIC_CONST || variableInfo[curFunction][instr.op2].type == VariableType::VAR ) {
-                output << "    leaq tempBufferRHS(%rip), %rsi\n";           
-            } else {
-                loadToRegister(output, instr.op2, "%rsi");
+            if(variableInfo[curFunction][instr.op2].type == VariableType::STRING_CONST) {
+                 std::cout << instr.op2 << "\n";
+                 loadToRegister(output, instr.op2, "%rsi");
+                 output << "    call strcat\n";
             }
-            output << "    call strcat\n";
-            output << "    movq " << getOperand(instr.dest) << ", %rax\n"; 
+            storeToTemp(output, instr.dest, "%rdi");
             allocatedMemory[curFunction].insert(instr.dest);  
-            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;*/
         }
 
         void emitBinaryOp(std::ostringstream &output, const ir::IRInstruction &instr, const std::string &op) {
@@ -308,13 +385,10 @@ namespace codegen {
 
         void emitDiv(std::ostringstream &output, const ir::IRInstruction &instr) {
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
-            variableInfo[curFunction][instr.op1].type = VariableType::VAR;
-            variableInfo[curFunction][instr.op2].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             output << "    cqto\n";
             output << "    idivq " << getOperand(instr.op2) << "\n";
             storeToTemp(output, instr.dest, "%rax");
-
         }
 
         void emitAssign(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -329,6 +403,7 @@ namespace codegen {
         void emitLoadVar(std::ostringstream &output, const ir::IRInstruction &instr) {
             loadToRegister(output, instr.op1, "%rax");
             storeToTemp(output, instr.dest, "%rax");
+            variableInfo[curFunction][instr.dest].type = variableInfo[curFunction][instr.op1].type;
         }
 
         void emitNeg(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -375,6 +450,7 @@ namespace codegen {
                 output << "    movq " << operand << ", " << reg << "\n";
             } else if(operand[0] == isalpha(operand[0]) || isdigit(operand[0])) {
                 output << "    leaq " << operand << "%(rip), " << reg << "\n";
+                
             } 
             else {
                 int offset = getVariableOffset(operand);

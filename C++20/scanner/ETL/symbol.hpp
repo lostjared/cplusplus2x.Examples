@@ -7,12 +7,21 @@
 
 namespace symbol {
 
-    struct Symbol {
+
+     struct Symbol {
         std::string name;
         std::string value;
         int ivalue;
         double dvalue;
         Symbol() : name{}, value{}, ivalue{}, dvalue{} {}
+        Symbol(const Symbol &s) : name{s.name}, value{s.value}, ivalue{s.ivalue}, dvalue{s.dvalue} {}
+        Symbol &operator=(const Symbol &s) {
+            name = s.name;
+            value = s.value;
+            ivalue = s.ivalue;
+            dvalue = s.dvalue;
+            return *this;
+        }
     };
 
     class SymbolTable {
@@ -37,10 +46,10 @@ namespace symbol {
             cur_scope = &symbols["global"];
         }
 
-        std::optional<Symbol> lookup(const std::string &sym) {
+        std::optional<Symbol*> lookup(const std::string &sym) {
             auto it = cur_scope->find(sym);
             if (it != cur_scope->end())
-                return it->second;
+                return &it->second;
             return std::nullopt;
         }
         
@@ -55,6 +64,14 @@ namespace symbol {
         // New method to check if a symbol is in memory
         bool isInMemory(const std::string &sym) const {
             return cur_scope->find(sym) != cur_scope->end();
+        }
+
+        void print() {
+            for(auto &i : symbols) {
+                for(auto &z : i.second) {
+                    std::cout << z.second.name << " : " << z.second.value << "\n";
+                }
+            }
         }
 
     private:
