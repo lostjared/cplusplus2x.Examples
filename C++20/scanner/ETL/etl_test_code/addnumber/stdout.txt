@@ -1,0 +1,32 @@
+ETL: Scanned 70 tokens.
+ETL: parsing ...  [complete]
+ETL: IR code: {
+	LABEL add_numbers
+	LOAD_CONST t0 "Enter firsT number: "
+	CALL t1 puts t0
+	CALL t2 scan_integer
+	ASSIGN x t2
+	LOAD_CONST t3 "Enter second number: "
+	CALL t4 puts t3
+	CALL t5 scan_integer
+	ASSIGN y t5
+	CALL t6 str x
+	LOAD_CONST t7 "+"
+	CONCAT t8 t6 t7
+	CALL t9 str y
+	CONCAT t10 t8 t9
+	LOAD_CONST t11 "="
+	CONCAT t12 t10 t11
+	ADD t13 x y
+	CALL t14 str t13
+	CONCAT t15 t12 t14
+	CALL t16 puts t15
+	LOAD_CONST t17 0
+	RETURN t17
+	LABEL init
+	CALL t18 add_numbers
+	LOAD_CONST t19 0
+	RETURN t19
+}
+ETL: compiled [asm.s]
+executable: [program]

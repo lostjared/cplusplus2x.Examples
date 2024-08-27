@@ -1,6 +1,9 @@
 .section .data
-str0: .asciz "Hello, World!"
-num0: .quad 0
+t2: .quad 0
+t0: .asciz "Hello, World!"
+.section .bss
+    .lcomm tempBufferLHS, 24
+    .lcomm tempBufferRHS, 24
 .section .text
 .globl main
 main:
@@ -16,13 +19,13 @@ init:
     pushq %rbp
     movq %rsp, %rbp
     subq $32, %rsp
-    leaq str0(%rip), %rax
+    leaq t0(%rip), %rax
     movq %rax, -8(%rbp)
     movq -8(%rbp), %rdi
     movq $0, %rax
     call puts
     movq %rax, -16(%rbp)
-    movq num0(%rip), %rax
+    movq $0, %rax
     movq %rax, -24(%rbp)
     leave
     ret
