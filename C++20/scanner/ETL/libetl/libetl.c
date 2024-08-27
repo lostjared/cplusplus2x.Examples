@@ -8,6 +8,8 @@ unsigned int intToString(unsigned long value, char *buffer) {
     unsigned int i = 0;
     if (value == 0) {
         buffer[i++] = '0';
+        buffer[i] = 0;
+        return 1;
     } else {
         while (value > 0) {
             int remainder = value % 10;
@@ -25,6 +27,26 @@ unsigned int intToString(unsigned long value, char *buffer) {
     return i;
 }
 
+char *str(long value) {
+    char *buf = malloc(24);
+    intToString(value, buf);
+    return buf;
+}
+
 void print_number(unsigned long value) {
     printf("value is: %d\n", value);
 }
+void print_ptr(void *value) {
+    printf("ptr is: %p\n", value);
+    unsigned long value1 = *(unsigned long *)value;
+    printf("%d\n", value1);
+}
+
+void output(const char *src) {
+    printf("%s\n", src);
+}
+void output_int(long value) {
+    printf("%d\n", value);
+}
+
+long test1() { return 1; }
