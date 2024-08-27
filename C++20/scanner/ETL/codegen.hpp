@@ -374,63 +374,63 @@ namespace codegen {
         void emitCall(std::ostringstream &output, const ir::IRInstruction &instr) {
             static const std::vector<std::string> argumentRegisters = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
             size_t numArgs = instr.args.size();
+            
             for (size_t i = 0; i < numArgs && i < argumentRegisters.size(); ++i) {
                 loadToRegister(output, instr.args[i], argumentRegisters[i]);
             }
+            
             output << "    movq $0, %rax\n"; 
             output << "    call " << instr.functionName << "\n";
             storeToTemp(output, instr.dest, "%rax");
-           auto fn = clib::clibrary.find(instr.functionName);
-           if(fn != clib::clibrary.end()) {
-                switch(fn->second.return_type) {
+            
+            auto fn = clib::clibrary.find(instr.functionName);
+            
+            if (fn != clib::clibrary.end()) {
+                switch (fn->second.return_type) {
                     case clib::VarType::POINTER:
-                    variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
-                    break;
+                        variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
+                        break;
                     case clib::VarType::INTEGER:
-                    variableInfo[curFunction][instr.dest].type = VariableType::VAR;
-                    break;
+                        variableInfo[curFunction][instr.dest].type = VariableType::VAR;
+                        break;
                     default:
-                    std::cerr << "ETL: Not supported yet.\n";
-                    exit(EXIT_FAILURE);
-                    break;
+                        std::cerr << "ETL: Return type not supported yet.\n";
+                        exit(EXIT_FAILURE);
+                        break;
                 }
 
-                if(instr.args.size() != fn->second.args.size()  && instr.functionName != "printf") {
-                    std::cerr << "ETL: Fatal, incorrec number of argumeents for: " << instr.functionName << "\n";
+                if (instr.args.size() != fn->second.args.size() && instr.functionName != "printf") {
+                    std::cerr << "ETL: Fatal, incorrect number of arguments for: " << instr.functionName << "\n";
                     exit(EXIT_FAILURE);
                 }
 
-                if(instr.functionName != "printf") {
-                    for(size_t i = 0; i < fn->second.args.size(); ++i) {
-                        auto val_type = variableInfo[curFunction][instr.args.at(i)].type;
-                        switch(val_type) {
-                            case VariableType::VAR:
-                            case VariableType::NUMERIC_CONST:
-                            if(fn->second.args.at(i) != clib::VarType::INTEGER) {
-                                std::cerr << "ETL: Fatal Error argument typpe mismatch. Unexpected Type in function: " << instr.functionName << "\n";
-                                exit(EXIT_FAILURE);
-                            }
-                            break;
-                            case VariableType::VAR_STRING:
-                            case VariableType::STRING_CONST:
-                            if(fn->second.args.at(i) != clib::VarType::POINTER) {
-                                std::cerr << "ETL: Fatal Error argument type mismatch. Found: " << instr.args.at(i) << " Unexpected Type in function: " << instr.functionName << "\n";
-                                exit(EXIT_FAILURE);
+                if (instr.functionName != "printf") {
+                    for (size_t i = 0; i < fn->second.args.size(); ++i) {
+                        auto actualType = variableInfo[curFunction][instr.args.at(i)].type;
+                        auto expectedType = fn->second.args[i];
 
-                            }
-                            break;
+                        clib::VarType actualVarType;
+                        switch (actualType) {
+                            case VariableType::VAR_STRING: actualVarType = clib::VarType::POINTER; break;
+                            case VariableType::VAR:        actualVarType = clib::VarType::INTEGER; break;
+                            case VariableType::STRING_CONST: actualVarType = clib::VarType::POINTER; break;
+                            case VariableType::NUMERIC_CONST: actualVarType = clib::VarType::INTEGER; break;
+                            default:
+                                std::cerr << "ETL: Unsupported variable type for: " << instr.args.at(i) << " argument.\n";
+                                exit(EXIT_FAILURE);
+                        }
+
+                        if (actualVarType != expectedType) {
+                            std::cerr << "ETL: Type mismatch for argument " << i << " in function " << instr.functionName << "\n";
+                            exit(EXIT_FAILURE);
                         }
                     }
                 }
 
-                if(fn->second.allocaated) {
+                if (fn->second.allocated) {
                     allocatedMemory[curFunction].insert(instr.dest);
                 }
-
-           }
-
-
-            variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
+            }
         }
 
         void emitLabel(std::ostringstream &output, const ir::IRInstruction &instr) {

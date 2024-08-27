@@ -19,7 +19,7 @@ namespace clib {
         std::string name;
         VarType return_type;
         std::vector<VarType> args;
-        bool allocaated;
+        bool allocated;
     }; 
  
     inline std::unordered_map<std::string, FunctionDef> clibrary = {
@@ -33,8 +33,7 @@ namespace clib {
 
         // libetl
         { "str", { "str", VarType::POINTER, { VarType::INTEGER }, true } },
-
-
+        { "scan_integer", { "scan_integer", VarType::INTEGER, {}, false } },
     };              
 }
 
