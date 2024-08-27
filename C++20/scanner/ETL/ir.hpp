@@ -179,10 +179,9 @@ namespace parse {
             }
         }
 
-        void generateBinaryOp(const ast::BinaryOp *binOp, ir::IRCode &code) {
+      void generateBinaryOp(const ast::BinaryOp *binOp, ir::IRCode &code) {
             generate(binOp->left.get(), code);
             std::string leftResult = lastComputedValue["result"];
-
             generate(binOp->right.get(), code);
             std::string rightResult = lastComputedValue["result"];
 
@@ -190,51 +189,44 @@ namespace parse {
 
             const ast::Literal *leftLiteral = dynamic_cast<const ast::Literal *>(binOp->left.get());
             const ast::Literal *rightLiteral = dynamic_cast<const ast::Literal *>(binOp->right.get());
-            bool isStringOperation = (leftLiteral && leftLiteral->type == types::TokenType::TT_STR) ||
-                                     (rightLiteral && rightLiteral->type == types::TokenType::TT_STR);
             
-            table.enter(dest);
-            auto d = table.lookup(dest);
-
-            if(d.has_value()) {
-                symbol::Symbol *s = d.value();
-                s->name = dest;
-            }
-            bool values[2] = {false};
-            auto i = table.lookup(leftResult);
-            if(i.has_value()) {
-                symbol::Symbol *s = i.value();
-                if(!s->value.empty() && s->value[0] == '\"') {
-                    isStringOperation = true;
-                    values[0] = true;
-                } else {
-                    values[0] = false;
+            bool leftIsString = (leftLiteral && leftLiteral->type == types::TokenType::TT_STR);
+            bool rightIsString = (rightLiteral && rightLiteral->type == types::TokenType::TT_STR);
+            
+            if (!leftIsString) {
+                auto leftSymbol = table.lookup(leftResult);
+                if (leftSymbol.has_value()) {
+                    leftIsString = leftSymbol.value()->value[0] == '\"';
                 }
             }
-            if(isStringOperation == false) {
-                auto e = table.lookup(rightResult);
-                if(e.has_value()) {
-                    symbol::Symbol *s = e.value();
-                    if(!s->value.empty() && s->value[0] == '\"') {
-                        values[1] = true;
-                        isStringOperation = true;
-                    } else {
-                        values[1] = false;
-                    }
+            if (!rightIsString) {
+                auto rightSymbol = table.lookup(rightResult);
+                if (rightSymbol.has_value()) {
+                    rightIsString = rightSymbol.value()->value[0] == '\"';
                 }
             }
 
-            if((values[0] == true && values[1] == false) || (values[0] == false && values[1] == true)) {
+            if ((leftIsString && !rightIsString) || (!leftIsString && rightIsString)) {
                 std::ostringstream stream;
-                stream << leftResult << " + " << rightResult << " operator requires string type use str()";
-                std::cout << stream.str() << "\n";
-                //throw ir::IRException(stream.str());
+                stream << "Error: Operator + requires both operands to be of string type or both to be of number type. "
+                    << "Found: " << (leftIsString ? "string" : "number") << " + " 
+                    << (rightIsString ? "string" : "number") << ". Use str() to convert.";
+                std::cout << leftResult << " !\n";
+                throw ir::IRException(stream.str());
             }
+
+            bool isStringOperation = leftIsString && rightIsString;
 
             switch (binOp->op) {
                 case types::OperatorType::OP_PLUS:
                     if (isStringOperation) {
                         code.emplace_back(ir::InstructionType::CONCAT, dest, leftResult, rightResult);
+                        table.enter(dest);
+                        auto it = table.lookup(dest);
+                        if(it.has_value()) {
+                            it.value()->name = dest;
+                            it.value()->value = "\"";
+                        }
                     } else {
                         code.emplace_back(ir::InstructionType::ADD, dest, leftResult, rightResult);
                     }
