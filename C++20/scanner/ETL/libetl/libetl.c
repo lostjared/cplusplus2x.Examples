@@ -5,7 +5,7 @@
 #include <string.h>
 
 long intToString(long value, char *buffer) {
-    sprintf(buffer, "%d", value); 
+    sprintf(buffer, "%ld", value); 
     return strlen(buffer);
 }
 
@@ -16,7 +16,7 @@ char *str(long value) {
 }
 
 void print_number(unsigned long value) {
-    printf("value is: %d\n", value);
+    printf("value is: %ld\n", value);
 }
 void print_ptr(void *value) {
     printf("ptr is: %p\n", value);
@@ -28,13 +28,13 @@ void output(const char *src) {
     printf("%s\n", src);
 }
 void output_int(long value) {
-    printf("%d\n", value);
+    printf("%ld\n", value);
 }
 
 long test1() { return 1; }
 
 long scan_integer() {
     long value = 0;
-    scanf("%d", &value);
+    scanf("%ld", &value);
     return value;
 }
