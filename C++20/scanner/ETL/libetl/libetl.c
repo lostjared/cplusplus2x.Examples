@@ -4,27 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-unsigned int intToString(unsigned long value, char *buffer) {
-    unsigned int i = 0;
-    if (value == 0) {
-        buffer[i++] = '0';
-        buffer[i] = 0;
-        return 1;
-    } else {
-        while (value > 0) {
-            int remainder = value % 10;
-            buffer[i++] = '0' + remainder;
-            value /= 10;
-        }
-    }
-    buffer[i] = '\0';
-    int len = strlen(buffer);
-    for (int j = 0; j < len / 2; ++j) {
-        char temp = buffer[j];
-        buffer[j] = buffer[len - j - 1];
-        buffer[len - j - 1] = temp;
-    }   
-    return i;
+long intToString(long value, char *buffer) {
+    sprintf(buffer, "%d", value); 
+    return strlen(buffer);
 }
 
 char *str(long value) {
