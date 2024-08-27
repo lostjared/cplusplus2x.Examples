@@ -208,6 +208,10 @@ namespace parse {
             auto expr = parseExpression();  
             match(types::OperatorType::OP_RPAREN);  
             return expr;
+        }  else if (test(types::OperatorType::OP_TILDE)) {
+            inc();
+            auto expr = parsePrimary(); 
+            return std::make_unique<ast::UnaryOp>(types::OperatorType::OP_TILDE, std::move(expr));
         }
         std::ostringstream stream;
         auto pos = scan->operator[](token_index).get_pos();

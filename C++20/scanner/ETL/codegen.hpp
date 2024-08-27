@@ -221,6 +221,9 @@ namespace codegen {
                     case ir::InstructionType::NEG:
                         emitNeg(output, instr);
                         break;
+                    case ir::InstructionType::NOT:
+                        emitNot(output, instr);
+                        break;
                     case ir::InstructionType::CALL:
                         emitCall(output, instr);
                         break;
@@ -368,6 +371,12 @@ namespace codegen {
         void emitNeg(std::ostringstream &output, const ir::IRInstruction &instr) {
             loadToRegister(output, instr.op1, "%rax");
             output << "    negq %rax\n";
+            storeToTemp(output, instr.dest, "%rax");
+        }
+
+        void emitNot(std::ostringstream &output, const ir::IRInstruction &instr) {
+            loadToRegister(output, instr.op1, "%rax");
+            output << "    notq %rax\n";
             storeToTemp(output, instr.dest, "%rax");
         }
 

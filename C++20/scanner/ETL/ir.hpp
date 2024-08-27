@@ -24,6 +24,7 @@ namespace ir {
         LOAD_CONST,
         LOAD_VAR,
         LABEL,
+        NOT,
         NEG,
         CALL,
         RETURN,
@@ -39,6 +40,7 @@ namespace ir {
         "LOAD_CONST",
         "LOAD_VAR",
         "LABEL",
+        "NOT",
         "NEG",
         "CALL",
         "RETURN",
@@ -252,7 +254,11 @@ namespace parse {
             std::string result = lastComputedValue["result"];
 
             std::string dest = getNextTempVar();
-            code.emplace_back(ir::InstructionType::NEG, dest, result);
+            if(unaryOp->op == types::OperatorType::OP_TILDE)
+                code.emplace_back(ir::InstructionType::NOT, dest, result);
+            else
+                code.emplace_back(ir::InstructionType::NEG, dest, result);
+               
             lastComputedValue["result"] = dest;
         }
 

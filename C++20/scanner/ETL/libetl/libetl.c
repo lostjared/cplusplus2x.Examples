@@ -34,7 +34,8 @@ void output_int(long value) {
 long test1() { return 1; }
 
 long scan_integer() {
+    char buffer[25];
     long value = 0;
-    scanf("%ld", &value);
-    return value;
+    scanf("%s", buffer);
+    return atol(buffer);
 }
