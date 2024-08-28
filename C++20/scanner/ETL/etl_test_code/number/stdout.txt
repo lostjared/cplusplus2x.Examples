@@ -7,22 +7,21 @@ ETL: IR code: {
 	LOAD_CONST z 50
 	LOAD_VAR t0 x
 	LOAD_VAR t1 y
-	MUL t2 t0 t1
+	ADD t2 t0 t1
 	LOAD_VAR t3 z
-	DIV t4 t2 t3
+	ADD t4 t2 t3
 	LOAD_CONST t5 2
 	LOAD_CONST t6 4
 	ADD t7 t5 t6
 	ADD t8 t4 t7
 	ASSIGN value t8
-	LOAD_CONST t9 "The Value is: %d\n"
+	LOAD_CONST t9 "The value is: %d\n"
 	CALL t10 printf t9 value
-	LOAD_CONST t11 0
-	RETURN t11
+	RETURN value
 	LABEL init
-	CALL t12 print_numbers
-	LOAD_CONST t13 0
-	RETURN t13
+	CALL t11 print_numbers
+	LOAD_CONST t12 0
+	RETURN t12
 }
 ETL: compiled [asm.s]
 executable: [program]

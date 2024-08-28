@@ -4,8 +4,8 @@ proc print_numbers() {
     let y = 100;
     let z = 50;
     let value = x*y/z+(2+4);
-    printf("The Value is: %d\n", value);
-    return 0;
+    printf("The value is: %d\n", value);
+    return value;
 }
 
 

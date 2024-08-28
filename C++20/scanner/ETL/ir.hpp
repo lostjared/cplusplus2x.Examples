@@ -106,7 +106,6 @@ namespace parse {
             generate(ast.get(), context.instructions);
             context.table = table;
             context.functionLocalVarCount = functionLocalVarCount;
-            table.print();
             return context;
         }
 
@@ -253,7 +252,7 @@ namespace parse {
                     if(it.has_value()) {
                         symbol::Symbol *s = it.value();
                         s->name = dest;
-                        s->vtype = ast::VarType::STRING;
+                        s->vtype = ast::VarType::NUMBER;
                     }
                     code.emplace_back(ir::InstructionType::ADD, dest, leftResult, rightResult);
 
