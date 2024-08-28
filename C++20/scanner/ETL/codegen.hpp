@@ -442,6 +442,7 @@ namespace codegen {
         }
 
         void emitLabel(std::ostringstream &output, const ir::IRInstruction &instr) {
+            output << ".globl " << instr.dest << "\n";
             output << instr.dest << ":\n";
             curFunction = instr.dest;
             local.enterScope(curFunction);
