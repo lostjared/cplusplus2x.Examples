@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <optional>
 #include <string>
-
+#include"ast.hpp"
 namespace symbol {
 
 
@@ -13,8 +13,9 @@ namespace symbol {
         std::string value;
         int ivalue;
         double dvalue;
-        Symbol() : name{}, value{}, ivalue{}, dvalue{} {}
-        Symbol(const Symbol &s) : name{s.name}, value{s.value}, ivalue{s.ivalue}, dvalue{s.dvalue} {}
+        ast::VarType vtype;
+        Symbol() : name{}, value{}, ivalue{}, dvalue{}, vtype{} {}
+        Symbol(const Symbol &s) : name{s.name}, value{s.value}, ivalue{s.ivalue}, dvalue{s.dvalue}, vtype{s.vtype} {}
         Symbol &operator=(const Symbol &s) {
             name = s.name;
             value = s.value;
@@ -69,7 +70,7 @@ namespace symbol {
         void print() {
             for(auto &i : symbols) {
                 for(auto &z : i.second) {
-                    std::cout << z.second.name << " : " << z.second.value << "\n";
+                    std::cout << z.second.name << " : " << z.second.value << " -> " << static_cast<int>(z.second.vtype) << "\n";
                 }
             }
         }

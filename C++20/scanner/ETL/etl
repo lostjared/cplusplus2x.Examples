@@ -1,4 +1,3 @@
 #!/bin/bash
 
-ETL_C -i $1 -o asm.s && as asm.s -o asm.o && gcc -O3 -fPIE -pie asm.o -o $2 -letl && echo "executable: [$2]"
-
+gcc -x c -E $1 -o inc.i -c && ETL_C -i inc.i -o asm.s && as asm.s -o asm.o && gcc -O3 -fPIE -pie asm.o -o $2 -letl && echo "executable: [$2]"

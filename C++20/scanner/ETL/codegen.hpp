@@ -24,15 +24,6 @@ namespace codegen {
         DOUBLE,
     };
 
-    inline std::unordered_map<std::string, ReturnType> funcReturn = {
-        {"malloc", ReturnType::POINTER},
-        {"free", ReturnType::VOID},
-        {"strlen", ReturnType::INTEGER},
-        {"printf", ReturnType::INTEGER}, 
-        {"atoi", ReturnType::INTEGER},
-        {"str", ReturnType::POINTER},
-    };
-
     enum class VariableType {
         STRING_CONST,
         NUMERIC_CONST,
@@ -146,11 +137,8 @@ namespace codegen {
                     } else if(v.second.type == VariableType::STRING_CONST) {
                         output << v.second.vname << ": .asciz " << ir::escapeString(v.second.text) << "\n";
                     }
-            }
                 }
-            output << ".section .bss\n";
-            output << "    .lcomm tempBufferLHS, 24\n";  // Temporary buffer for LHS conversion
-            output << "    .lcomm tempBufferRHS, 24\n";  // Temporary buffer for RHS conversion
+            }
         }
 
         void emitPreamble(std::ostringstream &output) {
@@ -269,26 +257,11 @@ namespace codegen {
                     output << "     call strlen\n";
                     output << "     addq  %rax, %rcx\n";
                 }
-            } else if(variableInfo[curFunction][instr.op1].type == VariableType::NUMERIC_CONST) {
-                loadToRegister(output, instr.op1 , "%rdi");
-                output << "    leaq tempBufferLHS(%rip), %rsi\n"; 
-                output << "    pushq %rcx\n";
-                output << "    call intToString\n"; 
-                output << "    popq %rcx\n";
-                output << "    addq %rax, %rcx\n"; 
-                output << "    movq %rsi, " << getOperand(instr.op1) << "\n";
             } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR_STRING) {
                 loadToRegister(output, instr.op1, "%rdi");
                 output << "    call strlen\n";
                 output << "    addq %rax, %rcx\n";
-            } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR) {
-                loadToRegister(output, instr.op1 , "%rdi");
-                output << "    leaq tempBufferRHS(%rip), %rsi\n";
-                output << "    pushq %rcx\n"; 
-                output << "    call intToString\n"; 
-                output << "    popq %rcx\n";
-                output << "    addq %rax, %rcx\n";
-            }
+            } 
 
             if (variableInfo[curFunction][instr.op2].type == VariableType::STRING_CONST) {
                 if(!variableInfo[curFunction][instr.op2].text.empty()  && variableInfo[curFunction][instr.op2].text[0] == '\"') {
@@ -299,46 +272,24 @@ namespace codegen {
                     output << "    call strlen\n";
                     output << "    addq %rax, %rcx\n";
                 }
-            } else if(variableInfo[curFunction][instr.op2].type == VariableType::NUMERIC_CONST) {
-                loadToRegister(output, instr.op2 , "%rdi");
-                output << "    leaq tempBufferRHS(%rip), %rsi\n";
-                output << "    pushq %rcx\n"; 
-                output << "    call intToString\n"; 
-                output << "    popq %rcx\n";
-                output << "    addq %rax, %rcx\n"; 
-                
             } else if (variableInfo[curFunction][instr.op2].type == VariableType::VAR_STRING) {
                 loadToRegister(output, instr.op2, "%rdi");
                 output << "    call strlen\n";
                 output << "    addq %rax, %rcx\n";
-            } else if(variableInfo[curFunction][instr.op2].type == VariableType::VAR) {
-                loadToRegister(output, instr.op2 , "%rdi");
-                output << "    leaq tempBufferRHS(%rip), %rsi\n";
-                output << "    pushq %rcx\n"; 
-                output << "    call intToString\n"; 
-                output << "    popq %rcx\n";
-                output << "    addq %rax, %rcx\n"; 
-            }
+            } 
             output << "    addq $1, %rcx\n";
             output << "    movq %rcx, %rdi\n";
             output << "    xorq %rax, %rax\n";
             output << "    call malloc\n";
             storeToTemp(output, instr.dest, "%rax");
             output << "    movq %rax, %rdi\n";
-            if(variableInfo[curFunction][instr.op1].type == VariableType::NUMERIC_CONST || variableInfo[curFunction][instr.op1].type == VariableType::VAR) {
-                output << "    leaq tempBufferLHS(%rip), %rsi\n"; 
-            } else  {
-                 loadToRegister(output,instr.op1,"%rsi");
-            }
+            loadToRegister(output,instr.op1,"%rsi");
             output << "    call strcpy\n";
-            if(variableInfo[curFunction][instr.op2].type == VariableType::NUMERIC_CONST || variableInfo[curFunction][instr.op2].type == VariableType::VAR) {
-                output << "    leaq tempBufferRHS(%rip), %rsi\n";
-            } else {
-                loadToRegister(output,instr.op2,"%rsi");
-            }
+            loadToRegister(output,instr.op2,"%rsi");
             output << "    call strcat\n";
             allocatedMemory[curFunction].insert(instr.dest);  
             variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
+       
         }
 
         void emitBinaryOp(std::ostringstream &output, const ir::IRInstruction &instr, const std::string &op) {
@@ -418,26 +369,53 @@ namespace codegen {
                         auto actualType = variableInfo[curFunction][instr.args.at(i)].type;
                         auto expectedType = fn->second.args[i];
 
+                        auto symbolOpt = table.lookup(instr.args.at(i));
                         clib::VarType actualVarType;
-                        switch (actualType) {
-                            case VariableType::VAR_STRING: actualVarType = clib::VarType::POINTER; break;
-                            case VariableType::VAR:        actualVarType = clib::VarType::INTEGER; break;
-                            case VariableType::STRING_CONST: actualVarType = clib::VarType::POINTER; break;
-                            case VariableType::NUMERIC_CONST: actualVarType = clib::VarType::INTEGER; break;
-                            default:
-                                std::cerr << "ETL: Unsupported variable type for: " << instr.args.at(i) << " argument.\n";
-                                exit(EXIT_FAILURE);
+
+                        if (symbolOpt.has_value()) {
+                            symbol::Symbol *symbol = symbolOpt.value();
+                            switch (symbol->vtype) {
+                                case ast::VarType::STRING:
+                                    actualVarType = clib::VarType::POINTER;
+                                    break;
+                                case ast::VarType::NUMBER:
+                                    actualVarType = clib::VarType::INTEGER;
+                                    break;
+                                default:
+                                    std::cerr << "ETL: Unsupported variable vtype for: " << instr.args.at(i) << " argument.\n";
+                                    exit(EXIT_FAILURE);
+                            }
+                        } else {
+                            switch (actualType) {
+                                case VariableType::VAR_STRING:
+                                    actualVarType = clib::VarType::POINTER;
+                                    break;
+                                case VariableType::VAR:
+                                    actualVarType = clib::VarType::INTEGER;
+                                    break;
+                                case VariableType::STRING_CONST:
+                                    actualVarType = clib::VarType::POINTER;
+                                    break;
+                                case VariableType::NUMERIC_CONST:
+                                    actualVarType = clib::VarType::INTEGER;
+                                    break;
+                                default:
+                                    std::cerr << "ETL: Unsupported variable type for: " << instr.args.at(i) << " argument.\n";
+                                    exit(EXIT_FAILURE);
+                            }
                         }
 
                         if (actualVarType != expectedType) {
-                            std::cerr << "ETL: Type mismatch for argument " << i << " in function " << instr.functionName << "\n";
+                            std::cerr << "ETL: Type mismatch for argument " << i << " " << instr.args.at(i) << " in function " << instr.functionName << "\n";
                             exit(EXIT_FAILURE);
                         }
                     }
                 }
 
                 if (fn->second.allocated) {
-                    allocatedMemory[curFunction].insert(instr.dest);
+                    if (allocatedMemory[curFunction].find(instr.dest) == allocatedMemory[curFunction].end()) {
+                        allocatedMemory[curFunction].insert(instr.dest);
+                    }
                 }
             }
         }
@@ -445,10 +423,11 @@ namespace codegen {
         void emitLabel(std::ostringstream &output, const ir::IRInstruction &instr) {
             output << instr.dest << ":\n";
             curFunction = instr.dest;
+            local.enterScope(curFunction);
             if (instr.dest != "main") {
                 emitFunctionPrologue(output, instr.dest);
             }
-            local.enterScope(curFunction);
+            
         }
 
         void emitReturn(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -459,8 +438,10 @@ namespace codegen {
             }
 
             for (const auto &var : allocatedMemory[curFunction]) {
-                output << "    movq " << getOperand(var) << ", %rdi\n";
-                output << "    call free\n";
+                if(variableInfo[curFunction][var].type == VariableType::VAR_STRING) {
+                    loadToRegister(output, var, "%rdi");
+                    output << "    call free\n";
+                }
             }
             emitFunctionEpilogue(output);
             local.exitScope();

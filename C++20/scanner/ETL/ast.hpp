@@ -34,10 +34,12 @@ namespace ast {
         }
     };
 
+    enum class VarType { NUMBER, STRING, POINTER };
+
     struct Identifier : Expression {
         std::string name;
-
-        Identifier(const std::string &n) : name(n) {}
+        VarType vtype;
+        Identifier(const std::string &n) : name(n), vtype{} {}
 
         std::string text() const override {
             return name;  
@@ -48,6 +50,7 @@ namespace ast {
         types::OperatorType op;
         std::unique_ptr<Expression> left;
         std::unique_ptr<Expression> right;
+
 
         BinaryOp(types::OperatorType o, std::unique_ptr<Expression> l, std::unique_ptr<Expression> r)
             : op(o), left(std::move(l)), right(std::move(r)) {}
@@ -72,9 +75,9 @@ namespace ast {
     struct Call : Statement, Expression {
         std::string functionName;
         std::vector<std::unique_ptr<Expression>> arguments;
-
+        VarType vtype;
         Call(const std::string &name, std::vector<std::unique_ptr<Expression>> args)
-            : functionName(name), arguments(std::move(args)) {}
+            : functionName(name), arguments(std::move(args)), vtype{} {}
 
         std::string text() const override {
             std::string result = functionName + "(";
@@ -92,8 +95,9 @@ namespace ast {
     struct Assignment : Statement {
         std::unique_ptr<Expression> left;
         std::unique_ptr<Expression> right;
+        VarType vtype;
 
-        Assignment(std::unique_ptr<Expression> l, std::unique_ptr<Expression> r)
+        Assignment(std::unique_ptr<Expression> l, std::unique_ptr<Expression> r, VarType vtype = VarType::NUMBER )
             : left(std::move(l)), right(std::move(r)) {}
 
         std::string text() const override {

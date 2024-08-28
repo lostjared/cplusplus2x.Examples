@@ -10,6 +10,7 @@
 #include <memory>
 #include <algorithm>
 #include "symbol.hpp"
+#include "ast.hpp"
 
 namespace ir {
 
@@ -105,6 +106,7 @@ namespace parse {
             generate(ast.get(), context.instructions);
             context.table = table;
             context.functionLocalVarCount = functionLocalVarCount;
+            table.print();
             return context;
         }
 
@@ -154,7 +156,12 @@ namespace parse {
                         symbol::Symbol *e = entry.value();
                         e->name = lhs->name;
                         e->value = rhsLiteral->value;      
+                        if(rhsLiteral->type == types::TokenType::TT_NUM)
+                            e->vtype = ast::VarType::NUMBER;
+                        else if(rhsLiteral->type == types::TokenType::TT_STR)
+                            e->vtype = ast::VarType::STRING;
                     }
+                    
                     code.emplace_back(ir::InstructionType::LOAD_CONST, lhs->name, rhsLiteral->value);
                 } else {
                     generate(assign->right.get(), code);
@@ -162,7 +169,18 @@ namespace parse {
                     if (lastComputedValue[rhs] == lhs->name) {
                         lastComputedValue[lhs->name] = rhs;
                     } else {
+                        table.enter(lhs->name);
+                        auto it = table.lookup(lhs->name);
+                        if(it.has_value()) {
+                            symbol::Symbol *s = it.value();
+                            table.enter(rhs);
+                            auto r = table.lookup(rhs);
+                            if(r.has_value()) {
+                                s->vtype = r.value()->vtype;
+                            }
+                        }
                         code.emplace_back(ir::InstructionType::ASSIGN, lhs->name, rhs);
+
                         lastComputedValue[lhs->name] = lhs->name;
                     }
                 }
@@ -181,7 +199,7 @@ namespace parse {
             }
         }
 
-      void generateBinaryOp(const ast::BinaryOp *binOp, ir::IRCode &code) {
+        void generateBinaryOp(const ast::BinaryOp *binOp, ir::IRCode &code) {
             generate(binOp->left.get(), code);
             std::string leftResult = lastComputedValue["result"];
             generate(binOp->right.get(), code);
@@ -189,66 +207,66 @@ namespace parse {
 
             std::string dest = getNextTempVar();
 
-            const ast::Literal *leftLiteral = dynamic_cast<const ast::Literal *>(binOp->left.get());
-            const ast::Literal *rightLiteral = dynamic_cast<const ast::Literal *>(binOp->right.get());
-            
-            bool leftIsString = (leftLiteral && leftLiteral->type == types::TokenType::TT_STR);
-            bool rightIsString = (rightLiteral && rightLiteral->type == types::TokenType::TT_STR);
-            
-            if (!leftIsString) {
-                auto leftSymbol = table.lookup(leftResult);
-                if (leftSymbol.has_value()) {
-                    leftIsString = leftSymbol.value()->value[0] == '\"';
-                }
+            bool leftIsString = false;
+            bool rightIsString = false;
+
+            if (auto identifier = dynamic_cast<ast::Identifier*>(binOp->left.get())) {
+                    leftIsString = identifier->vtype == ast::VarType::STRING;
             }
-            if (!rightIsString) {
-                auto rightSymbol = table.lookup(rightResult);
-                if (rightSymbol.has_value()) {
-                    rightIsString = rightSymbol.value()->value[0] == '\"';
+
+
+            if (auto identifier = dynamic_cast<ast::Identifier*>(binOp->right.get())) {
+                    rightIsString = identifier->vtype == ast::VarType::STRING;
+            }
+
+            if(!leftIsString) {
+                auto it = table.lookup(leftResult);
+                if(it.has_value()) {
+                    symbol::Symbol *s = it.value();
+                    if((!s->value.empty() && s->value[0] == '\"') || s->vtype == ast::VarType::STRING)
+                        leftIsString = true;
                 }
             }
 
-            if ((leftIsString && !rightIsString) || (!leftIsString && rightIsString)) {
+            
+            if(!rightIsString) {
+                auto it = table.lookup(rightResult);
+                if(it.has_value()) {
+                    symbol::Symbol *s = it.value();
+                    if((!s->value.empty() && s->value[0] == '\"') || s->vtype == ast::VarType::STRING)
+                        rightIsString = true;
+                }
+            }
+     
+            if (leftIsString && rightIsString) {
+                code.emplace_back(ir::InstructionType::CONCAT, dest, leftResult, rightResult);
+                table.enter(dest);
+                auto it = table.lookup(dest);
+                if (it.has_value()) {
+                    it.value()->name = dest;
+                    it.value()->value = '\"';
+                    it.value()->vtype = ast::VarType::STRING;
+                }
+            } else if (!leftIsString && !rightIsString) {
+                    table.enter(dest);
+                    auto it = table.lookup(dest);
+                    if(it.has_value()) {
+                        symbol::Symbol *s = it.value();
+                        s->name = dest;
+                        s->vtype = ast::VarType::STRING;
+                    }
+                    code.emplace_back(ir::InstructionType::ADD, dest, leftResult, rightResult);
+
+            } else {
                 std::ostringstream stream;
                 stream << "Error: Operator + requires both operands to be of string type or both to be of number type. "
                     << "Found: " << (leftIsString ? "string" : "number") << " + " 
                     << (rightIsString ? "string" : "number") << ". Use str() to convert.";
-                std::cout << leftResult << " !\n";
                 throw ir::IRException(stream.str());
-            }
-
-            bool isStringOperation = leftIsString && rightIsString;
-
-            switch (binOp->op) {
-                case types::OperatorType::OP_PLUS:
-                    if (isStringOperation) {
-                        code.emplace_back(ir::InstructionType::CONCAT, dest, leftResult, rightResult);
-                        table.enter(dest);
-                        auto it = table.lookup(dest);
-                        if(it.has_value()) {
-                            it.value()->name = dest;
-                            it.value()->value = "\"";
-                        }
-                    } else {
-                        code.emplace_back(ir::InstructionType::ADD, dest, leftResult, rightResult);
-                    }
-                    break;
-                case types::OperatorType::OP_MINUS:
-                    code.emplace_back(ir::InstructionType::SUB, dest, leftResult, rightResult);
-                    break;
-                case types::OperatorType::OP_MUL:
-                    code.emplace_back(ir::InstructionType::MUL, dest, leftResult, rightResult);
-                    break;
-                case types::OperatorType::OP_DIV:
-                    code.emplace_back(ir::InstructionType::DIV, dest, leftResult, rightResult);
-                    break;
-                default:
-                    throw ir::IRException("Error: Unsupported operator in binary operation");
             }
 
             lastComputedValue["result"] = dest;
         }
-
         void generateUnaryOp(const ast::UnaryOp *unaryOp, ir::IRCode &code) {
             generate(unaryOp->operand.get(), code);
             std::string result = lastComputedValue["result"];
@@ -281,6 +299,11 @@ namespace parse {
                 symbol::Symbol *v = value.value();
                 v->value = literal->value;
                 v->name = tempVar;
+                if(literal->value.empty() && literal->value[0] == '\"') {
+                    v->vtype = ast::VarType::STRING;
+                } else {
+                    v->vtype = ast::VarType::NUMBER;
+                }
             }
             lastComputedValue["result"] = tempVar;
         }
@@ -296,9 +319,11 @@ namespace parse {
                 if(v.has_value()) {
                     symbol::Symbol *vx = v.value();
                     vx->name = tempVar;
+                    vx->vtype = identifier->vtype;
                     auto cpx = table.lookup(identifier->name);
                     if(cpx.has_value()) {
                         vx->value = cpx.value()->value;
+                        vx->vtype = cpx.value()->vtype;
                     }
                 }
                 code.emplace_back(ir::InstructionType::LOAD_VAR, tempVar, identifier->name);
@@ -318,8 +343,9 @@ namespace parse {
             if(e.has_value()) {
                 symbol::Symbol *s = e.value();
                 s->name = callDest;
-                if(call->functionName == "str")
-                    s->value = "\"";
+                if(call->functionName == "str") {
+                    s->vtype = ast::VarType::STRING;
+                }
             }
             code.emplace_back(ir::InstructionType::CALL, callDest, call->functionName, argRegisters);
             lastComputedValue["result"] = callDest;

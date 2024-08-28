@@ -231,25 +231,55 @@ namespace parse {
         }
 
         match(types::OperatorType::OP_RPAREN);  // Consume ')'
-        return std::make_unique<ast::Call>(functionName, std::move(arguments));
+        auto callExpr = std::make_unique<ast::Call>(functionName, std::move(arguments));
+        if(functionName == "str") {
+            callExpr->vtype = ast::VarType::STRING;
+        } 
+        return callExpr;
     }
+        
 
     std::unique_ptr<ast::Assignment> Parser::parseAssignment() {
         if (test(types::TokenType::TT_ID)) {
-            auto lhs = parsePrimary(); 
+            auto lhs = parsePrimary();
+            
             if (test(types::OperatorType::OP_ASSIGN)) {
-                inc(); 
-                auto rhs = parseExpression(); 
-                match(types::OperatorType::OP_SEMICOLON); 
-                return std::make_unique<ast::Assignment>(std::move(lhs), std::move(rhs)); // Correctly return an Assignment node
+                inc();
+                auto rhs = parseExpression();
+
+                if (auto literal = dynamic_cast<ast::Literal*>(rhs.get())) {
+                    if (literal->type == types::TokenType::TT_STR) {
+                        if (auto identifier = dynamic_cast<ast::Identifier*>(lhs.get())) {
+                            std::cout << identifier->name << "!\n";
+                            identifier->vtype = ast::VarType::STRING;
+                        }
+                    } else if (literal->type == types::TokenType::TT_NUM) {
+                        if (auto identifier = dynamic_cast<ast::Identifier*>(lhs.get())) {
+                            identifier->vtype = ast::VarType::NUMBER;
+                        }
+                    }
+                }
+                if (auto callExpr = dynamic_cast<ast::Call*>(rhs.get())) {
+                    auto functionName = callExpr->functionName;
+                    if (functionName == "str") {
+                        if (auto identifier = dynamic_cast<ast::Identifier*>(lhs.get())) {
+                            identifier->vtype = ast::VarType::STRING;
+                        }
+                    }
+                }
+                
+                match(types::OperatorType::OP_SEMICOLON);
+                return std::make_unique<ast::Assignment>(std::move(lhs), std::move(rhs));
             }
         }
-        std::ostringstream stream;
-        auto pos = scan->operator[](token_index).get_pos();
-        stream << "Parse Error: Excepted Assignment on Line: " << pos.first << " Col: " << pos.second << "\n";
-        throw ParseException(stream.str());
-        return nullptr;
-    }
+
+    std::ostringstream stream;
+    auto pos = scan->operator[](token_index).get_pos();
+    stream << "Parse Error: Expected Assignment on Line: " << pos.first << " Col: " << pos.second << "\n";
+    throw ParseException(stream.str());
+    return nullptr;
+}
+
 
     std::unique_ptr<ast::Function> Parser::parseFunction() {
         if (test(types::TokenType::TT_ID)) {
@@ -274,6 +304,7 @@ namespace parse {
                     if(test(types::KeywordType::KW_LET)) {
                         inc();
                         auto stmt = parseAssignment();  
+
                         if (stmt) {
                             function->body.push_back(std::move(stmt));
                         } 
