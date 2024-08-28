@@ -50,8 +50,17 @@ namespace codegen {
             collectLiteralsAndConstants(code);
             analyzeTempVarUsage(code);
             emitDataSection(output);
-            emitPreamble(output);
-            emitCallInit(output);
+            bool has_init = false;
+            for(auto &it : code) {
+                if(it.type == ir::InstructionType::LABEL && it.dest == "init") {
+                    has_init = true;
+                    break;
+                }
+            }
+            if(has_init == true) {
+                emitPreamble(output);
+                emitCallInit(output);
+            }
             emitCode(code, output);
             return applyPeephole(output);
         }
