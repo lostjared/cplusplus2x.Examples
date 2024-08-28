@@ -117,14 +117,21 @@ namespace codegen {
                 if (instr.type == ir::InstructionType::LABEL) {
                     currentFunction = instr.dest;
                     tempVarCountPerFunction[currentFunction] = 0;
+                    maxStackUsage[currentFunction] = 0;
                     tempVarIndices.clear();
                 }
 
-                if (instr.dest[0] == 't') {
+                if (instr.dest[0] == 't' || instr.type == ir::InstructionType::LOAD_CONST || instr.type == ir::InstructionType::LOAD_VAR) {
                     if (tempVarIndices.find(instr.dest) == tempVarIndices.end()) {
-                        tempVarIndices[instr.dest] = tempVarCountPerFunction[currentFunction]++;
+                        int index = tempVarCountPerFunction[currentFunction]++;
+                        tempVarIndices[instr.dest] = index;
+                        maxStackUsage[currentFunction] += 8;
                     }
                 }
+            }
+
+            for (auto &entry : maxStackUsage) {
+                entry.second = ((entry.second + 15) / 16) * 16;
             }
         }
 
@@ -162,10 +169,7 @@ namespace codegen {
             output << "    pushq %rbp\n";
             output << "    movq %rsp, %rbp\n";
 
-            int tempVarCount = tempVarCountPerFunction[functionName];
-            int stackSpace = tempVarCount * 8;
-            stackSpace = ((stackSpace + 15) / 16) * 16;
-
+            int stackSpace = maxStackUsage[functionName];
             if (stackSpace > 0) {
                 output << "    subq $" << stackSpace << ", %rsp\n";
             }
@@ -254,12 +258,12 @@ namespace codegen {
                     output << "     addq $" << len << ", %rcx\n";
                 } else {
                     loadToRegister(output, instr.op1, "%rdi");
-                    output << "     call strlen\n";
+                    output << "     call strlen #" << instr.op1 << "\n";
                     output << "     addq  %rax, %rcx\n";
                 }
             } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR_STRING) {
                 loadToRegister(output, instr.op1, "%rdi");
-                output << "    call strlen\n";
+                output << "    call strlen # " << instr.op1 <<"\n";
                 output << "    addq %rax, %rcx\n";
             } 
 
@@ -269,12 +273,12 @@ namespace codegen {
                     output << "    addq $" << len << ", %rcx\n";
                 } else {
                     loadToRegister(output, instr.op2, "%rdi");
-                    output << "    call strlen\n";
+                    output << "    call strlen # " << instr.op2 << "\n";
                     output << "    addq %rax, %rcx\n";
                 }
             } else if (variableInfo[curFunction][instr.op2].type == VariableType::VAR_STRING) {
                 loadToRegister(output, instr.op2, "%rdi");
-                output << "    call strlen\n";
+                output << "    call strlen # " << instr.op2 << "\n";
                 output << "    addq %rax, %rcx\n";
             } 
             output << "    addq $1, %rcx\n";
@@ -440,23 +444,24 @@ namespace codegen {
             for (const auto &var : allocatedMemory[curFunction]) {
                 if(variableInfo[curFunction][var].type == VariableType::VAR_STRING) {
                     loadToRegister(output, var, "%rdi");
-                    output << "    call free\n";
+                    output << "    call free #"<<var<<"\n";
                 }
             }
+
             emitFunctionEpilogue(output);
             local.exitScope();
         }
 
         void loadToRegister(std::ostringstream &output, const std::string &operand, const std::string &reg) {
             if (operand[0] == '$' || operand[0] == '%') {
-                output << "    movq " << operand << ", " << reg << "\n";
+                output << "    movq " << operand << ", " << reg << " # " << operand << "," << reg << "\n";
             } else if(operand[0] == isalpha(operand[0]) || isdigit(operand[0])) {
-                output << "    leaq " << operand << "%(rip), " << reg << "\n";
+                output << "    leaq " << operand << "%(rip), " << reg << "#" << operand << ", " << reg << "\n";
                 
             } 
             else {
                 int offset = getVariableOffset(operand);
-                output << "    movq " << offset << "(%rbp), " << reg << "\n";
+                output << "    movq " << offset << "(%rbp), " << reg << "# " << operand << "\n";
             }
         }
 

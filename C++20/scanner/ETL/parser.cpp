@@ -250,7 +250,6 @@ namespace parse {
                 if (auto literal = dynamic_cast<ast::Literal*>(rhs.get())) {
                     if (literal->type == types::TokenType::TT_STR) {
                         if (auto identifier = dynamic_cast<ast::Identifier*>(lhs.get())) {
-                            std::cout << identifier->name << "!\n";
                             identifier->vtype = ast::VarType::STRING;
                         }
                     } else if (literal->type == types::TokenType::TT_NUM) {
@@ -259,11 +258,24 @@ namespace parse {
                         }
                     }
                 }
+
                 if (auto callExpr = dynamic_cast<ast::Call*>(rhs.get())) {
                     auto functionName = callExpr->functionName;
                     if (functionName == "str") {
                         if (auto identifier = dynamic_cast<ast::Identifier*>(lhs.get())) {
                             identifier->vtype = ast::VarType::STRING;
+                        }
+                    }
+                }
+
+                if (auto rhsIdentifier = dynamic_cast<ast::Identifier*>(rhs.get())) {
+                    if (rhsIdentifier->vtype == ast::VarType::STRING) {
+                        if (auto lhsIdentifier = dynamic_cast<ast::Identifier*>(lhs.get())) {
+                            lhsIdentifier->vtype = ast::VarType::STRING;
+                        }
+                    } else if (rhsIdentifier->vtype == ast::VarType::NUMBER) {
+                        if (auto lhsIdentifier = dynamic_cast<ast::Identifier*>(lhs.get())) {
+                            lhsIdentifier->vtype = ast::VarType::NUMBER;
                         }
                     }
                 }
@@ -275,7 +287,6 @@ namespace parse {
 
     std::ostringstream stream;
     auto pos = scan->operator[](token_index).get_pos();
-    stream << "Parse Error: Expected Assignment on Line: " << pos.first << " Col: " << pos.second << "\n";
     throw ParseException(stream.str());
     return nullptr;
 }
