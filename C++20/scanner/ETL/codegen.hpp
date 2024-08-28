@@ -121,13 +121,13 @@ namespace codegen {
                     tempVarIndices.clear();
                 }
 
-                if (instr.dest[0] == 't' || instr.type == ir::InstructionType::LOAD_CONST || instr.type == ir::InstructionType::LOAD_VAR) {
+                if (instr.type == ir::InstructionType::CALL || instr.type == ir::InstructionType::CONCAT || instr.type == ir::InstructionType::ASSIGN || instr.dest[0] == 't' || instr.type == ir::InstructionType::LOAD_CONST || instr.type == ir::InstructionType::LOAD_VAR) {
                     if (tempVarIndices.find(instr.dest) == tempVarIndices.end()) {
                         int index = tempVarCountPerFunction[currentFunction]++;
                         tempVarIndices[instr.dest] = index;
                         maxStackUsage[currentFunction] += 8;
                     }
-                }
+                } 
             }
 
             for (auto &entry : maxStackUsage) {
@@ -173,11 +173,13 @@ namespace codegen {
             if (stackSpace > 0) {
                 output << "    subq $" << stackSpace << ", %rsp\n";
             }
+            output << "    movq $0, %rcx\n";
         }
 
         void emitFunctionEpilogue(std::ostringstream &output) {
             output << "    leave\n";
             output << "    ret\n";
+            
         }
 
         void emitCode(const ir::IRCode &code, std::ostringstream &output) {
@@ -250,20 +252,23 @@ namespace codegen {
         
         void emitConcat(std::ostringstream &output, const ir::IRInstruction &instr) {
 
-            output << "    xorq %rcx, %rcx\n";
-
+         
             if (variableInfo[curFunction][instr.op1].type == VariableType::STRING_CONST) {
                 if(!variableInfo[curFunction][instr.op1].text.empty()  && variableInfo[curFunction][instr.op1].text[0] == '\"') {
                     auto len = variableInfo[curFunction][instr.op1].text.length()+1;
                     output << "     addq $" << len << ", %rcx\n";
                 } else {
                     loadToRegister(output, instr.op1, "%rdi");
+                    output << "     pushq %rcx\n";
                     output << "     call strlen #" << instr.op1 << "\n";
+                    output << "     popq %rcx\n";
                     output << "     addq  %rax, %rcx\n";
                 }
             } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR_STRING) {
                 loadToRegister(output, instr.op1, "%rdi");
+                output << "    pushq %rcx\n";
                 output << "    call strlen # " << instr.op1 <<"\n";
+                output << "    popq %rcx\n";
                 output << "    addq %rax, %rcx\n";
             } 
 
@@ -273,24 +278,31 @@ namespace codegen {
                     output << "    addq $" << len << ", %rcx\n";
                 } else {
                     loadToRegister(output, instr.op2, "%rdi");
+                    output << "    pushq %rcx\n";    
                     output << "    call strlen # " << instr.op2 << "\n";
+                    output << "    popq %rcx\n";
                     output << "    addq %rax, %rcx\n";
                 }
             } else if (variableInfo[curFunction][instr.op2].type == VariableType::VAR_STRING) {
                 loadToRegister(output, instr.op2, "%rdi");
+                output << "    pushq %rcx\n";
                 output << "    call strlen # " << instr.op2 << "\n";
+                output << "    popq %rcx\n";
                 output << "    addq %rax, %rcx\n";
             } 
+
             output << "    addq $1, %rcx\n";
             output << "    movq %rcx, %rdi\n";
             output << "    xorq %rax, %rax\n";
+            output << "    pushq %rcx\n";
             output << "    call malloc\n";
-            storeToTemp(output, instr.dest, "%rax");
             output << "    movq %rax, %rdi\n";
+            storeToTemp(output, instr.dest, "%rdi");
             loadToRegister(output,instr.op1,"%rsi");
             output << "    call strcpy\n";
             loadToRegister(output,instr.op2,"%rsi");
             output << "    call strcat\n";
+            output << "    popq %rcx\n";
             allocatedMemory[curFunction].insert(instr.dest);  
             variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
        
@@ -344,8 +356,13 @@ namespace codegen {
             }
             
             output << "    movq $0, %rax\n"; 
+            output << "    pushq %rcx\n";
             output << "    call " << instr.functionName << "\n";
             storeToTemp(output, instr.dest, "%rax");
+            output << "    popq %rcx\n";
+            if(instr.functionName == "str") {
+                output << "    addq $22, %rcx\n";
+            }
             
             auto fn = clib::clibrary.find(instr.functionName);
             
@@ -416,7 +433,7 @@ namespace codegen {
                     }
                 }
 
-                if (fn->second.allocated) {
+                if (fn->second.allocated || fn->first == "str") {
                     if (allocatedMemory[curFunction].find(instr.dest) == allocatedMemory[curFunction].end()) {
                         allocatedMemory[curFunction].insert(instr.dest);
                     }
