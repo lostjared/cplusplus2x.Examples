@@ -33,12 +33,13 @@ print_numbers:
     movq -16(%rbp), %rax# y
     movq %rax, -40(%rbp)
     movq -32(%rbp), %rax# t0
-    addq -40(%rbp), %rax
+    imulq -40(%rbp), %rax
     movq %rax, -48(%rbp)
     movq -24(%rbp), %rax# z
     movq %rax, -56(%rbp)
     movq -48(%rbp), %rax# t2
-    addq -56(%rbp), %rax
+    cqto
+    idivq -56(%rbp)
     movq %rax, -64(%rbp)
     movq $2, %rax
     movq %rax, -72(%rbp)

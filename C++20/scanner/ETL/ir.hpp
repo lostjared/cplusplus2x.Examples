@@ -254,8 +254,43 @@ namespace parse {
                         s->name = dest;
                         s->vtype = ast::VarType::NUMBER;
                     }
-                    code.emplace_back(ir::InstructionType::ADD, dest, leftResult, rightResult);
-
+                    switch (binOp->op) {
+                        case types::OperatorType::OP_PLUS:
+                            code.emplace_back(ir::InstructionType::ADD, dest, leftResult, rightResult);
+                            break;
+                        case types::OperatorType::OP_MINUS:
+                            code.emplace_back(ir::InstructionType::SUB, dest, leftResult, rightResult);
+                            break;
+                        case types::OperatorType::OP_MUL:
+                            code.emplace_back(ir::InstructionType::MUL, dest, leftResult, rightResult);
+                            break;
+                        case types::OperatorType::OP_DIV:
+                            code.emplace_back(ir::InstructionType::DIV, dest, leftResult, rightResult);
+                            break;/*
+                        case types::OperatorType::OP_MOD:
+                            code.emplace_back(ir::InstructionType::MOD, dest, leftResult, rightResult);
+                            break;
+                        case types::OperatorType::OP_LSHIFT:
+                            code.emplace_back(ir::InstructionType::LSHIFT, dest, leftResult, rightResult);
+                            break;
+                        case types::OperatorType::OP_RSHIFT:
+                            code.emplace_back(ir::InstructionType::RSHIFT, dest, leftResult, rightResult);
+                            break;
+                        case types::OperatorType::OP_AND:
+                            code.emplace_back(ir::InstructionType::AND, dest, leftResult, rightResult);
+                            break;
+                        case types::OperatorType::OP_OR:
+                            code.emplace_back(ir::InstructionType::OR, dest, leftResult, rightResult);
+                            break;
+                        case types::OperatorType::OP_XOR:
+                            code.emplace_back(ir::InstructionType::XOR, dest, leftResult, rightResult);
+                            break;*/
+                        // Add cases for other operators like relational and logical operators
+                        default:
+                            std::ostringstream stream;
+                            stream << "Error: Unsupported numeric operation: " << static_cast<int>(binOp->op);
+                            throw ir::IRException(stream.str());
+                    }
             } else {
                 std::ostringstream stream;
                 stream << "Error: Operator + requires both operands to be of string type or both to be of number type. "

@@ -1,3 +1,5 @@
+#define OUTPUT "The Value is: %d"
+#define ADD(x,y) x+y
 
 proc print_numbers() {
     let x = 25;

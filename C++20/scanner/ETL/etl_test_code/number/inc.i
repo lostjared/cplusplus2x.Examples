@@ -5,6 +5,8 @@
 # 0 "<command-line>" 2
 # 1 "number.e"
 
+
+
 proc print_numbers() {
     let x = 25;
     let y = 100;

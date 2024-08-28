@@ -34,7 +34,7 @@ size_t intToString(long value, char *buffer, size_t buffer_size) {
         buffer[j] = temp[i - j - 1];
     }
     buffer[length] = '\0';
-    return length+1;
+    return length;
 }
 
 

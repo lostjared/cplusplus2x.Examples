@@ -7,9 +7,9 @@ ETL: IR code: {
 	LOAD_CONST z 50
 	LOAD_VAR t0 x
 	LOAD_VAR t1 y
-	ADD t2 t0 t1
+	MUL t2 t0 t1
 	LOAD_VAR t3 z
-	ADD t4 t2 t3
+	DIV t4 t2 t3
 	LOAD_CONST t5 2
 	LOAD_CONST t6 4
 	ADD t7 t5 t6
