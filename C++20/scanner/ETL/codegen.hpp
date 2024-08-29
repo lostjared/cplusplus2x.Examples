@@ -305,9 +305,10 @@ namespace codegen {
 
             output << "    addq $1, %rcx\n";
             output << "    movq %rcx, %rdi\n";
+            output << "    movq $" << sizeof(char) << ", %rsi\n";
             output << "    xorq %rax, %rax\n";
             output << "    pushq %rcx\n";
-            output << "    call malloc\n";
+            output << "    call calloc\n";
             output << "    movq %rax, %rdi\n";
             storeToTemp(output, instr.dest, "%rdi");
             loadToRegister(output,instr.op1,"%rsi");

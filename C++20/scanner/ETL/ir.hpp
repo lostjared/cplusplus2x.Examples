@@ -254,6 +254,7 @@ namespace parse {
                         s->name = dest;
                         s->vtype = ast::VarType::NUMBER;
                     }
+
                     switch (binOp->op) {
                         case types::OperatorType::OP_PLUS:
                             code.emplace_back(ir::InstructionType::ADD, dest, leftResult, rightResult);
@@ -358,6 +359,10 @@ namespace parse {
                     if(cpx.has_value()) {
                         vx->value = cpx.value()->value;
                         vx->vtype = cpx.value()->vtype;
+                    } else {
+                        std::ostringstream stream;
+                        stream << "Error variable: " << identifier->name << " not defind but used.\n";
+                        throw ir::IRException(stream.str());
                     }
                 }
                 code.emplace_back(ir::InstructionType::LOAD_VAR, tempVar, identifier->name);
