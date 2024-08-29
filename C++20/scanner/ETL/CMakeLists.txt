@@ -24,7 +24,7 @@ add_executable(ETL_C
     ${CMAKE_SOURCE_DIR}/ir.cpp
 )
 
-target_include_directories(ETL_C PRIVATE ${scan_cxx_INCLUDE_DIRS}/cxx_scan)
+target_include_directories(ETL_C PRIVATE ${scan_cxx_INCLUDE_DIRS})
 target_link_libraries(ETL_C PRIVATE scan_cxx::cxx_scan)
 
 install(TARGETS ETL_C DESTINATION bin)
