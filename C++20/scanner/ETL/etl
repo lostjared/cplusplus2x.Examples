@@ -45,6 +45,4 @@ else
 echo "Linked [${temp_o_files[@]}]"
 fi
 
-rm -f "$temp_i_file" "$temp_s_file"
-
 echo "Executable: [$output_executable]"
