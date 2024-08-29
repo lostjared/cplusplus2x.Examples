@@ -17,8 +17,26 @@ void test_parse(const std::string &filename, const std::string &out_file) {
     std::ostringstream stream;
     stream << file.rdbuf() << " \n";
     file.close();
+    scan::TString p(stream.str());
+    std::ostringstream code;
+    bool in_string = false;
+    while (1) {
+        auto c = p.getch();
+        if (c.has_value()) {
+            if (*c == '"') {
+                in_string = !in_string;
+                code << *c;
+            } else if (*c == '#' && !in_string) {
+                do {
+                    c = p.getch();
+                } while (c.has_value() && *c != '\n');
+            } else {
+                code << *c;
+            }
+        } else break;
+    }
     if(stream.str().length()>0) {
-        parse::Parser parser(new scan::Scanner(scan::TString(stream.str())));
+        parse::Parser parser(new scan::Scanner(scan::TString(code.str())));
         if(parser.parse()) {
             auto rootAST = parser.getAST();  
             if (rootAST) {
