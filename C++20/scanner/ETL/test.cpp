@@ -20,10 +20,18 @@ void test_parse(const std::string &filename, const std::string &out_file) {
     scan::TString p(stream.str());
     std::ostringstream code;
     bool in_string = false;
+    bool escaped = false;
+
     while (1) {
         auto c = p.getch();
         if (c.has_value()) {
-            if (*c == '"') {
+            if (escaped) {
+                code << *c;
+                escaped = false;
+            } else if (*c == '\\') {
+                escaped = true;
+                code << *c;
+            } else if (*c == '"') {
                 in_string = !in_string;
                 code << *c;
             } else if (*c == '#' && !in_string) {
