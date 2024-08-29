@@ -35,4 +35,5 @@ init:
     movq -32(%rbp), %rax# t3
     leave
     ret
+.section .note.GNU-stack,"",@progbits
 

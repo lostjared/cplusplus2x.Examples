@@ -55,4 +55,5 @@ program:
     movq -120(%rbp), %rax# t11
     leave
     ret
+.section .note.GNU-stack,"",@progbits
 

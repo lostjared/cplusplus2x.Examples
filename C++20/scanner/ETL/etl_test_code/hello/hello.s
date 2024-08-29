@@ -1,5 +1,5 @@
 .section .data
-t0: .asciz "Hello, World!"
+t0: .asciz "Hello,$### \" World!"
 .section .text
 .globl main
 main:
@@ -30,4 +30,5 @@ init:
     movq -24(%rbp), %rax# t2
     leave
     ret
+.section .note.GNU-stack,"",@progbits
 

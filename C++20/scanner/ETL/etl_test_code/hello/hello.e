@@ -1,5 +1,5 @@
 
 proc init() {
-    puts("Hello, World!");
+    puts("Hello,$### \" World!");
     return 0;
 }

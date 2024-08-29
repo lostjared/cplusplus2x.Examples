@@ -199,4 +199,5 @@ init:
     movq -16(%rbp), %rax# t19
     leave
     ret
+.section .note.GNU-stack,"",@progbits
 
