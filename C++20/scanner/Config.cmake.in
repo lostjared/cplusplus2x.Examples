@@ -2,11 +2,10 @@
 
 include("${CMAKE_CURRENT_LIST_DIR}/scan_cxxTargets.cmake")
 
-# Define the include directories
-set(scan_cxx_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/../include/cxx_scan")
+set(scan_cxx_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include/cxx_scan")
 
 # Define the library directories
-set(scan_cxx_LIBRARY_DIRS "${CMAKE_CURRENT_LIST_DIR}/../lib/cxx_scan")
+set(scan_cxx_LIBRARY_DIRS "${CMAKE_INSTALL_PREFIX}/lib/cxx_scan")
 
 # Define the libraries
 set(scan_cxx_LIBRARIES scan_cxx::cxx_scan)
