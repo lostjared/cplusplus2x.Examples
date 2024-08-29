@@ -67,9 +67,10 @@ add_numbers:
     addq $1, %rcx
     addq $1, %rcx
     movq %rcx, %rdi
+    movq $1, %rsi
     xorq %rax, %rax
     pushq %rcx
-    call malloc
+    call calloc
     movq %rax, %rdi
     movq %rdi, -88(%rbp)
     movq -72(%rbp), %rsi# t6
@@ -96,9 +97,10 @@ add_numbers:
     addq %rax, %rcx
     addq $1, %rcx
     movq %rcx, %rdi
+    movq $1, %rsi
     xorq %rax, %rax
     pushq %rcx
-    call malloc
+    call calloc
     movq %rax, %rdi
     movq %rdi, -104(%rbp)
     movq -88(%rbp), %rsi# t8
@@ -116,9 +118,10 @@ add_numbers:
     addq $1, %rcx
     addq $1, %rcx
     movq %rcx, %rdi
+    movq $1, %rsi
     xorq %rax, %rax
     pushq %rcx
-    call malloc
+    call calloc
     movq %rax, %rdi
     movq %rdi, -120(%rbp)
     movq -104(%rbp), %rsi# t10
@@ -148,9 +151,10 @@ add_numbers:
     addq %rax, %rcx
     addq $1, %rcx
     movq %rcx, %rdi
+    movq $1, %rsi
     xorq %rax, %rax
     pushq %rcx
-    call malloc
+    call calloc
     movq %rax, %rdi
     movq %rdi, -144(%rbp)
     movq -120(%rbp), %rsi# t12

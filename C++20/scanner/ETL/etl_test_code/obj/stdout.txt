@@ -34,5 +34,5 @@ ETL: IR code: {
 }
 ETL: compiled [obj.s]
 Assembled obj.s to obj.o
-Linked [main.o obj.o]
+Linked [main.o obj.o] with flags []
 Executable: [program]

@@ -1,1 +1,14 @@
-Hello, World!
+etl program hello.e
+ETL: Scanned 14 tokens.
+ETL: parsing ...  [complete]
+ETL: IR code: {
+	LABEL init
+	LOAD_CONST t0 "Hello,$### \" World!"
+	CALL t1 puts t0
+	LOAD_CONST t2 0
+	RETURN t2
+}
+ETL: compiled [hello.s]
+Assembled hello.s to hello.o
+Linked [hello.o] with flags []
+Executable: [program]

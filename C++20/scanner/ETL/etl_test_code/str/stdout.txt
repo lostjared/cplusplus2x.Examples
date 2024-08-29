@@ -1,0 +1,34 @@
+etl program string.e
+ETL: Scanned 53 tokens.
+ETL: parsing ...  [complete]
+ETL: IR code: {
+	LABEL init
+	LOAD_CONST x 200
+	LOAD_CONST y 300
+	LOAD_VAR t0 x
+	CALL t1 str t0
+	LOAD_CONST t2 "+"
+	CONCAT t3 t1 t2
+	LOAD_VAR t4 y
+	CALL t5 str t4
+	CONCAT t6 t3 t5
+	LOAD_CONST t7 "="
+	CONCAT t8 t6 t7
+	LOAD_VAR t9 x
+	LOAD_VAR t10 y
+	ADD t11 t9 t10
+	CALL t12 str t11
+	CONCAT t13 t8 t12
+	CALL t14 puts t13
+	LOAD_VAR t15 x
+	LOAD_VAR t16 x
+	MUL t17 t15 t16
+	CALL t18 str t17
+	CALL t19 puts t18
+	LOAD_CONST t20 0
+	RETURN t20
+}
+ETL: compiled [string.s]
+Assembled string.s to string.o
+Linked [string.o] with flags []
+Executable: [program]
