@@ -64,6 +64,7 @@ namespace codegen {
                 output << ".section .text\n";
             }
             emitCode(code, output);
+            output << ".section .note.GNU-stack,\"\",@progbits\n";
             return applyPeephole(output);
         }
 
