@@ -1,3 +1,46 @@
 #!/bin/bash
 
-gcc -x c -E $1 -o inc.i -c && ETL_C -i inc.i -o asm.s && as asm.s -o asm.o && gcc -O3 -fPIE -pie asm.o -o $2 -letl && echo "executable: [$2]"
+if [ "$#" -lt 2 ]; then
+  echo "Usage: $0 output_executable file1.e [file2.e ...]"
+  exit 1
+fi
+
+output_executable=$1
+shift
+
+temp_i_file="inc.i"
+temp_s_file="temp.s"
+temp_o_files=()
+
+for e_file in "$@"; do
+  base_name=$(basename "$e_file" .e)
+  gcc -x c -E "$e_file" -o "${base_name}.i"
+  if [ $? -ne 0 ]; then
+    echo "Preprocessing failed for $e_file"
+    exit 1
+  fi
+
+  ETL_C -i "${base_name}.i" -o "${base_name}.s"
+  if [ $? -ne 0 ]; then
+    echo "ETL_C conversion failed for $temp_i_file"/
+    exit 1
+  fi
+
+  as "${base_name}.s" -o "${base_name}.o"
+  if [ $? -ne 0 ]; then
+    echo "Assembling failed for $temp_s_file"
+    exit 1
+  fi
+
+  temp_o_files+=("${base_name}.o")
+done
+
+gcc "${temp_o_files[@]}" -o "$output_executable" -letl -lc
+if [ $? -ne 0 ]; then
+  echo "Linking failed"
+  exit 1
+fi
+
+rm -f "$temp_i_file" "$temp_s_file"
+
+echo "Executable: [$output_executable]"

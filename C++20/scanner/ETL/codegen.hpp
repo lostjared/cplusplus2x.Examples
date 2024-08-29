@@ -60,6 +60,8 @@ namespace codegen {
             if(has_init == true) {
                 emitPreamble(output);
                 emitCallInit(output);
+            } else {
+                output << ".section .text\n";
             }
             emitCode(code, output);
             return applyPeephole(output);
@@ -149,7 +151,7 @@ namespace codegen {
             for(auto &func : variableInfo) {
                 for(const auto &v : func.second) {
                     if(v.second.type == VariableType::NUMERIC_CONST) {
-                        output << v.second.vname << ": .quad " << v.second.text << "\n";
+                        //output << v.second.vname << ": .quad " << v.second.text << "\n";
                     } else if(v.second.type == VariableType::STRING_CONST) {
                         output << v.second.vname << ": .asciz " << ir::escapeString(v.second.text) << "\n";
                     }
