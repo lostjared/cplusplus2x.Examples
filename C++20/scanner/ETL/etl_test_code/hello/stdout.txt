@@ -1,11 +1,1 @@
-ETL: Scanned 14 tokens.
-ETL: parsing ...  [complete]
-ETL: IR code: {
-	LABEL init
-	LOAD_CONST t0 "Hello, World!"
-	CALL t1 puts t0
-	LOAD_CONST t2 0
-	RETURN t2
-}
-ETL: compiled [asm.s]
-executable: [program]
+Hello, World!

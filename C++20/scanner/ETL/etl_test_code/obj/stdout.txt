@@ -1,0 +1,38 @@
+etl program main.e obj.e
+ETL: Scanned 18 tokens.
+ETL: parsing ...  [complete]
+ETL: IR code: {
+	LABEL init
+	CALL t0 program
+	LOAD_CONST t1 "Goodbye \n"
+	CALL t2 printf t1
+	LOAD_CONST t3 0
+	RETURN t3
+}
+ETL: compiled [main.s]
+Assembled main.s to main.o
+ETL: Scanned 44 tokens.
+ETL: parsing ...  [complete]
+ETL: IR code: {
+	LABEL program
+	LOAD_CONST t0 "Hello, World"
+	CALL t1 puts t0
+	LOAD_CONST x 25
+	LOAD_CONST y 25
+	LOAD_VAR t2 x
+	LOAD_VAR t3 y
+	MUL t4 t2 t3
+	LOAD_CONST t5 100
+	DIV t6 t4 t5
+	ASSIGN z t6
+	LOAD_CONST t7 "%d * %d / 100 = %d\n"
+	LOAD_VAR t8 x
+	LOAD_VAR t9 y
+	CALL t10 printf t7 t8 t9 z
+	LOAD_CONST t11 0
+	RETURN t11
+}
+ETL: compiled [obj.s]
+Assembled obj.s to obj.o
+Linked [main.o obj.o]
+Executable: [program]

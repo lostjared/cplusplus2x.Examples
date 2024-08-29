@@ -1,18 +1,21 @@
 .section .data
-t14: .quad 0
-t10: .quad 1
-t9: .asciz "The Value is: %d\n"
-t6: .quad 4
-t5: .quad 2
-z: .quad 50
-y: .quad 100
-x: .quad 25
+t9: .asciz "The value is: %d\n"
 .section .text
+.globl main
+main:
+    pushq %rbp
+    movq %rsp, %rbp
+    subq $16, %rsp
+    call init
+    movq %rax, %rbx
+    leave
+    movq %rbx, %rax
+    ret
 .globl print_numbers
 print_numbers:
     pushq %rbp
     movq %rsp, %rbp
-    subq $144, %rsp
+    subq $128, %rsp
     movq $0, %rcx
     movq $25, %rax
     movq %rax, -8(%rbp)
@@ -47,17 +50,12 @@ print_numbers:
     movq %rax, -104(%rbp)
     leaq t9(%rip), %rax
     movq %rax, -112(%rbp)
-    movq $1, %rax
-    movq %rax, -120(%rbp)
-    movq -104(%rbp), %rax# value
-    addq -120(%rbp), %rax
-    movq %rax, -128(%rbp)
     movq -112(%rbp), %rdi# t9
-    movq -128(%rbp), %rsi# t11
+    movq -104(%rbp), %rsi# value
     movq $0, %rax
     pushq %rcx
     call printf
-    movq %rax, -136(%rbp)
+    movq %rax, -120(%rbp)
     popq %rcx
     movq -104(%rbp), %rax# value
     leave
@@ -75,7 +73,7 @@ init:
     popq %rcx
     movq $0, %rax
     movq %rax, -16(%rbp)
-    movq -16(%rbp), %rax# t14
+    movq -16(%rbp), %rax# t12
     leave
     ret
 
