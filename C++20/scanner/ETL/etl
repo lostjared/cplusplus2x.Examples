@@ -30,6 +30,8 @@ for e_file in "$@"; do
   if [ $? -ne 0 ]; then
     echo "Assembling failed for $temp_s_file"
     exit 1
+  else
+    echo "Assembled ${base_name}.s to ${base_name}.o"
   fi
 
   temp_o_files+=("${base_name}.o")
@@ -39,6 +41,8 @@ gcc "${temp_o_files[@]}" -o "$output_executable" -letl -lc
 if [ $? -ne 0 ]; then
   echo "Linking failed"
   exit 1
+else
+echo "Linked [${temp_o_files[@]}]"
 fi
 
 rm -f "$temp_i_file" "$temp_s_file"
