@@ -7,6 +7,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(scan_cxx REQUIRED PATHS /usr/lib/cmake /usr/local/lib/cmake)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    list(APPEND COMPILER_FLAGS "-Wall" "-pedantic" "-Ofast")
+else()
+    message(STATUS "Debug Mode")
+    list(APPEND COMPILER_FLAGS "-Wall" "-pedantic")
+endif()
+
 add_library(etl STATIC ${CMAKE_SOURCE_DIR}/libetl/libetl.c)
 target_include_directories(etl PUBLIC ${CMAKE_SOURCE_DIR}/libetl)
 
@@ -17,7 +24,7 @@ add_executable(ETL_C
     ${CMAKE_SOURCE_DIR}/ir.cpp
 )
 
-target_include_directories(ETL_C PRIVATE ${scan_cxx_INCLUDE_DIRS})
+target_include_directories(ETL_C PRIVATE ${scan_cxx_INCLUDE_DIRS}/cxx_scan)
 target_link_libraries(ETL_C PRIVATE scan_cxx::cxx_scan)
 
 install(TARGETS ETL_C DESTINATION bin)
