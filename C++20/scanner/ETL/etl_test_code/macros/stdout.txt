@@ -1,0 +1,21 @@
+etl program macros.e
+ETL: Scanned 21 tokens.
+ETL: parsing ...  [complete]
+ETL: IR code: {
+	LABEL init
+	LOAD_CONST t0 "Hey this is a number: "
+	LOAD_CONST t1 10
+	LOAD_CONST t2 10
+	MUL t3 t1 t2
+	CALL t4 str t3
+	CONCAT t5 t0 t4
+	CALL t6 puts t5
+	LOAD_CONST t7 0
+	RETURN t7
+HERE!
+HERE!
+}
+ETL: compiled [macros.s]
+Assembled macros.s to macros.o
+Linked [macros.o] with flags []
+Executable: [program]
