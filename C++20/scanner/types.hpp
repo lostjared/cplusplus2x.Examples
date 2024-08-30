@@ -56,7 +56,8 @@ namespace types {
         OP_QUESTION,        // '?'
         OP_HASH,            // '#' 
         OP_SCOPE,           // '::' 
-        OP_TILDE            // '~'q
+        OP_TILDE,            // '~'q
+        OP_DOLLAR,          // '$'
     };
 
     inline std::vector<std::string> opName = {
@@ -107,6 +108,7 @@ namespace types {
         "Hash",                // OP_HASH            -> '#'
         "Scope",               // OP_SCOPE           -> '::'
         "Tilde"                // OP_TILDE           -> '~'
+        "Dollar",              // OP_DOLLAR          -> '$'
     };
 
     inline std::vector<std::string> opStrings = {
@@ -156,7 +158,9 @@ namespace types {
         "?",        // OP_QUESTION
         "#",        // OP_HASH
         "::",
-        "~"         // OP_TILDE
+        "~",         // OP_TILDE
+        "$"
+
     };
 
     enum class KeywordType { KW_LET, KW_PROC, KW_IF, KW_SWITCH, KW_WHILE, KW_FOR, KW_RETURN };

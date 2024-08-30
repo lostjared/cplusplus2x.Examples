@@ -10,6 +10,13 @@ namespace scan {
         tokens.clear();
         while(!string_buffer.eof(0)) {
             auto ch = string_buffer.getch();
+            if(ch.has_value() && *ch == '#') {
+                auto ch_in = string_buffer.curch();
+                do {
+                    ch_in = string_buffer.getch();
+                } while(ch_in.has_value() && *ch_in != '\n');
+                continue;
+            } else
             if(ch.has_value() && *ch == '/') {
                 auto ch2 = string_buffer.curch();
                 if(ch2.has_value() && *ch2 == '/') {
@@ -146,7 +153,7 @@ namespace scan {
             "++", "--", ">>=", "<<=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", 
             "==", "!=", ">=", "<=", ">>", "<<", "&&", "||", "->", ".", "&", "*", "+", 
             "-", "~", "!", "/", "%", ">", "<", "=", "^", "|", "?", ":", ";", ",", 
-            "(", ")", "[", "]", "{", "}", "->", ".","::"
+            "(", ")", "[", "]", "{", "}", "->", ".","::", "$"
         };
         return c_op.find(str) != c_op.end();
     }

@@ -191,6 +191,7 @@ namespace scan {
             token_map['\''] = CharType::TT_SINGLE;
             token_map['\"'] = CharType::TT_STRING;  
             token_map['@'] = CharType::TT_SYMBOL;   
+            token_map['$'] = CharType::TT_SYMBOL;
         }
         template<typename Ch, int MAX_CHARS>
         std::optional<types::CharType> TokenMap<Ch, MAX_CHARS>::lookup_int8(int8_t c) {
