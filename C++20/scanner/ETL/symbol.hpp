@@ -25,6 +25,12 @@ namespace symbol {
         }
     };
 
+    struct Function {
+        std::string functionName;
+        size_t num_args;   
+        ast::VarType vtype;
+    };
+
     class SymbolTable {
     public:
         SymbolTable() {
@@ -33,7 +39,8 @@ namespace symbol {
         }
 
         void enter(const std::string &sym) {
-            (*cur_scope)[sym] = Symbol();
+            if(cur_scope->find(sym) == cur_scope->end())
+                (*cur_scope)[sym] = Symbol();
         }
 
         void enterScope(const std::string &fname) {
@@ -42,9 +49,23 @@ namespace symbol {
             }
             cur_scope = &symbols[fname];
         }
-
+    
         void exitScope() {
             cur_scope = &symbols["global"];
+        }
+
+        void enterFunction(const std::string &s, size_t args, ast::VarType vtype) {
+            if(func.find(s) == func.end()) {
+                func[s] = Function{s, args, vtype};
+            }
+        }
+
+        std::optional<Function *> lookupFunc(const std::string &f) {
+            auto it = func.find(f);
+            if(it != func.end()) {
+                return &it->second;
+            }
+            return std::nullopt;
         }
 
         std::optional<Symbol*> lookup(const std::string &sym) {
@@ -77,6 +98,7 @@ namespace symbol {
 
     private:
         std::unordered_map<std::string, std::unordered_map<std::string, Symbol>> symbols;
+        std::unordered_map<std::string, Function> func;
         std::unordered_map<std::string, Symbol> *cur_scope;  // Pointer to the current scope
     };
 

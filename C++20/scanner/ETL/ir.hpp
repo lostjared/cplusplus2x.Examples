@@ -29,7 +29,9 @@ namespace ir {
         NEG,
         CALL,
         RETURN,
-        CONCAT
+        CONCAT,
+        PARAM,
+        PARAM_STRING,
     };
 
     inline std::vector<std::string> InstructionStrings{
@@ -45,7 +47,9 @@ namespace ir {
         "NEG",
         "CALL",
         "RETURN",
-        "CONCAT"
+        "CONCAT",
+        "PARAM",
+        "PARAM_STRING",
     };
 
     struct IRInstruction {
@@ -318,6 +322,23 @@ namespace parse {
         void generateFunction(const ast::Function *func, ir::IRCode &code) {
             code.emplace_back(ir::InstructionType::LABEL, func->name, "");
             table.enterScope(func->name);
+
+            for (const auto &param : func->parameters) {
+                table.enter(param.first);  
+                auto p = table.lookup(param.first);
+                if(p.has_value()) {
+                    symbol::Symbol *s = p.value();
+                    s->vtype = param.second;
+                }
+                if(param.second == ast::VarType::STRING) {
+                    code.emplace_back(ir::InstructionType::PARAM_STRING, param.first, "");  
+                } else {
+                    code.emplace_back(ir::InstructionType::PARAM, param.first, "");  
+                }
+            }
+
+            table.enterFunction(func->name, func->parameters.size(), func->return_type);
+
             for (const auto &stmt : func->body) {
                 generate(stmt.get(), code);
             }

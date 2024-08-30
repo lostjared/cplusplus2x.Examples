@@ -181,7 +181,11 @@ namespace codegen {
             output << "    pushq %rbp\n";
             output << "    movq %rsp, %rbp\n";
 
-            int stackSpace = maxStackUsage[functionName];
+            int stackSpace = maxStackUsage[functionName] + 48; 
+            if ((stackSpace % 16) != 0) {
+                stackSpace += 8; 
+            }
+
             if (stackSpace > 0) {
                 output << "    subq $" << stackSpace << ", %rsp\n";
             }
@@ -242,10 +246,70 @@ namespace codegen {
                     case ir::InstructionType::CONCAT:
                         emitConcat(output, instr);
                         break;
+                    case ir::InstructionType::PARAM:
+                        emitParam(output, instr);
+                        break;
+                    case ir::InstructionType::PARAM_STRING:
+                        emitParamString(output, instr);
+                        break;
                     default:
                         std::cerr << "Unsupported IR Instruction: " << instr.toString() << std::endl;
                         break;
                 }
+            }
+        }
+
+        std::vector<std::string> cargs;
+        int paramIndex = 0; 
+            
+        void emitParam(std::ostringstream &stream, const ir::IRInstruction &instr) {
+            static std::vector<std::pair<std::string, int>> paramLocations = {
+                {"%rdi", -8},  
+                {"%rsi", -16}, 
+                {"%rdx", -24}, 
+                {"%rcx", -32}, 
+                {"%r8", -40},  
+                {"%r9", -48}   
+            };
+            
+            if (paramIndex < paramLocations.size()) {
+                std::string reg = paramLocations[paramIndex].first;
+                int offset = paramLocations[paramIndex].second;
+                storeToTemp(stream, instr.dest, reg);
+                paramIndex++;
+                table.enter(instr.dest);
+                auto it = table.lookup(instr.dest);
+                variableInfo[curFunction][instr.dest].type = VariableType::VAR;
+            } else {
+                std::cerr << "ETL Error: More parameters than registers available.\n";
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        void emitParamString(std::ostringstream &output, const ir::IRInstruction &instr) {
+            static std::vector<std::pair<std::string, int>> paramLocations = {
+                {"%rdi", -8},  
+                {"%rsi", -16}, 
+                {"%rdx", -24}, 
+                {"%rcx", -32}, 
+                {"%r8", -40},  
+                {"%r9", -48}   
+            };
+            
+            if (paramIndex < paramLocations.size()) {
+                std::string reg = paramLocations[paramIndex].first;
+                int offset = paramLocations[paramIndex].second;
+                storeToTemp(output, instr.dest, reg);
+                paramIndex++;
+                table.enter(instr.dest);
+                auto it = table.lookup(instr.dest);
+                if(it.has_value()) {
+                    it.value()->vtype = ast::VarType::STRING;
+                }
+                variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
+            } else {
+                std::cerr << "ETL Error: More parameters than registers available.\n";
+                exit(EXIT_FAILURE);
             }
         }
         
@@ -263,8 +327,10 @@ namespace codegen {
         }
         
         void emitConcat(std::ostringstream &output, const ir::IRInstruction &instr) {
-
-         
+            
+            auto op1_it  = table.lookup(instr.op1);
+            auto op2_it  = table.lookup(instr.op2);
+            
             if (variableInfo[curFunction][instr.op1].type == VariableType::STRING_CONST) {
                 if(!variableInfo[curFunction][instr.op1].text.empty()  && variableInfo[curFunction][instr.op1].text[0] == '\"') {
                     auto len = variableInfo[curFunction][instr.op1].text.length()+1;
@@ -276,7 +342,7 @@ namespace codegen {
                     output << "     popq %rcx\n";
                     output << "     addq  %rax, %rcx\n";
                 }
-            } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR_STRING) {
+            } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR_STRING || op1_it.has_value()   && op1_it.value()->vtype == ast::VarType::STRING) {
                 loadToRegister(output, instr.op1, "%rdi");
                 output << "    pushq %rcx\n";
                 output << "    call strlen # " << instr.op1 <<"\n";
@@ -295,7 +361,7 @@ namespace codegen {
                     output << "    popq %rcx\n";
                     output << "    addq %rax, %rcx\n";
                 }
-            } else if (variableInfo[curFunction][instr.op2].type == VariableType::VAR_STRING) {
+            } else if (variableInfo[curFunction][instr.op2].type == VariableType::VAR_STRING   && op2_it.has_value()  && op2_it.value()->vtype == ast::VarType::STRING) {
                 loadToRegister(output, instr.op2, "%rdi");
                 output << "    pushq %rcx\n";
                 output << "    call strlen # " << instr.op2 << "\n";
@@ -318,7 +384,11 @@ namespace codegen {
             output << "    popq %rcx\n";
             allocatedMemory[curFunction].insert(instr.dest);  
             variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
-       
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if(it.has_value()) {
+                it.value()->vtype = ast::VarType::STRING;
+            }
         }
 
         void emitBinaryOp(std::ostringstream &output, const ir::IRInstruction &instr, const std::string &op) {
@@ -338,6 +408,15 @@ namespace codegen {
 
         void emitAssign(std::ostringstream &output, const ir::IRInstruction &instr) {
             variableInfo[curFunction][instr.dest].type = variableInfo[curFunction][instr.op1].type;
+            table.enter(instr.dest);
+            table.enter(instr.op1);
+            auto val = table.lookup(instr.dest);
+            if(val.has_value()) {
+                auto loc = table.lookup(instr.op1);
+                if(loc.has_value()) {
+                    val.value()->vtype = loc.value()->vtype;
+                }
+            }
             loadToRegister(output, instr.op1, "%rax");
             storeToTemp(output, instr.dest, "%rax");
         }
@@ -345,7 +424,18 @@ namespace codegen {
         void emitLoadVar(std::ostringstream &output, const ir::IRInstruction &instr) {
             loadToRegister(output, instr.op1, "%rax");
             storeToTemp(output, instr.dest, "%rax");
-            variableInfo[curFunction][instr.dest].type = variableInfo[curFunction][instr.op1].type;
+            table.enter(instr.op1);
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.op1);
+            if(it.has_value()) {
+                symbol::Symbol *s = it.value();
+                auto src = table.lookup(instr.dest);
+                if(src.has_value()) {
+                    symbol::Symbol *v = src.value();
+                    v->vtype = s->vtype;
+                   
+                }
+            }
         }
 
         void emitNeg(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -363,13 +453,15 @@ namespace codegen {
         void emitCall(std::ostringstream &output, const ir::IRInstruction &instr) {
             static const std::vector<std::string> argumentRegisters = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
             size_t numArgs = instr.args.size();
-            
+
             for (size_t i = 0; i < numArgs && i < argumentRegisters.size(); ++i) {
                 loadToRegister(output, instr.args[i], argumentRegisters[i]);
             }
-            
-            output << "    movq $0, %rax\n"; 
+
+
+
             output << "    pushq %rcx\n";
+            output << "    movq $0, %rax\n"; 
             output << "    call " << instr.functionName << "\n";
             storeToTemp(output, instr.dest, "%rax");
             output << "    popq %rcx\n";
@@ -380,12 +472,21 @@ namespace codegen {
             auto fn = clib::clibrary.find(instr.functionName);
             
             if (fn != clib::clibrary.end()) {
+
+                auto dest_rt = table.lookup(instr.dest);
+
                 switch (fn->second.return_type) {
                     case clib::VarType::POINTER:
                         variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
+                        if(dest_rt.has_value()) {
+                            dest_rt.value()->vtype = ast::VarType::STRING;
+                        }
                         break;
                     case clib::VarType::INTEGER:
                         variableInfo[curFunction][instr.dest].type = VariableType::VAR;
+                        if(dest_rt.has_value()) {
+                            dest_rt.value()->vtype = ast::VarType::NUMBER;
+                        }
                         break;
                     default:
                         std::cerr << "ETL: Return type not supported yet.\n";
@@ -400,47 +501,27 @@ namespace codegen {
 
                 if (instr.functionName != "printf") {
                     for (size_t i = 0; i < fn->second.args.size(); ++i) {
-                        auto actualType = variableInfo[curFunction][instr.args.at(i)].type;
-                        auto expectedType = fn->second.args[i];
+                        ast::VarType actualVarType , expectedType;
 
-                        auto symbolOpt = table.lookup(instr.args.at(i));
-                        clib::VarType actualVarType;
-
-                        if (symbolOpt.has_value()) {
-                            symbol::Symbol *symbol = symbolOpt.value();
-                            switch (symbol->vtype) {
-                                case ast::VarType::STRING:
-                                    actualVarType = clib::VarType::POINTER;
-                                    break;
-                                case ast::VarType::NUMBER:
-                                    actualVarType = clib::VarType::INTEGER;
-                                    break;
-                                default:
-                                    std::cerr << "ETL: Unsupported variable vtype for: " << instr.args.at(i) << " argument.\n";
-                                    exit(EXIT_FAILURE);
-                            }
-                        } else {
-                            switch (actualType) {
-                                case VariableType::VAR_STRING:
-                                    actualVarType = clib::VarType::POINTER;
-                                    break;
-                                case VariableType::VAR:
-                                    actualVarType = clib::VarType::INTEGER;
-                                    break;
-                                case VariableType::STRING_CONST:
-                                    actualVarType = clib::VarType::POINTER;
-                                    break;
-                                case VariableType::NUMERIC_CONST:
-                                    actualVarType = clib::VarType::INTEGER;
-                                    break;
-                                default:
-                                    std::cerr << "ETL: Unsupported variable type for: " << instr.args.at(i) << " argument.\n";
-                                    exit(EXIT_FAILURE);
-                            }
+                        auto one = instr.args.at(i);
+                        auto t1 = table.lookup(one);
+                        if(t1.has_value()) {
+                            actualVarType = t1.value()->vtype;
+                          
                         }
 
+                        auto type = fn->second.args.at(i);
+                        switch(type) {
+                            case clib::VarType::POINTER:
+                            expectedType = ast::VarType::STRING;
+                            break;
+                            case clib::VarType::INTEGER:
+                            expectedType = ast::VarType::NUMBER;
+                            break;
+                        }
+                       
                         if (actualVarType != expectedType) {
-                            std::cerr << "ETL: Type mismatch for argument " << i << " " << instr.args.at(i) << " in function " << instr.functionName << "\n";
+                            std::cerr << "ETL: Type mismatch for argument " << i << " " << static_cast<int>(actualVarType) << ":" << static_cast<int>(expectedType) << " " << instr.args.at(i) << " in function " << instr.functionName << "\n";
                             exit(EXIT_FAILURE);
                         }
                     }
@@ -451,7 +532,41 @@ namespace codegen {
                         allocatedMemory[curFunction].insert(instr.dest);
                     }
                 }
+                if(fn->first == "str") {
+                    table.enter(instr.dest);
+                    auto it = table.lookup(instr.dest);
+                    if(it.has_value()) {
+                        it.value()->vtype = ast::VarType::STRING;
+                    }
+                }
+            } else {
+                auto f = table.lookupFunc(instr.functionName);
+                if(f.has_value()) {
+                    if(f.value()->num_args != instr.args.size()) {
+                        std::cerr << "ETL: Error function argument count doesn't match call to: " << instr.functionName << "\n";
+                        exit(EXIT_FAILURE);
+                    }
+                    ast::VarType returnType = f.value()->vtype;
+
+                    auto loc = table.lookup(instr.dest);
+                    if(loc.has_value()) {
+                        loc.value()->vtype = returnType;
+                    }
+
+                    switch (returnType) {
+                        case ast::VarType::STRING:
+                            variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
+                            break;
+                        case ast::VarType::NUMBER:
+                            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
+                            break;
+                        default:
+                            std::cerr << "ETL: Unsupported return type for local function " << instr.functionName << "\n";
+                            exit(EXIT_FAILURE);
+                    }
+                }
             }
+            cargs.clear();
         }
 
         void emitLabel(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -459,6 +574,7 @@ namespace codegen {
             output << instr.dest << ":\n";
             curFunction = instr.dest;
             local.enterScope(curFunction);
+            paramIndex = 0;
             if (instr.dest != "main") {
                 emitFunctionPrologue(output, instr.dest);
             }
@@ -487,12 +603,12 @@ namespace codegen {
             if (operand[0] == '$' || operand[0] == '%') {
                 output << "    movq " << operand << ", " << reg << " # " << operand << "," << reg << "\n";
             } else if(operand[0] == isalpha(operand[0]) || isdigit(operand[0])) {
-                output << "    leaq " << operand << "%(rip), " << reg << "#" << operand << ", " << reg << "\n";
+                output << "    leaq " << operand << "%(rip), " << reg << " #" << operand << ", " << reg << "\n";
                 
             } 
             else {
                 int offset = getVariableOffset(operand);
-                output << "    movq " << offset << "(%rbp), " << reg << "# " << operand << "\n";
+                output << "    movq " << offset << "(%rbp), " << reg << " # " << operand << "\n";
             }
         }
 

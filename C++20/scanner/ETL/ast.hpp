@@ -118,9 +118,10 @@ namespace ast {
     struct Function : ASTNode {
         std::string name;
         std::vector<std::unique_ptr<ASTNode>> body;
-
-        Function(const std::string &n) : name(n) {}
-
+        std::vector<std::pair<std::string,VarType>> parameters;
+        ast::VarType return_type;
+        Function(const std::string &n, const std::vector<std::pair<std::string, VarType>> &p, VarType vt) : name(n), parameters(std::move(p)), return_type{vt} {}
+        Function(const std::string &n) : name{n} {}
         std::string text() const override {
             std::string result = "function " + name + "() {\n";
             for (const auto& stmt : body) {

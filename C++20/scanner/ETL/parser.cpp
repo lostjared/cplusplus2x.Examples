@@ -293,54 +293,94 @@ namespace parse {
 
 
     std::unique_ptr<ast::Function> Parser::parseFunction() {
+
+        ast::VarType rt_type = ast::VarType::NUMBER;
+        if(test(types::OperatorType::OP_DOLLAR)) {
+            inc();
+            rt_type = ast::VarType::STRING;
+        }
+
         if (test(types::TokenType::TT_ID)) {
             std::string name = scan->operator[](token_index).getTokenValue();
-            inc();
+            inc(); 
             match(types::OperatorType::OP_LPAREN);
+
+            
+            std::vector<std::pair<std::string, ast::VarType>> parameters;
+            if (!test(types::OperatorType::OP_RPAREN)) { 
+                do {
+                    ast::VarType ptype = ast::VarType::NUMBER;
+                    if(test(types::OperatorType::OP_DOLLAR)) {
+                        inc();
+                        ptype = ast::VarType::STRING;
+                    } 
+
+                    if (!test(types::TokenType::TT_ID)) { 
+                        std::ostringstream stream;
+                        auto pos = scan->operator[](token_index).get_pos();
+                        stream << "Parse Error: Expected identifier for parameter on Line: " << pos.first << " Col: " << pos.second << "\n";
+                        throw ParseException(stream.str());
+                    }
+                    std::string param = scan->operator[](token_index).getTokenValue();
+                    parameters.push_back(std::make_pair(param, ptype));
+                    inc(); 
+                    if (test(types::OperatorType::OP_COMMA)) {
+                        inc(); 
+                    } else {
+                        break; 
+                    }
+                } while (true);
+            }
+
             match(types::OperatorType::OP_RPAREN);
             match(types::OperatorType::OP_LBRACE);
+
             bool return_found = false;
+            auto function = std::make_unique<ast::Function>(name, parameters, rt_type);
 
-            auto function = std::make_unique<ast::Function>(name);
             while (!test(types::OperatorType::OP_RBRACE)) {
-                    if(test(types::KeywordType::KW_RETURN)) {
-                        inc();
-                        auto e = parseExpression();
-                        if(e) {
-                            match(types::OperatorType::OP_SEMICOLON);
-                            function->body.push_back(std::make_unique<ast::Return>(std::move(e)));
-                            return_found = true;
-                        }
-                    } else
-                    if(test(types::KeywordType::KW_LET)) {
-                        inc();
-                        auto stmt = parseAssignment();  
-
-                        if (stmt) {
-                            function->body.push_back(std::move(stmt));
-                        } 
-                    } else if(test(types::TokenType::TT_ID)) {
-                        auto token = scan->operator[](token_index);
-                        inc();
-                        auto call_st = parseCall(token.getTokenValue());
-                        inc(); // eat ';'
-                        if(call_st) {
-                            function->body.push_back(std::move(call_st));
-                        }
-                    } else break;
-            }
-            match(types::OperatorType::OP_RBRACE);
-            if(return_found == false) {
-                std::ostringstream stream;
-                stream << "Error: Function " << name << " does not incldue a return statement.\n";
-                throw ParseException(stream.str());
-            }
-            return function;
+                if (test(types::KeywordType::KW_RETURN)) {
+                    inc();
+                    auto e = parseExpression();
+                    if (e) {
+                        match(types::OperatorType::OP_SEMICOLON);
+                        function->body.push_back(std::make_unique<ast::Return>(std::move(e)));
+                        return_found = true;
+                    }
+                } else if (test(types::KeywordType::KW_LET)) {
+                    inc();
+                    auto stmt = parseAssignment();
+                    if (stmt) {
+                        function->body.push_back(std::move(stmt));
+                    }
+                } else if (test(types::TokenType::TT_ID)) {
+                    auto token = scan->operator[](token_index);
+                    inc();
+                    auto call_st = parseCall(token.getTokenValue());
+                    inc(); // eat ';'
+                    if (call_st) {
+                        function->body.push_back(std::move(call_st));
+                    }
+                } else {
+                    break;
+                }
         }
-        std::ostringstream stream;
-        auto pos = scan->operator[](token_index).get_pos();
-        stream << "Parse Error: Excepted Function on Line: " << pos.first << " Col: " << pos.second << "\n";
-        throw ParseException(stream.str());
-        return nullptr;
+
+        match(types::OperatorType::OP_RBRACE);
+
+        if (!return_found) {
+            std::ostringstream stream;
+            stream << "Error: Function " << name << " does not include a return statement.\n";
+            throw ParseException(stream.str());
+        }
+
+        return function;
     }
+
+    std::ostringstream stream;
+    auto pos = scan->operator[](token_index).get_pos();
+    stream << "Parse Error: Expected Function on Line: " << pos.first << " Col: " << pos.second << "\n";
+    throw ParseException(stream.str());
+    return nullptr;
+}
 }
