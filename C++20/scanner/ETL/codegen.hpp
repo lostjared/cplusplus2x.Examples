@@ -462,6 +462,9 @@ namespace codegen {
             storeToTemp(output, instr.dest, "%rax");
         }
 
+        std::string lastFunctionCall;
+        std::string lastFunctionCallDest;
+
         void emitCall(std::ostringstream &output, const ir::IRInstruction &instr) {
             static const std::vector<std::string> argumentRegisters = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
             size_t numArgs = instr.args.size();
@@ -470,12 +473,15 @@ namespace codegen {
                 loadToRegister(output, instr.args[i], argumentRegisters[i]);
             }
 
-
+            lastFunctionCall = instr.functionName;
+            lastFunctionCallDest = instr.dest;
 
             output << "    pushq %rcx\n";
             output << "    movq $0, %rax\n"; 
             output << "    call " << instr.functionName << "\n";
             storeToTemp(output, instr.dest, "%rax");
+
+
             output << "    popq %rcx\n";
             if(instr.functionName == "str") {
                 output << "   addq $22, %rcx\n";
