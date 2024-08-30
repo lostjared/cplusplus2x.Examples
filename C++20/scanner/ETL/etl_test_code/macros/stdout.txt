@@ -12,8 +12,6 @@ ETL: IR code: {
 	CALL t6 puts t5
 	LOAD_CONST t7 0
 	RETURN t7
-HERE!
-HERE!
 }
 ETL: compiled [macros.s]
 Assembled macros.s to macros.o
