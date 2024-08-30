@@ -375,9 +375,11 @@ namespace codegen {
             output << "    xorq %rax, %rax\n";
             output << "    pushq %rcx\n";
             output << "    call calloc\n";
+            output << "    popq %rcx\n";
             output << "    movq %rax, %rdi\n";
             storeToTemp(output, instr.dest, "%rdi");
             loadToRegister(output,instr.op1,"%rsi");
+            output << "    pushq %rcx\n";
             output << "    call strcpy\n";
             loadToRegister(output,instr.op2,"%rsi");
             output << "    call strcat\n";
@@ -392,6 +394,11 @@ namespace codegen {
         }
 
         void emitBinaryOp(std::ostringstream &output, const ir::IRInstruction &instr, const std::string &op) {
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if(it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             output << "    " << op << " " << getOperand(instr.op2) << ", %rax\n";
@@ -400,6 +407,11 @@ namespace codegen {
 
         void emitDiv(std::ostringstream &output, const ir::IRInstruction &instr) {
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if(it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
             loadToRegister(output, instr.op1, "%rax");
             output << "    cqto\n";
             output << "    idivq " << getOperand(instr.op2) << "\n";
@@ -466,9 +478,8 @@ namespace codegen {
             storeToTemp(output, instr.dest, "%rax");
             output << "    popq %rcx\n";
             if(instr.functionName == "str") {
-                output << "    addq $22, %rcx\n";
+                output << "   addq $22, %rcx\n";
             }
-            
             auto fn = clib::clibrary.find(instr.functionName);
             
             if (fn != clib::clibrary.end()) {
@@ -547,9 +558,10 @@ namespace codegen {
                         exit(EXIT_FAILURE);
                     }
                     ast::VarType returnType = f.value()->vtype;
-
+                    table.enter(instr.dest);
                     auto loc = table.lookup(instr.dest);
                     if(loc.has_value()) {
+                        loc.value()->name = instr.dest;
                         loc.value()->vtype = returnType;
                     }
 
@@ -582,10 +594,12 @@ namespace codegen {
         }
 
         void emitReturn(std::ostringstream &output, const ir::IRInstruction &instr) {
-            if (!instr.dest.empty()) {
-                loadToRegister(output, instr.dest, "%rax");
-            } else {
-                output << "    movq $0, %rax\n";
+            
+            if(variableInfo[curFunction][instr.dest].type == VariableType::VAR_STRING) {
+                auto val = allocatedMemory[curFunction].find(instr.dest);
+                if(val != allocatedMemory[curFunction].end()) {
+                    allocatedMemory[curFunction].erase(val);
+                }
             }
 
             for (const auto &var : allocatedMemory[curFunction]) {
@@ -595,6 +609,11 @@ namespace codegen {
                 }
             }
 
+            if (!instr.dest.empty()) {
+                loadToRegister(output, instr.dest, "%rax");
+            } else {
+                output << "    movq $0, %rax\n";
+            }
             emitFunctionEpilogue(output);
             local.exitScope();
         }
