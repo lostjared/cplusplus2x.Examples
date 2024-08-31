@@ -10,6 +10,7 @@
 #include <iostream>
 #include <algorithm>
 #include <regex>
+#include <set>
 #include "ir.hpp"
 #include "symbol.hpp"
 #include "clib.hpp"
@@ -82,6 +83,7 @@ namespace codegen {
         std::unordered_map<std::string, int> tempVarCountPerFunction;
         std::unordered_map<std::string, std::unordered_set<std::string>> allocatedMemory;  
         std::unordered_map<std::string, std::unordered_map<std::string, VariableInfo>> variableInfo;
+        std::unordered_map<std::string, std::set<std::string>> ownedMemory;
         std::string curFunction;
 
         void collectLiteralsAndConstants(const ir::IRCode &code) {
@@ -352,7 +354,7 @@ namespace codegen {
 
             if (variableInfo[curFunction][instr.op2].type == VariableType::STRING_CONST) {
                 if(!variableInfo[curFunction][instr.op2].text.empty()  && variableInfo[curFunction][instr.op2].text[0] == '\"') {
-                    auto len = variableInfo[curFunction][instr.op1].text.length()+1;
+                    auto len = variableInfo[curFunction][instr.op2].text.length()+1;
                     output << "    addq $" << len << ", %rcx\n";
                 } else {
                     loadToRegister(output, instr.op2, "%rdi");
@@ -420,13 +422,16 @@ namespace codegen {
 
         void emitAssign(std::ostringstream &output, const ir::IRInstruction &instr) {
             variableInfo[curFunction][instr.dest].type = variableInfo[curFunction][instr.op1].type;
-            table.enter(instr.dest);
-            table.enter(instr.op1);
             auto val = table.lookup(instr.dest);
             if(val.has_value()) {
                 auto loc = table.lookup(instr.op1);
                 if(loc.has_value()) {
                     val.value()->vtype = loc.value()->vtype;
+                }
+                auto val = ownedMemory[curFunction].find(instr.op1);
+                if(val != ownedMemory[curFunction].end()) {
+                    ownedMemory[curFunction].erase(val);
+                    ownedMemory[curFunction].insert(instr.dest);
                 }
             }
             loadToRegister(output, instr.op1, "%rax");
@@ -445,6 +450,7 @@ namespace codegen {
                 if(src.has_value()) {
                     symbol::Symbol *v = src.value();
                     v->vtype = s->vtype;
+                    variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
                    
                 }
             }
@@ -480,11 +486,12 @@ namespace codegen {
             output << "    movq $0, %rax\n"; 
             output << "    call " << instr.functionName << "\n";
             storeToTemp(output, instr.dest, "%rax");
-
-
+            table.enter(instr.dest);
+            if(variableInfo[curFunction][instr.dest].type == VariableType::VAR_STRING)
+                ownedMemory[curFunction].insert(instr.dest);
             output << "    popq %rcx\n";
             if(instr.functionName == "str") {
-                output << "   addq $22, %rcx\n";
+                output << "    addq $22, %rcx\n";
             }
             auto fn = clib::clibrary.find(instr.functionName);
             
@@ -571,9 +578,10 @@ namespace codegen {
                         loc.value()->vtype = returnType;
                     }
 
-                    switch (returnType) {
+                       switch (returnType) {
                         case ast::VarType::STRING:
                             variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
+                            allocatedMemory[curFunction].insert(instr.dest);
                             break;
                         case ast::VarType::NUMBER:
                             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
@@ -584,6 +592,9 @@ namespace codegen {
                     }
                 }
             }
+
+        
+
             cargs.clear();
         }
 
@@ -600,12 +611,13 @@ namespace codegen {
         }
 
         void emitReturn(std::ostringstream &output, const ir::IRInstruction &instr) {
-            
+
             if(variableInfo[curFunction][instr.dest].type == VariableType::VAR_STRING) {
                 auto val = allocatedMemory[curFunction].find(instr.dest);
                 if(val != allocatedMemory[curFunction].end()) {
                     allocatedMemory[curFunction].erase(val);
                 }
+
             }
 
             for (const auto &var : allocatedMemory[curFunction]) {
@@ -613,6 +625,11 @@ namespace codegen {
                     loadToRegister(output, var, "%rdi");
                     output << "    call free #"<<var<<"\n";
                 }
+            }
+
+            for(const auto &var : ownedMemory[curFunction]) {
+                    loadToRegister(output, var, "%rdi");
+                    output << "    call free #"<<var<<"\n";
             }
 
             if (!instr.dest.empty()) {
@@ -633,7 +650,7 @@ namespace codegen {
             } 
             else {
                 int offset = getVariableOffset(operand);
-                output << "    movq " << offset << "(%rbp), " << reg << " # " << operand << "\n";
+                output << "    movq " << offset << "(%rbp), " << reg << " # " << operand << " # " << operand << "\n";
             }
         }
 

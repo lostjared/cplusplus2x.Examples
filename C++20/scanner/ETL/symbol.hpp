@@ -14,8 +14,9 @@ namespace symbol {
         int ivalue;
         double dvalue;
         ast::VarType vtype;
-        Symbol() : name{}, value{}, ivalue{}, dvalue{}, vtype{} {}
-        Symbol(const Symbol &s) : name{s.name}, value{s.value}, ivalue{s.ivalue}, dvalue{s.dvalue}, vtype{s.vtype} {}
+        bool allocated;
+        Symbol() : name{}, value{}, ivalue{}, dvalue{}, vtype{}, allocated{false} {}
+        Symbol(const Symbol &s) : name{s.name}, value{s.value}, ivalue{s.ivalue}, dvalue{s.dvalue}, vtype{s.vtype}, allocated{s.allocated} {}
         Symbol &operator=(const Symbol &s) {
             name = s.name;
             value = s.value;
@@ -36,6 +37,11 @@ namespace symbol {
         SymbolTable() {
             symbols["global"] = std::unordered_map<std::string, Symbol>();
             cur_scope = &symbols["global"];  // Initialize cur_scope to point to the global scope
+        }
+
+        bool is_there(const std::string &sym) {
+            auto it = cur_scope->find(sym);
+            return (it != cur_scope->end());
         }
 
         void enter(const std::string &sym) {

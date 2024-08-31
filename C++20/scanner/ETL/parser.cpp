@@ -343,7 +343,7 @@ namespace parse {
                     inc();
                     auto e = parseExpression();
                     if (e) {
-                        match(types::OperatorType::OP_SEMICOLON);
+                        match(types::OperatorType::OP_SEMICOLON);\
                         function->body.push_back(std::make_unique<ast::Return>(std::move(e)));
                         return_found = true;
                     }

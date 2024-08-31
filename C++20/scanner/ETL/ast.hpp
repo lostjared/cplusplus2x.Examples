@@ -7,6 +7,8 @@
 
 namespace ast {
 
+    enum class VarType { NUMBER, STRING, POINTER };
+
     struct ASTNode {
         virtual ~ASTNode() = default;
         virtual std::string text() const = 0;  // Pure virtual method to be implemented by subclasses
@@ -34,8 +36,6 @@ namespace ast {
         }
     };
 
-    enum class VarType { NUMBER, STRING, POINTER };
-
     struct Identifier : Expression {
         std::string name;
         VarType vtype;
@@ -50,10 +50,10 @@ namespace ast {
         types::OperatorType op;
         std::unique_ptr<Expression> left;
         std::unique_ptr<Expression> right;
+        bool allocated;
 
-
-        BinaryOp(types::OperatorType o, std::unique_ptr<Expression> l, std::unique_ptr<Expression> r)
-            : op(o), left(std::move(l)), right(std::move(r)) {}
+        BinaryOp(types::OperatorType o, std::unique_ptr<Expression> l, std::unique_ptr<Expression> r, bool a = false)
+            : op(o), left(std::move(l)), right(std::move(r)), allocated(a) {}
 
         std::string text() const override {
             return "(" + left->text() + " " + types::opName[static_cast<unsigned int>(op)] + " " + right->text() + ")";
@@ -107,8 +107,9 @@ namespace ast {
 
     struct Return : Statement {
         std::unique_ptr<Expression> return_value;
+        bool allocated;
 
-        Return(std::unique_ptr<Expression> rt) : return_value(std::move(rt)) {}
+        Return(std::unique_ptr<Expression> rt, bool a = false) : return_value(std::move(rt)), allocated(false) {}
 
         std::string text() const override {
             return "return " + return_value->text() + ";";

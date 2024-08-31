@@ -153,6 +153,11 @@ namespace parse {
             if (lhs) {
                 auto rhsLiteral = dynamic_cast<const ast::Literal*>(assign->right.get());
                 if (rhsLiteral) {
+                    if(table.is_there(lhs->name)) {
+                        std::ostringstream stream;
+                        stream << " Variable: " << lhs->name << " already defined in constant assignment.\n";
+                        throw ir::IRException(stream.str());
+                    }
                     table.enter(lhs->name);
                     auto entry = table.lookup(lhs->name);
                     if(entry.has_value()) {
@@ -164,7 +169,6 @@ namespace parse {
                         else if(rhsLiteral->type == types::TokenType::TT_STR)
                             e->vtype = ast::VarType::STRING;
                     }
-                    
                     code.emplace_back(ir::InstructionType::LOAD_CONST, lhs->name, rhsLiteral->value);
                 } else {
                     generate(assign->right.get(), code);
@@ -172,6 +176,11 @@ namespace parse {
                     if (lastComputedValue[rhs] == lhs->name) {
                         lastComputedValue[lhs->name] = rhs;
                     } else {
+                         if(table.is_there(lhs->name)) {
+                            std::ostringstream stream;
+                            stream << " Variable: " << lhs->name << " already defined in assignment.\n";
+                            throw ir::IRException(stream.str());
+                        }
                         table.enter(lhs->name);
                         auto it = table.lookup(lhs->name);
                         if(it.has_value()) {
@@ -249,6 +258,7 @@ namespace parse {
                     it.value()->name = dest;
                     it.value()->value = '\"';
                     it.value()->vtype = ast::VarType::STRING;
+                    it.value()->allocated = true;
                 }
             } else if (!leftIsString && !rightIsString) {
                     table.enter(dest);
@@ -343,6 +353,7 @@ namespace parse {
                 generate(stmt.get(), code);
             }
             functionLocalVarCount[func->name] = table.getCurrentScopeSize();
+
             table.exitScope();
         }
 
