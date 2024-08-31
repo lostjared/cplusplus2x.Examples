@@ -8,13 +8,15 @@ for dir in "${directories[@]}"; do
     
     if make > stdout.txt 2>&1; then
         echo "Compilation successful in $dir"
-	echo "Executing..."
-        if ./program ; then
-		echo "Success.."
-	else
-		echo "Failure program crashed"
-		exit 1
-	fi
+	    echo "Executing..."
+        if valgrind ./program > valgrind.txt 2>&1; then
+		echo "Valgrind Success.."
+        cat valgrind.txt
+        make clean
+        else
+        echo "valgrind failure.."
+        exit 1
+        fi
     else
         echo "Compilation failed in $dir. Check stdout.txt for details."
         cd ..
@@ -24,4 +26,4 @@ for dir in "${directories[@]}"; do
     cd ..
 done
 
-echo "All compilations completed successfully."
+echo "All compilations and tests completed successfully."

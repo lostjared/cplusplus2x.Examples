@@ -1,6 +1,7 @@
 #!/bin/bash
 
-directories=("addnumber" "c_code" "cpp_code" "hello" "macros" "number" "obj" "str" "strings")
+
+source ./projects.sh
 
 for dir in "${directories[@]}"; do
     echo "Entering directory: $dir"

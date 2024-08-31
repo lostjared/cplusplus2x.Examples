@@ -10,4 +10,4 @@ $(OUTPUT):
 all: $(OUTPUT)
 
 clean:
-	rm -f *.o *.s *.i $(OUTPUT)
+	rm -f *.o $(OUTPUT)

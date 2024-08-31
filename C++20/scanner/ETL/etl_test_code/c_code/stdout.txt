@@ -1,14 +1,1 @@
-cc code.c -o code.o -c
-etl program hello.e code.o 
-ETL: Scanned 13 tokens.
-ETL: parsing ...  [complete]
-ETL: IR code: {
-	LABEL init
-	CALL t0 hello
-	LOAD_CONST t1 0
-	RETURN t1
-}
-ETL: compiled [hello.s]
-Assembled hello.s to hello.o
-Linked [hello.o code.o] with flags []
-Executable: [program]
+make: 'program' is up to date.

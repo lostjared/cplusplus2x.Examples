@@ -8,185 +8,156 @@ main:
     movq %rsp, %rbp
     subq $16, %rsp
     call init
-    movq %rax, %rbx
     leave
-    movq %rbx, %rax
     ret
 .globl init
 init:
     pushq %rbp
     movq %rsp, %rbp
-    subq $192, %rsp
+    subq $240, %rsp
     movq $0, %rcx
     movq $200, %rax
     movq %rax, -8(%rbp)
     movq $300, %rax
     movq %rax, -16(%rbp)
-    movq -8(%rbp), %rax# x
+    movq -8(%rbp), %rax # x # x
     movq %rax, -24(%rbp)
-    movq -24(%rbp), %rdi# t0
+    movq -24(%rbp), %rdi # t0 # t0
     movq $0, %rax
-    pushq %rcx
     call str
     movq %rax, -32(%rbp)
-    popq %rcx
-    addq $22, %rcx
+    addq $22, -40(%rbp)
     leaq t2(%rip), %rax
-    movq %rax, -40(%rbp)
-    movq -32(%rbp), %rdi# t1
-    pushq %rcx
+    movq %rax, -48(%rbp)
+    movq $0, %rcx
+    movq %rcx, -40(%rbp)
+    movq -32(%rbp), %rdi # t1 # t1
     call strlen # t1
-    popq %rcx
-    addq %rax, %rcx
-    addq $1, %rcx
-    addq $1, %rcx
-    movq %rcx, %rdi
+    addq %rax, -40(%rbp)
+    addq $4, -40(%rbp)
+    addq $1, -40(%rbp)
     movq $1, %rsi
     xorq %rax, %rax
-    pushq %rcx
+    movq -40(%rbp), %rdi # counter # counter
     call calloc
     movq %rax, %rdi
-    movq %rdi, -48(%rbp)
-    movq -32(%rbp), %rsi# t1
+    movq %rdi, -56(%rbp)
+    movq -32(%rbp), %rsi # t1 # t1
     call strcpy
-    movq -40(%rbp), %rsi# t2
+    movq -48(%rbp), %rsi # t2 # t2
     call strcat
-    popq %rcx
-    movq -16(%rbp), %rax# y
-    movq %rax, -56(%rbp)
-    movq -56(%rbp), %rdi# t4
-    movq $0, %rax
-    pushq %rcx
-    call str
+    movq -16(%rbp), %rax # y # y
     movq %rax, -64(%rbp)
-    popq %rcx
-    addq $22, %rcx
-    movq -48(%rbp), %rdi# t3
-    pushq %rcx
+    movq -64(%rbp), %rdi # t4 # t4
+    movq $0, %rax
+    call str
+    movq %rax, -72(%rbp)
+    addq $22, -40(%rbp)
+    movq $0, %rcx
+    movq -56(%rbp), %rdi # t3 # t3
     call strlen # t3
-    popq %rcx
-    addq %rax, %rcx
-    movq -64(%rbp), %rdi# t5
-    pushq %rcx
+    addq %rax, -40(%rbp)
+    movq -72(%rbp), %rdi # t5 # t5
     call strlen # t5
-    popq %rcx
-    addq %rax, %rcx
-    addq $1, %rcx
-    movq %rcx, %rdi
+    addq %rax, -40(%rbp)
+    addq $1, -40(%rbp)
     movq $1, %rsi
     xorq %rax, %rax
-    pushq %rcx
+    movq -40(%rbp), %rdi # counter # counter
     call calloc
     movq %rax, %rdi
-    movq %rdi, -72(%rbp)
-    movq -48(%rbp), %rsi# t3
+    movq %rdi, -80(%rbp)
+    movq -56(%rbp), %rsi # t3 # t3
     call strcpy
-    movq -64(%rbp), %rsi# t5
+    movq -72(%rbp), %rsi # t5 # t5
     call strcat
-    popq %rcx
     leaq t7(%rip), %rax
-    movq %rax, -80(%rbp)
-    movq -72(%rbp), %rdi# t6
-    pushq %rcx
+    movq %rax, -88(%rbp)
+    movq $0, %rcx
+    movq -80(%rbp), %rdi # t6 # t6
     call strlen # t6
-    popq %rcx
-    addq %rax, %rcx
-    addq $1, %rcx
-    addq $1, %rcx
-    movq %rcx, %rdi
+    addq %rax, -40(%rbp)
+    addq $4, -40(%rbp)
+    addq $1, -40(%rbp)
     movq $1, %rsi
     xorq %rax, %rax
-    pushq %rcx
+    movq -40(%rbp), %rdi # counter # counter
     call calloc
     movq %rax, %rdi
-    movq %rdi, -88(%rbp)
-    movq -72(%rbp), %rsi# t6
+    movq %rdi, -96(%rbp)
+    movq -80(%rbp), %rsi # t6 # t6
     call strcpy
-    movq -80(%rbp), %rsi# t7
+    movq -88(%rbp), %rsi # t7 # t7
     call strcat
-    popq %rcx
-    movq -8(%rbp), %rax# x
-    movq %rax, -96(%rbp)
-    movq -16(%rbp), %rax# y
+    movq -8(%rbp), %rax # x # x
     movq %rax, -104(%rbp)
-    movq -96(%rbp), %rax# t9
-    addq -104(%rbp), %rax
+    movq -16(%rbp), %rax # y # y
     movq %rax, -112(%rbp)
-    movq -112(%rbp), %rdi# t11
-    movq $0, %rax
-    pushq %rcx
-    call str
+    movq -104(%rbp), %rax # t9 # t9
+    addq -112(%rbp), %rax
     movq %rax, -120(%rbp)
-    popq %rcx
-    addq $22, %rcx
-    movq -88(%rbp), %rdi# t8
-    pushq %rcx
+    movq -120(%rbp), %rdi # t11 # t11
+    movq $0, %rax
+    call str
+    movq %rax, -128(%rbp)
+    addq $22, -40(%rbp)
+    movq $0, %rcx
+    movq -96(%rbp), %rdi # t8 # t8
     call strlen # t8
-    popq %rcx
-    addq %rax, %rcx
-    movq -120(%rbp), %rdi# t12
-    pushq %rcx
+    addq %rax, -40(%rbp)
+    movq -128(%rbp), %rdi # t12 # t12
     call strlen # t12
-    popq %rcx
-    addq %rax, %rcx
-    addq $1, %rcx
-    movq %rcx, %rdi
+    addq %rax, -40(%rbp)
+    addq $1, -40(%rbp)
     movq $1, %rsi
     xorq %rax, %rax
-    pushq %rcx
+    movq -40(%rbp), %rdi # counter # counter
     call calloc
     movq %rax, %rdi
-    movq %rdi, -128(%rbp)
-    movq -88(%rbp), %rsi# t8
+    movq %rdi, -136(%rbp)
+    movq -96(%rbp), %rsi # t8 # t8
     call strcpy
-    movq -120(%rbp), %rsi# t12
+    movq -128(%rbp), %rsi # t12 # t12
     call strcat
-    popq %rcx
-    movq -128(%rbp), %rdi# t13
+    movq -136(%rbp), %rdi # t13 # t13
     movq $0, %rax
-    pushq %rcx
     call puts
-    movq %rax, -136(%rbp)
-    popq %rcx
-    movq -8(%rbp), %rax# x
     movq %rax, -144(%rbp)
-    movq -8(%rbp), %rax# x
+    movq -8(%rbp), %rax # x # x
     movq %rax, -152(%rbp)
-    movq -144(%rbp), %rax# t15
-    imulq -152(%rbp), %rax
+    movq -8(%rbp), %rax # x # x
     movq %rax, -160(%rbp)
-    movq -160(%rbp), %rdi# t17
-    movq $0, %rax
-    pushq %rcx
-    call str
+    movq -152(%rbp), %rax # t15 # t15
+    imulq -160(%rbp), %rax
     movq %rax, -168(%rbp)
-    popq %rcx
-    addq $22, %rcx
-    movq -168(%rbp), %rdi# t18
+    movq -168(%rbp), %rdi # t17 # t17
     movq $0, %rax
-    pushq %rcx
-    call puts
+    call str
     movq %rax, -176(%rbp)
-    popq %rcx
+    addq $22, -40(%rbp)
+    movq -176(%rbp), %rdi # t18 # t18
     movq $0, %rax
+    call puts
     movq %rax, -184(%rbp)
-    movq -184(%rbp), %rax# t20
-    movq -168(%rbp), %rdi# t18
+    movq $0, %rax
+    movq %rax, -192(%rbp)
+    movq -176(%rbp), %rdi # t18 # t18
     call free #t18
-    movq -128(%rbp), %rdi# t13
+    movq -136(%rbp), %rdi # t13 # t13
     call free #t13
-    movq -120(%rbp), %rdi# t12
+    movq -128(%rbp), %rdi # t12 # t12
     call free #t12
-    movq -88(%rbp), %rdi# t8
+    movq -96(%rbp), %rdi # t8 # t8
     call free #t8
-    movq -64(%rbp), %rdi# t5
+    movq -72(%rbp), %rdi # t5 # t5
     call free #t5
-    movq -48(%rbp), %rdi# t3
+    movq -56(%rbp), %rdi # t3 # t3
     call free #t3
-    movq -72(%rbp), %rdi# t6
+    movq -80(%rbp), %rdi # t6 # t6
     call free #t6
-    movq -32(%rbp), %rdi# t1
+    movq -32(%rbp), %rdi # t1 # t1
     call free #t1
+    movq -192(%rbp), %rax # t20 # t20
     leave
     ret
 .section .note.GNU-stack,"",@progbits
