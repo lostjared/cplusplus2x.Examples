@@ -319,11 +319,11 @@ namespace codegen {
             if (instr.op1[0] == '\"') {
                 std::string label = stringLiterals[curFunction][instr.op1];
                 output << "    leaq " << label << "(%rip), %rax\n";
-                variableInfo[curFunction][instr.op1].type == VariableType::STRING_CONST;
+                variableInfo[curFunction][instr.op1].type = VariableType::STRING_CONST;
             } else {
                 std::string label = numericConstants[curFunction][instr.op1];
                 output << "    movq " << "$" << instr.op1 << ", %rax\n";
-                variableInfo[curFunction][instr.op1].type == VariableType::NUMERIC_CONST;
+                variableInfo[curFunction][instr.op1].type = VariableType::NUMERIC_CONST;
             } 
             storeToTemp(output, instr.dest, "%rax");
         }
@@ -542,6 +542,8 @@ namespace codegen {
                             case clib::VarType::INTEGER:
                             expectedType = ast::VarType::NUMBER;
                             break;
+                            default:
+                                break;
                         }
                        
                         if (actualVarType != expectedType) {
