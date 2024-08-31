@@ -32,6 +32,7 @@ namespace ir {
         CONCAT,
         PARAM,
         PARAM_STRING,
+        DEFINE
     };
 
     inline std::vector<std::string> InstructionStrings{
@@ -50,6 +51,7 @@ namespace ir {
         "CONCAT",
         "PARAM",
         "PARAM_STRING",
+        "DEFINE"
     };
 
     struct IRInstruction {
@@ -129,9 +131,11 @@ namespace parse {
                 generateBinaryOp(binOp, code);
             } else if (auto unaryOp = dynamic_cast<const ast::UnaryOp*>(node)) {
                 generateUnaryOp(unaryOp, code);
+            } else if (auto fdef = dynamic_cast<const ast::DefineFunction*>(node)) {
+                generateDefFunction(fdef, code);
             } else if (auto func = dynamic_cast<const ast::Function*>(node)) {
                 generateFunction(func, code);
-            } else if (auto call = dynamic_cast<const ast::Call*>(node)) {
+            }else if (auto call = dynamic_cast<const ast::Call*>(node)) {
                 generateCall(call, code);
             } else if (auto literal = dynamic_cast<const ast::Literal*>(node)) {
                 generateLiteral(literal, code);
@@ -354,6 +358,27 @@ namespace parse {
             }
             functionLocalVarCount[func->name] = table.getCurrentScopeSize();
 
+            table.exitScope();
+        }
+
+        void generateDefFunction(const ast::DefineFunction *func, ir::IRCode &code) {
+            code.emplace_back(ir::InstructionType::DEFINE, func->name, "");
+            table.enterScope(func->name);
+            for (const auto &param : func->parameters) {
+                table.enter(param.first);  
+                auto p = table.lookup(param.first);
+                if(p.has_value()) {
+                    symbol::Symbol *s = p.value();
+                    s->vtype = param.second;
+                }
+                if(param.second == ast::VarType::STRING) {
+                    code.emplace_back(ir::InstructionType::PARAM_STRING, param.first, "");  
+                } else {
+                    code.emplace_back(ir::InstructionType::PARAM, param.first, "");  
+                }
+            }
+
+            table.enterFunction(func->name, func->parameters.size(), func->return_type);
             table.exitScope();
         }
 

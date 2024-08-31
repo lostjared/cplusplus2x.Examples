@@ -133,6 +133,23 @@ namespace ast {
         }
     };
 
+    struct DefineFunction : ASTNode {
+        std::string name;
+        std::vector<std::unique_ptr<ASTNode>> body;
+        std::vector<std::pair<std::string,VarType>> parameters;
+        ast::VarType return_type;
+        DefineFunction(const std::string &n, const std::vector<std::pair<std::string, VarType>> &p, VarType vt) : name(n), parameters(std::move(p)), return_type{vt} {}
+        DefineFunction(const std::string &n) : name{n} {}
+        std::string text() const override {
+            std::string result = "define " + name + "(";
+            for(auto &i : parameters) {
+                result += i.first + " ";
+            }
+            result += ")";
+            return result;
+        }
+    };
+
     struct Program : ASTNode {
         std::vector<std::unique_ptr<ASTNode>> body;
 

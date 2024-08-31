@@ -130,7 +130,12 @@ namespace parse {
                 inc();
                 auto function = parseFunction(); 
                 program->body.push_back(std::move(function));
-            } else if (test(types::KeywordType::KW_LET)) {
+            } else if(test(types::KeywordType::KW_DEFINE)) {
+                inc();
+                auto fdef = parseDefine();
+                program->body.push_back(std::move(fdef));
+            } 
+            else if (test(types::KeywordType::KW_LET)) {
                 /*
                 inc();
                 auto assignment = parseAssignment();
@@ -290,6 +295,53 @@ namespace parse {
     throw ParseException(stream.str());
     return nullptr;
 }
+
+    std::unique_ptr<ast::DefineFunction> Parser::parseDefine() {
+        ast::VarType rt_type = ast::VarType::NUMBER;
+        if(test(types::OperatorType::OP_DOLLAR)) {
+            inc();
+            rt_type = ast::VarType::STRING;
+        }
+
+        if (test(types::TokenType::TT_ID)) {
+            std::string name = scan->operator[](token_index).getTokenValue();
+            inc(); 
+            match(types::OperatorType::OP_LPAREN);    
+            std::vector<std::pair<std::string, ast::VarType>> parameters;
+            if (!test(types::OperatorType::OP_RPAREN)) { 
+                do {
+                    ast::VarType ptype = ast::VarType::NUMBER;
+                    if(test(types::OperatorType::OP_DOLLAR)) {
+                        inc();
+                        ptype = ast::VarType::STRING;
+                    } 
+
+                    if (!test(types::TokenType::TT_ID)) { 
+                        std::ostringstream stream;
+                        auto pos = scan->operator[](token_index).get_pos();
+                        stream << "Parse Error: Expected identifier for parameter on Line: " << pos.first << " Col: " << pos.second << "\n";
+                        throw ParseException(stream.str());
+                    }
+                    std::string param = scan->operator[](token_index).getTokenValue();
+                    parameters.push_back(std::make_pair(param, ptype));
+                    inc(); 
+                    if (test(types::OperatorType::OP_COMMA)) {
+                        inc(); 
+                    } else {
+                        break; 
+                    }
+                } while (true);
+            }
+
+            match(types::OperatorType::OP_RPAREN);
+            match(types::OperatorType::OP_SEMICOLON);
+            return std::make_unique<ast::DefineFunction>(name, parameters, rt_type);
+        }
+        std::ostringstream stream;
+        stream << "Parse Error on function Define\n";
+        throw ParseException(stream.str()); 
+        return nullptr;
+    }
 
 
     std::unique_ptr<ast::Function> Parser::parseFunction() {

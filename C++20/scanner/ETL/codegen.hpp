@@ -203,6 +203,7 @@ output << ".section .data\n";
 #else
             output << "    call init\n";
 #endif
+            output << "    movq $0, %rax\n";
             output << "    leave\n";
             output << "    ret\n";
         }
@@ -281,6 +282,8 @@ output << ".section .data\n";
                         break;
                     case ir::InstructionType::PARAM_STRING:
                         emitParamString(output, instr);
+                        break;
+                    case ir::InstructionType::DEFINE:
                         break;
                     default:
                         std::cerr << "Unsupported IR Instruction: " << instr.toString() << std::endl;
@@ -689,6 +692,7 @@ output << ".section .data\n";
             } else {
                 output << "    movq $0, %rax\n";
             }
+            
             emitFunctionEpilogue(output);
             local.exitScope();
         }
