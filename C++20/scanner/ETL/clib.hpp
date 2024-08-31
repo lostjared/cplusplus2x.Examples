@@ -34,6 +34,7 @@ namespace clib {
         // libetl
         { "str", { "str", VarType::POINTER, { VarType::INTEGER }, true } },
         { "scan_integer", { "scan_integer", VarType::INTEGER, {}, false } },
+        { "len", {"len", VarType::INTEGER,{ VarType::POINTER }, false } },
     };              
 }
 
