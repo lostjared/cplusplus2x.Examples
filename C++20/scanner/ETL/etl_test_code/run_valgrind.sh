@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# for Linux
 source ./projects.sh
 
 for dir in "${directories[@]}"; do
