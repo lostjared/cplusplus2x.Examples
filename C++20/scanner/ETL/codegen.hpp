@@ -527,6 +527,7 @@ output << ".section .data\n";
 
             output << "    pushq %rcx\n";
             output << "    movq $0, %rax\n"; 
+            output << "    andq $-16, %rsp\n";
 #ifdef __APPLE__
             output << "    call " << "_" << instr.functionName << "\n";
 #else
