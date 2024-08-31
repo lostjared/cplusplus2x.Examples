@@ -1,0 +1,27 @@
+etl program length.e
+ETL: Scanned 48 tokens.
+ETL: parsing ...  [complete]
+ETL: IR code: {
+	LABEL testLen
+	PARAM_STRING what
+	LOAD_CONST t0 "hey: "
+	LOAD_VAR t1 what
+	CONCAT t2 t0 t1
+	ASSIGN n_s t2
+	CALL t3 puts n_s
+	CALL t4 len n_s
+	RETURN t4
+	LABEL init
+	LOAD_CONST t5 "Len value:"
+	LOAD_CONST t6 "value is here"
+	CALL t7 testLen t6
+	CALL t8 str t7
+	CONCAT t9 t5 t8
+	CALL t10 puts t9
+	LOAD_CONST t11 0
+	RETURN t11
+}
+ETL: compiled [length.s]
+Assembled length.s to length.o
+Linked [length.o] with flags []
+Executable: [program]
