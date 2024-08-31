@@ -163,8 +163,8 @@ namespace types {
 
     };
 
-    enum class KeywordType { KW_LET, KW_PROC, KW_IF, KW_SWITCH, KW_WHILE, KW_FOR, KW_RETURN };
-    inline std::vector<std::string> kwStr { "let", "proc", "if", "switch", "while", "for", "return" };
+    enum class KeywordType { KW_LET, KW_PROC, KW_DEFINE, KW_IF, KW_SWITCH, KW_WHILE, KW_FOR, KW_RETURN };
+    inline std::vector<std::string> kwStr { "let", "proc", "define", "if", "switch", "while", "for", "return" };
 
     
     extern std::vector<std::string> strTokenType;
