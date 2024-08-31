@@ -62,10 +62,16 @@ namespace codegen {
                 emitPreamble(output);
                 emitCallInit(output);
             } else {
+#ifdef __APPLE__
+                output << ".section __TEXT,__text\n";
+#else
                 output << ".section .text\n";
+#endif
             }
             emitCode(code, output);
+#ifdef __linux__
             output << ".section .note.GNU-stack,\"\",@progbits\n";
+#endif
             return applyPeephole(output);
         }
 
@@ -150,7 +156,11 @@ namespace codegen {
         }
 
         void emitDataSection(std::ostringstream &output) {
-            output << ".section .data\n";
+#ifdef __APPLE__
+output << ".section __TEXT,__cstring\n";
+#else
+output << ".section .data\n";
+#endif
             for(auto &func : variableInfo) {
                 for(const auto &v : func.second) {
                     if(v.second.type == VariableType::NUMERIC_CONST) {
@@ -163,19 +173,37 @@ namespace codegen {
         }
 
         void emitPreamble(std::ostringstream &output) {
+#ifdef __APPLE__
+            output << ".section __TEXT,__text\n";
+            output << ".globl _start\n";
+            output << "_start:\n";
+            output << "    xor %rbp, %rbp\n";
+            output << "    movq %rsp, %rdi\n";
+            output << "    andq $-16, %rsp\n";
+            output << "    call _main\n";
+            output << "    movq %rax, %rdi\n";
+            output << "    movl $0, %edi\n";
+            output << "    call _exit\n\n";
+            output << ".globl _main\n";
+            output << "_main:\n";
+#else
             output << ".section .text\n";
             output << ".globl main\n";
             output << "main:\n";
+
+#endif
             output << "    pushq %rbp\n";
             output << "    movq %rsp, %rbp\n";
             output << "    subq $16, %rsp\n";
         }
 
         void emitCallInit(std::ostringstream &output) {
+#ifdef __APPLE__
+            output << "    call _init\n";
+#else
             output << "    call init\n";
-            output << "    movq %rax, %rbx\n";
+#endif
             output << "    leave\n";
-            output << "    movq %rbx, %rax\n";
             output << "    ret\n";
         }
 
@@ -316,14 +344,25 @@ namespace codegen {
         }
         
         void emitLoadConst(std::ostringstream &output, const ir::IRInstruction &instr) {
+
+            table.enter(instr.dest);
+            auto loc = table.lookup(instr.dest);
+
+
             if (instr.op1[0] == '\"') {
                 std::string label = stringLiterals[curFunction][instr.op1];
                 output << "    leaq " << label << "(%rip), %rax\n";
-                variableInfo[curFunction][instr.op1].type = VariableType::STRING_CONST;
+                variableInfo[curFunction][instr.dest].type = VariableType::STRING_CONST;
+                if(loc.has_value()) {
+                    loc.value()->vtype = ast::VarType::STRING;
+                }
             } else {
                 std::string label = numericConstants[curFunction][instr.op1];
                 output << "    movq " << "$" << instr.op1 << ", %rax\n";
-                variableInfo[curFunction][instr.op1].type = VariableType::NUMERIC_CONST;
+                variableInfo[curFunction][instr.dest].type = VariableType::NUMERIC_CONST;
+                if(loc.has_value()) {
+                    loc.value()->vtype = ast::VarType::NUMBER;
+                }
             } 
             storeToTemp(output, instr.dest, "%rax");
         }
@@ -484,7 +523,11 @@ namespace codegen {
 
             output << "    pushq %rcx\n";
             output << "    movq $0, %rax\n"; 
+#ifdef __APPLE__
+            output << "    call " << "_" << instr.functionName << "\n";
+#else
             output << "    call " << instr.functionName << "\n";
+#endif
             storeToTemp(output, instr.dest, "%rax");
             table.enter(instr.dest);
             if(variableInfo[curFunction][instr.dest].type == VariableType::VAR_STRING)
@@ -601,8 +644,13 @@ namespace codegen {
         }
 
         void emitLabel(std::ostringstream &output, const ir::IRInstruction &instr) {
+#ifdef __APPLE__
+            output << ".globl _" << instr.dest << "\n";
+            output << "_" << instr.dest << ":\n";
+#else
             output << ".globl " << instr.dest << "\n";
             output << instr.dest << ":\n";
+#endif
             curFunction = instr.dest;
             local.enterScope(curFunction);
             paramIndex = 0;
