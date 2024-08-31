@@ -1,6 +1,13 @@
 #include"argz.hpp"
+#include"version_info.hpp"
 
 extern void test_parse(const std::string &, const std::string &);
+
+void print_about() {
+    std::cout << "ETL: ETL v" << etl_version << "\n";
+    std::cout << "ETL: Writen by Jared Bruni\n";
+    std::cout << "ETL: http://lostsidedead.biz\n";
+}
 
 int main(int argc, char **argv)  {
     Argz<std::string> argz(argc, argv);
@@ -13,6 +20,7 @@ int main(int argc, char **argv)  {
             switch(value) {
                 case 'h':
                 case 'v':
+                    print_about();
                     argz.help(std::cout);
                     exit(EXIT_SUCCESS);
                     break;
@@ -28,6 +36,7 @@ int main(int argc, char **argv)  {
         std::cerr << "Syntax Error: " << e.text() << "\n";
     }
     if(in_file.length() == 0 || out_file.length() == 0) {
+        print_about();
         std::cerr << "Input/Output file(s) must be provided...use -i and -o\n";
         argz.help(std::cerr);
         exit(EXIT_FAILURE);
