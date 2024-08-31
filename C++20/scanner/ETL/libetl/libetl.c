@@ -56,4 +56,12 @@ long scan_integer() {
         exit(EXIT_FAILURE);
     }
     return value;
+} 
+
+long len(void *ptr) {
+    if(ptr == NULL) {
+        fprintf(stderr, "Error: len function pass null pointer\n");
+        exit(EXIT_FAILURE);
+    }
+    return strlen((char*)ptr);
 }
