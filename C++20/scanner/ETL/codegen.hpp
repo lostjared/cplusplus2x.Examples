@@ -371,7 +371,10 @@ output << ".section .data\n";
             
             auto op1_it  = table.lookup(instr.op1);
             auto op2_it  = table.lookup(instr.op2);
-            
+            std::string prefix;
+#ifdef __APPLE__
+            prefix = "_";
+#endif
             if (variableInfo[curFunction][instr.op1].type == VariableType::STRING_CONST) {
                 if(!variableInfo[curFunction][instr.op1].text.empty()  && variableInfo[curFunction][instr.op1].text[0] == '\"') {
                     auto len = variableInfo[curFunction][instr.op1].text.length()+1;
@@ -379,14 +382,14 @@ output << ".section .data\n";
                 } else {
                     loadToRegister(output, instr.op1, "%rdi");
                     output << "     pushq %rcx\n";
-                    output << "     call strlen #" << instr.op1 << "\n";
+                    output << "     call " << prefix << "strlen #" << instr.op1 << "\n";
                     output << "     popq %rcx\n";
                     output << "     addq  %rax, %rcx\n";
                 }
             } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR_STRING || op1_it.has_value()   && op1_it.value()->vtype == ast::VarType::STRING) {
                 loadToRegister(output, instr.op1, "%rdi");
                 output << "    pushq %rcx\n";
-                output << "    call strlen # " << instr.op1 <<"\n";
+                output << "    call " << prefix << "strlen # " << instr.op1 <<"\n";
                 output << "    popq %rcx\n";
                 output << "    addq %rax, %rcx\n";
             } 
@@ -398,14 +401,14 @@ output << ".section .data\n";
                 } else {
                     loadToRegister(output, instr.op2, "%rdi");
                     output << "    pushq %rcx\n";    
-                    output << "    call strlen # " << instr.op2 << "\n";
+                    output << "    call " << prefix << "strlen # " << instr.op2 << "\n";
                     output << "    popq %rcx\n";
                     output << "    addq %rax, %rcx\n";
                 }
             } else if (variableInfo[curFunction][instr.op2].type == VariableType::VAR_STRING   && op2_it.has_value()  && op2_it.value()->vtype == ast::VarType::STRING) {
                 loadToRegister(output, instr.op2, "%rdi");
                 output << "    pushq %rcx\n";
-                output << "    call strlen # " << instr.op2 << "\n";
+                output << "    call " << prefix << "strlen # " << instr.op2 << "\n";
                 output << "    popq %rcx\n";
                 output << "    addq %rax, %rcx\n";
             } 
@@ -415,15 +418,15 @@ output << ".section .data\n";
             output << "    movq $" << sizeof(char) << ", %rsi\n";
             output << "    xorq %rax, %rax\n";
             output << "    pushq %rcx\n";
-            output << "    call calloc\n";
+            output << "    call " << prefix << "calloc\n";
             output << "    popq %rcx\n";
             output << "    movq %rax, %rdi\n";
             storeToTemp(output, instr.dest, "%rdi");
             loadToRegister(output,instr.op1,"%rsi");
             output << "    pushq %rcx\n";
-            output << "    call strcpy\n";
+            output << "    call " << prefix << "strcpy\n";
             loadToRegister(output,instr.op2,"%rsi");
-            output << "    call strcat\n";
+            output << "    call " << prefix << "strcat\n";
             output << "    popq %rcx\n";
             allocatedMemory[curFunction].insert(instr.dest);  
             variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
@@ -670,16 +673,21 @@ output << ".section .data\n";
 
             }
 
+            std::string prefix;
+#ifdef __APPLE__
+            prefix = "_";
+#endif
+
             for (const auto &var : allocatedMemory[curFunction]) {
                 if(variableInfo[curFunction][var].type == VariableType::VAR_STRING) {
                     loadToRegister(output, var, "%rdi");
-                    output << "    call free #"<<var<<"\n";
+                    output << "    call " << prefix << "free #"<<var<<"\n";
                 }
             }
 
             for(const auto &var : ownedMemory[curFunction]) {
                     loadToRegister(output, var, "%rdi");
-                    output << "    call free #"<<var<<"\n";
+                    output << "    call " << prefix << "free #"<<var<<"\n";
             }
 
             if (!instr.dest.empty()) {
