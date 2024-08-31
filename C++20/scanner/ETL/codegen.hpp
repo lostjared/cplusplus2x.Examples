@@ -198,6 +198,7 @@ output << ".section .data\n";
         }
 
         void emitCallInit(std::ostringstream &output) {
+            output << "    addq $-16, %rsp\n";
 #ifdef __APPLE__
             output << "    call _init\n";
 #else
@@ -382,6 +383,7 @@ output << ".section .data\n";
                 } else {
                     loadToRegister(output, instr.op1, "%rdi");
                     output << "     pushq %rcx\n";
+                    output << "     andq $-16, %rsp\n";
                     output << "     call " << prefix << "strlen #" << instr.op1 << "\n";
                     output << "     popq %rcx\n";
                     output << "     addq  %rax, %rcx\n";
@@ -389,6 +391,7 @@ output << ".section .data\n";
             } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR_STRING || op1_it.has_value()   && op1_it.value()->vtype == ast::VarType::STRING) {
                 loadToRegister(output, instr.op1, "%rdi");
                 output << "    pushq %rcx\n";
+                output << "    andq $-16, %rsp\n";
                 output << "    call " << prefix << "strlen # " << instr.op1 <<"\n";
                 output << "    popq %rcx\n";
                 output << "    addq %rax, %rcx\n";
@@ -401,6 +404,7 @@ output << ".section .data\n";
                 } else {
                     loadToRegister(output, instr.op2, "%rdi");
                     output << "    pushq %rcx\n";    
+                    output << "    andq $-16, %rsp\n";
                     output << "    call " << prefix << "strlen # " << instr.op2 << "\n";
                     output << "    popq %rcx\n";
                     output << "    addq %rax, %rcx\n";
@@ -408,6 +412,7 @@ output << ".section .data\n";
             } else if (variableInfo[curFunction][instr.op2].type == VariableType::VAR_STRING   && op2_it.has_value()  && op2_it.value()->vtype == ast::VarType::STRING) {
                 loadToRegister(output, instr.op2, "%rdi");
                 output << "    pushq %rcx\n";
+                output << "    andq $-16, %rsp\n";
                 output << "    call " << prefix << "strlen # " << instr.op2 << "\n";
                 output << "    popq %rcx\n";
                 output << "    addq %rax, %rcx\n";
@@ -418,14 +423,19 @@ output << ".section .data\n";
             output << "    movq $" << sizeof(char) << ", %rsi\n";
             output << "    xorq %rax, %rax\n";
             output << "    pushq %rcx\n";
+            output << "    andq $-16, %rsp\n";
             output << "    call " << prefix << "calloc\n";
             output << "    popq %rcx\n";
             output << "    movq %rax, %rdi\n";
             storeToTemp(output, instr.dest, "%rdi");
             loadToRegister(output,instr.op1,"%rsi");
             output << "    pushq %rcx\n";
+            output << "    andq $-16, %rsp\n";
             output << "    call " << prefix << "strcpy\n";
             loadToRegister(output,instr.op2,"%rsi");
+            output << "    popq %rcx\n";
+            output << "    pushq %rcx\n";
+            output << "    andq $-16, %rsp\n";
             output << "    call " << prefix << "strcat\n";
             output << "    popq %rcx\n";
             allocatedMemory[curFunction].insert(instr.dest);  
@@ -525,8 +535,8 @@ output << ".section .data\n";
             lastFunctionCall = instr.functionName;
             lastFunctionCallDest = instr.dest;
 
-            output << "    pushq %rcx\n";
             output << "    movq $0, %rax\n"; 
+            output << "    pushq %rcx\n";
             output << "    andq $-16, %rsp\n";
 #ifdef __APPLE__
             output << "    call " << "_" << instr.functionName << "\n";
@@ -537,7 +547,9 @@ output << ".section .data\n";
             table.enter(instr.dest);
             if(variableInfo[curFunction][instr.dest].type == VariableType::VAR_STRING)
                 ownedMemory[curFunction].insert(instr.dest);
+
             output << "    popq %rcx\n";
+
             if(instr.functionName == "str") {
                 output << "    addq $22, %rcx\n";
             }
