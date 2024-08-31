@@ -464,6 +464,7 @@ output << ".section .data\n";
 
         void emitAssign(std::ostringstream &output, const ir::IRInstruction &instr) {
             variableInfo[curFunction][instr.dest].type = variableInfo[curFunction][instr.op1].type;
+            table.enter(instr.dest);
             auto val = table.lookup(instr.dest);
             if(val.has_value()) {
                 auto loc = table.lookup(instr.op1);

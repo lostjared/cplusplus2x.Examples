@@ -15,7 +15,7 @@ namespace symbol {
         double dvalue;
         ast::VarType vtype;
         bool allocated;
-        Symbol() : name{}, value{}, ivalue{}, dvalue{}, vtype{}, allocated{false} {}
+        Symbol() : name{}, value{}, ivalue{}, dvalue{}, vtype{ast::VarType::NUMBER}, allocated{false} {}
         Symbol(const Symbol &s) : name{s.name}, value{s.value}, ivalue{s.ivalue}, dvalue{s.dvalue}, vtype{s.vtype}, allocated{s.allocated} {}
         Symbol &operator=(const Symbol &s) {
             name = s.name;
