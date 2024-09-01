@@ -34,7 +34,8 @@ namespace ir {
         PARAM_STRING,
         DEF_PARAM,
         DEF_PARAM_STRING,
-        DEFINE
+        DEFINE,
+        MOD
     };
 
     inline std::vector<std::string> InstructionStrings{
@@ -55,7 +56,8 @@ namespace ir {
         "PARAM_STRING",
         "DEF_PARAM",
         "DEF_PARAM_STRING",
-        "DEFINE"
+        "DEFINE",
+        "MOD" 
     };
 
     struct IRInstruction {
@@ -301,10 +303,9 @@ namespace parse {
                             break;
                         case types::OperatorType::OP_DIV:
                             code.emplace_back(ir::InstructionType::DIV, dest, leftResult, rightResult);
-                            break;/*
-                        case types::OperatorType::OP_MOD:
+                            break;                        case types::OperatorType::OP_MOD:
                             code.emplace_back(ir::InstructionType::MOD, dest, leftResult, rightResult);
-                            break;
+                            break;/*
                         case types::OperatorType::OP_LSHIFT:
                             code.emplace_back(ir::InstructionType::LSHIFT, dest, leftResult, rightResult);
                             break;

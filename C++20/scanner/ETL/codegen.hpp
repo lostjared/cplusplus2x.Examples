@@ -295,11 +295,22 @@ output << ".section .data\n";
                         break;
                     case ir::InstructionType::DEFINE:
                         break;
+                    case ir::InstructionType::MOD:
+                        emitMod(output, instr);
+                        break;
                     default:
                         std::cerr << "Unsupported IR Instruction: " << instr.toString() << std::endl;
                         break;
                 }
             }
+        }
+
+        void emitMod(std::ostringstream &output, const ir::IRInstruction &instr) {
+            loadToRegister(output, instr.op1, "%rax");
+            output << "    cqto\n";         
+            loadToRegister(output, instr.op2, "%rbx");
+            output << "    idivq %rbx\n";
+            storeToTemp(output, instr.dest, "%rdx");
         }
 
         std::vector<std::string> cargs;
@@ -454,7 +465,7 @@ output << ".section .data\n";
                     output << "    addq $" << len << ", " << getOperand("counter") << "\n";
                 } else {
                     loadToRegister(output, instr.op1, "%rdi");
-                    output << "     call " << prefix << "strlen #" << instr.op1 << "\n";
+                    output << "    call " << prefix << "strlen #" << instr.op1 << "\n";
                     output << "    addq  %rax, " << getOperand("counter") << "\n";
                 }
             } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR_STRING || op1_it.has_value()   && op1_it.value()->vtype == ast::VarType::STRING) {

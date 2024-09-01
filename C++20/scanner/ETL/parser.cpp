@@ -96,7 +96,7 @@ namespace parse {
         token_index += num;
     }
 
-    void Parser::dec(const uint64_t num) {
+    void Parser::dec(const uint64_t num) { 
         if (token_index >= num) {
             token_index -= num;
         }
@@ -155,7 +155,7 @@ namespace parse {
         root = std::move(program);
     }
 
-    std::unique_ptr<ast::Expression> Parser::parseExpression() {
+    std::unique_ptr<ast::Expression> Parser::parseExpression() { 
         auto left = parseTerm();
 
         while (test(types::OperatorType::OP_PLUS) || test(types::OperatorType::OP_MINUS)) {
@@ -171,7 +171,7 @@ namespace parse {
     std::unique_ptr<ast::Expression> Parser::parseTerm() {
         auto left = parseFactor();
 
-        while (test(types::OperatorType::OP_MUL) || test(types::OperatorType::OP_DIV)) {
+        while (test(types::OperatorType::OP_MUL) || test(types::OperatorType::OP_DIV) ||  test(types:: OperatorType::OP_MOD)) {
             auto op = types::lookUp(scan->operator[](token_index).getTokenValue());
             inc();  
             auto right = parseFactor();
