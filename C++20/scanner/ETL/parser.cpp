@@ -511,11 +511,14 @@ namespace parse {
 
         std::vector<std::unique_ptr<ast::ASTNode>> if_body;
         while (!test(types::OperatorType::OP_RBRACE)) {
-            if (test(types::KeywordType::KW_RETURN)) {
-                inc();
-                auto e = parseExpression();
-                match(types::OperatorType::OP_SEMICOLON);
-                if_body.push_back(std::make_unique<ast::Return>(std::move(e)));
+               if (test(types::KeywordType::KW_IF)) {
+                    auto nested_if = parseIfStatement();
+                    if_body.push_back(std::move(nested_if));
+                } if (test(types::KeywordType::KW_RETURN)) {
+                    inc();
+                    auto e = parseExpression();
+                    match(types::OperatorType::OP_SEMICOLON);
+                    if_body.push_back(std::make_unique<ast::Return>(std::move(e)));
             } else if (test(types::KeywordType::KW_LET)) {
                 inc();
                 auto stmt = parseAssignment();
@@ -537,7 +540,10 @@ namespace parse {
             inc();
             match(types::OperatorType::OP_LBRACE);
             while (!test(types::OperatorType::OP_RBRACE)) {
-                if (test(types::KeywordType::KW_RETURN)) {
+                if (test(types::KeywordType::KW_IF)) {
+                    auto nested_if = parseIfStatement();
+                    else_body.push_back(std::move(nested_if));
+                } else if (test(types::KeywordType::KW_RETURN)) {
                     inc();
                     auto e = parseExpression();
                     match(types::OperatorType::OP_SEMICOLON);
