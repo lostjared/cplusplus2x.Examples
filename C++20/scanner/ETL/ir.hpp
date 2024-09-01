@@ -464,8 +464,7 @@ namespace parse {
             if (functionReturnValues.find(call->functionName) != functionReturnValues.end()) {
                 std::string transfer_var = functionReturnValues[call->functionName];
                 ir::IRInstruction instr(ir::InstructionType::CALL, callDest, call->functionName, argRegisters);
-                instr.transfer_var = transfer_var;  // Set the transfer variable for the CALL instruction
-                std::cout << transfer_var << "!\n";
+                instr.transfer_var = transfer_var;  
                 code.push_back(instr);
             } else {
                 code.emplace_back(ir::InstructionType::CALL, callDest, call->functionName, argRegisters);
