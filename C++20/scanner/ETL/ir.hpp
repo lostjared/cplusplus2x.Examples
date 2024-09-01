@@ -32,6 +32,8 @@ namespace ir {
         CONCAT,
         PARAM,
         PARAM_STRING,
+        DEF_PARAM,
+        DEF_PARAM_STRING,
         DEFINE
     };
 
@@ -51,6 +53,8 @@ namespace ir {
         "CONCAT",
         "PARAM",
         "PARAM_STRING",
+        "DEF_PARAM",
+        "DEF_PARAM_STRING",
         "DEFINE"
     };
 
@@ -372,9 +376,9 @@ namespace parse {
                     s->vtype = param.second;
                 }
                 if(param.second == ast::VarType::STRING) {
-                    code.emplace_back(ir::InstructionType::PARAM_STRING, param.first, "");  
+                    code.emplace_back(ir::InstructionType::DEF_PARAM_STRING, param.first, "");  
                 } else {
-                    code.emplace_back(ir::InstructionType::PARAM, param.first, "");  
+                    code.emplace_back(ir::InstructionType::DEF_PARAM, param.first, "");  
                 }
             }
 

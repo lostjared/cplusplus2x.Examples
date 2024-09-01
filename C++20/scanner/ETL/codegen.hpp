@@ -58,6 +58,7 @@ namespace codegen {
                     break;
                 }
             }
+            curFunction = "main";
             if(has_init == true) {
                 emitPreamble(output);
                 emitCallInit(output);
@@ -195,6 +196,7 @@ output << ".section .data\n";
             output << "    pushq %rbp\n";
             output << "    movq %rsp, %rbp\n";
             output << "    subq $16, %rsp\n";
+            curFunction = "main";
         }
 
         void emitCallInit(std::ostringstream &output) {
@@ -206,6 +208,7 @@ output << ".section .data\n";
             output << "    movq $0, %rax\n";
             output << "    leave\n";
             output << "    ret\n";
+            
         }
 
         void emitFunctionPrologue(std::ostringstream &output, const std::string &functionName) {
@@ -284,6 +287,12 @@ output << ".section .data\n";
                     case ir::InstructionType::PARAM_STRING:
                         emitParamString(output, instr);
                         break;
+                    case ir::InstructionType::DEF_PARAM:
+                        emitDefParam(output, instr);
+                        break;
+                    case ir::InstructionType::DEF_PARAM_STRING:
+                        emitDefParamString(output, instr);
+                        break;
                     case ir::InstructionType::DEFINE:
                         break;
                     default:
@@ -295,7 +304,59 @@ output << ".section .data\n";
 
         std::vector<std::string> cargs;
         int paramIndex = 0; 
-            
+
+        void emitDefParam(std::ostringstream &stream, const ir::IRInstruction &instr) {
+                static std::vector<std::pair<std::string, int>> paramLocations = {
+                {"%rdi", -8},  
+                {"%rsi", -16}, 
+                {"%rdx", -24}, 
+                {"%rcx", -32}, 
+                {"%r8", -40},  
+                {"%r9", -48}   
+            };
+
+            if(curFunction == "main") return;
+
+            if (paramIndex < paramLocations.size()) {
+                std::string reg = paramLocations[paramIndex].first;
+                int offset = paramLocations[paramIndex].second;
+                paramIndex++;
+                table.enter(instr.dest);
+                auto it = table.lookup(instr.dest);
+                variableInfo[curFunction][instr.dest].type = VariableType::VAR;
+            } else {
+                std::cerr << "ETL Error: More parameters than registers available.\n";
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        void emitDefParamString(std::ostringstream &stream, const ir::IRInstruction &instr) {
+            static std::vector<std::pair<std::string, int>> paramLocations = {
+                {"%rdi", -8},  
+                {"%rsi", -16}, 
+                {"%rdx", -24}, 
+                {"%rcx", -32}, 
+                {"%r8", -40},  
+                {"%r9", -48}   
+            };
+            if(curFunction == "main") return;
+
+            if (paramIndex < paramLocations.size()) {
+                std::string reg = paramLocations[paramIndex].first;
+                int offset = paramLocations[paramIndex].second;
+                paramIndex++;
+                table.enter(instr.dest);
+                auto it = table.lookup(instr.dest);
+                if(it.has_value()) {
+                    it.value()->vtype = ast::VarType::STRING;
+                }
+                variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
+            } else {
+                std::cerr << "ETL Error: More parameters than registers available.\n";
+                exit(EXIT_FAILURE);
+            }
+        }
+
         void emitParam(std::ostringstream &stream, const ir::IRInstruction &instr) {
             static std::vector<std::pair<std::string, int>> paramLocations = {
                 {"%rdi", -8},  
@@ -305,7 +366,9 @@ output << ".section .data\n";
                 {"%r8", -40},  
                 {"%r9", -48}   
             };
-            
+
+            if(curFunction == "main") return;
+
             if (paramIndex < paramLocations.size()) {
                 std::string reg = paramLocations[paramIndex].first;
                 int offset = paramLocations[paramIndex].second;
@@ -329,7 +392,8 @@ output << ".section .data\n";
                 {"%r8", -40},  
                 {"%r9", -48}   
             };
-            
+            if(curFunction == "main") return;
+
             if (paramIndex < paramLocations.size()) {
                 std::string reg = paramLocations[paramIndex].first;
                 int offset = paramLocations[paramIndex].second;
