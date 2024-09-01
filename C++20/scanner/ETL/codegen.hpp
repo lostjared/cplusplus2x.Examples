@@ -212,14 +212,15 @@ output << ".section .data\n";
             output << "    pushq %rbp\n";
             output << "    movq %rsp, %rbp\n";
 
-            int stackSpace = maxStackUsage[functionName] + 48; 
+            int stackSpace = maxStackUsage[functionName] + 64; 
             if ((stackSpace % 16) != 0) {
                 stackSpace += 8; 
             }
 
-            if (stackSpace > 0) {
+           if (stackSpace > 0) {
                 output << "    subq $" << stackSpace << ", %rsp\n";
             }
+
             output << "    movq $0, %rcx\n";
         }
 
@@ -724,7 +725,7 @@ output << ".section .data\n";
             if (variableOffsets[curFunction].find(varName) == variableOffsets[curFunction].end()) {
                 currentStackOffset[curFunction] -= 8;
                 variableOffsets[curFunction][varName] = currentStackOffset[curFunction];
-                maxStackUsage[curFunction] = std::min(maxStackUsage[curFunction], currentStackOffset[curFunction]);
+                //maxStackUsage[curFunction] = std::min(maxStackUsage[curFunction], currentStackOffset[curFunction]);
             }
             return variableOffsets[curFunction][varName];
         }
