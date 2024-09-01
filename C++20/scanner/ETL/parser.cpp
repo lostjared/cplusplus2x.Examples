@@ -155,7 +155,7 @@ namespace parse {
         root = std::move(program);
     }
 
-    std::unique_ptr<ast::Expression> Parser::parseExpression() { 
+    std::unique_ptr<ast::Expression> Parser::parseExpression() {
         auto left = parseTerm();
 
         while (test(types::OperatorType::OP_PLUS) || test(types::OperatorType::OP_MINUS)) {
@@ -171,7 +171,16 @@ namespace parse {
     std::unique_ptr<ast::Expression> Parser::parseTerm() {
         auto left = parseFactor();
 
-        while (test(types::OperatorType::OP_MUL) || test(types::OperatorType::OP_DIV) ||  test(types:: OperatorType::OP_MOD)) {
+            while (
+                test(types::OperatorType::OP_MUL) || 
+                test(types::OperatorType::OP_DIV) ||  
+                test(types::OperatorType::OP_MOD) || 
+                test(types::OperatorType::OP_XOR) || 
+                test(types::OperatorType::OP_OR) ||
+                test(types::OperatorType::OP_AND) || 
+                test(types::OperatorType::OP_LSHIFT) || 
+                test(types::OperatorType::OP_RSHIFT)) {
+                    
             auto op = types::lookUp(scan->operator[](token_index).getTokenValue());
             inc();  
             auto right = parseFactor();

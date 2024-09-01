@@ -298,6 +298,21 @@ output << ".section .data\n";
                     case ir::InstructionType::MOD:
                         emitMod(output, instr);
                         break;
+                    case ir::InstructionType::AND:
+                        emitAnd(output, instr);
+                        break;
+                    case ir::InstructionType::XOR:
+                        emitXor(output, instr);
+                        break;
+                    case ir::InstructionType::OR:
+                        emitOr(output, instr);
+                        break;
+                    case ir::InstructionType::LSHIFT:
+                        emitLShift(output, instr); 
+                        break;
+                    case ir::InstructionType::RSHIFT:
+                        emitRShift(output, instr);
+                        break; 
                     default:
                         std::cerr << "Unsupported IR Instruction: " << instr.toString() << std::endl;
                         break;
@@ -305,9 +320,44 @@ output << ".section .data\n";
             }
         }
 
+        void emitAnd(std::ostringstream &output, const ir::IRInstruction &instr) {
+            loadToRegister(output, instr.op1, "%rax");
+            loadToRegister(output, instr.op2, "%rbx");
+            output << "    andq %rbx, %rax\n";
+            storeToTemp(output, instr.dest, "%rax");
+        }
+
+        void emitOr(std::ostringstream &output, const ir::IRInstruction &instr) {
+            loadToRegister(output, instr.op1, "%rax");
+            loadToRegister(output, instr.op2, "%rbx");
+            output << "    orq %rbx, %rax\n";
+            storeToTemp(output, instr.dest, "%rax");
+        }
+
+        void emitXor(std::ostringstream &output, const ir::IRInstruction &instr) {
+            loadToRegister(output, instr.op1, "%rax");
+            loadToRegister(output, instr.op2, "%rbx");
+            output << "    xorq %rbx, %rax\n";
+            storeToTemp(output, instr.dest, "%rax");
+        }
+
+        void emitLShift(std::ostringstream &output, const ir::IRInstruction &instr) {
+            loadToRegister(output, instr.op1, "%rax");
+            loadToRegister(output, instr.op2, "%rcx");
+            output << "    salq %cl, %rax\n";
+            storeToTemp(output, instr.dest, "%rax");
+        }
+
+        void emitRShift(std::ostringstream &output, const ir::IRInstruction &instr) {
+            loadToRegister(output, instr.op1, "%rax");
+            loadToRegister(output, instr.op2, "%rcx");
+            output << "    sarq %cl, %rax\n";
+            storeToTemp(output, instr.dest, "%rax");
+        }
+
         void emitMod(std::ostringstream &output, const ir::IRInstruction &instr) {
             loadToRegister(output, instr.op1, "%rax");
-            output << "    cqto\n";         
+            output << "    cqto\n";          
             loadToRegister(output, instr.op2, "%rbx");
             output << "    idivq %rbx\n";
             storeToTemp(output, instr.dest, "%rdx");
@@ -317,6 +367,7 @@ output << ".section .data\n";
         int paramIndex = 0; 
 
         void emitDefParam(std::ostringstream &stream, const ir::IRInstruction &instr) {
+        
                 static std::vector<std::pair<std::string, int>> paramLocations = {
                 {"%rdi", -8},  
                 {"%rsi", -16}, 

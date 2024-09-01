@@ -24,7 +24,6 @@ namespace ir {
         ASSIGN,
         LOAD_CONST,
         LOAD_VAR,
-        LABEL,
         NOT,
         NEG,
         CALL,
@@ -34,8 +33,14 @@ namespace ir {
         PARAM_STRING,
         DEF_PARAM,
         DEF_PARAM_STRING,
+        LABEL,
         DEFINE,
-        MOD
+        MOD,
+        AND,
+        XOR,
+        OR,
+        LSHIFT,
+        RSHIFT
     };
 
     inline std::vector<std::string> InstructionStrings{
@@ -46,7 +51,6 @@ namespace ir {
         "ASSIGN",
         "LOAD_CONST",
         "LOAD_VAR",
-        "LABEL",
         "NOT",
         "NEG",
         "CALL",
@@ -56,8 +60,14 @@ namespace ir {
         "PARAM_STRING",
         "DEF_PARAM",
         "DEF_PARAM_STRING",
+        "LABEL",
         "DEFINE",
-        "MOD" 
+        "MOD", 
+        "AND",
+        "XOR",
+        "OR",
+        "LSHIFT",
+        "RSHIFT",
     };
 
     struct IRInstruction {
@@ -117,7 +127,7 @@ namespace parse {
         symbol::SymbolTable table;
         std::unordered_map<std::string, int> functionLocalVarCount;
 
-        ir::IRContext generateIR(const std::unique_ptr<ast::ASTNode> &ast) {
+        ir::IRContext generateIR(const std::unique_ptr<ast::ASTNode> &ast) { 
             ir::IRContext context;
             generate(ast.get(), context.instructions);
             context.table = table;
@@ -305,7 +315,7 @@ namespace parse {
                             code.emplace_back(ir::InstructionType::DIV, dest, leftResult, rightResult);
                             break;                        case types::OperatorType::OP_MOD:
                             code.emplace_back(ir::InstructionType::MOD, dest, leftResult, rightResult);
-                            break;/*
+                            break;
                         case types::OperatorType::OP_LSHIFT:
                             code.emplace_back(ir::InstructionType::LSHIFT, dest, leftResult, rightResult);
                             break;
@@ -320,7 +330,7 @@ namespace parse {
                             break;
                         case types::OperatorType::OP_XOR:
                             code.emplace_back(ir::InstructionType::XOR, dest, leftResult, rightResult);
-                            break;*/
+                            break;
                         // Add cases for other operators like relational and logical operators
                         default:
                             std::ostringstream stream;
