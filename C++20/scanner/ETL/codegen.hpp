@@ -394,8 +394,10 @@ output << ".section .data\n";
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rbx");
-            output << "    cmpq %rax, %rbx\n";
-            output << "    sete " << getOperand(instr.dest) << "\n";
+            output << "    cmpq %rbx, %rax\n";  
+            output << "    sete %cl\n";         
+            output << "    movzbq %cl, %rdx\n"; 
+            storeToTemp(output, instr.dest, "%rdx");
         }
 
         void emitNeq(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -407,8 +409,10 @@ output << ".section .data\n";
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rbx");
-            output << "    cmpq %rax, %rbx\n";
-            output << "    setne " << getOperand(instr.dest) << "\n";
+            output << "    cmpq %rbx, %rax\n";  
+            output << "    setne %cl\n";         
+            output << "    movzbq %cl, %rdx\n"; 
+            storeToTemp(output, instr.dest, "%rdx");
         }
 
         void emitLt(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -420,8 +424,10 @@ output << ".section .data\n";
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rbx");
-            output << "    cmpq %rax, %rbx\n";
-            output << "    setl " << getOperand(instr.dest) << "\n";
+            output << "    cmpq %rbx, %rax\n";  
+            output << "    setl %cl\n";         
+            output << "    movzbq %cl, %rdx\n"; 
+            storeToTemp(output, instr.dest, "%rdx");
         }
 
         void emitLe(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -433,8 +439,10 @@ output << ".section .data\n";
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rbx");
-            output << "    cmpq %rax, %rbx\n";
-            output << "    setle " << getOperand(instr.dest) << "\n";
+            output << "    cmpq %rbx, %rax\n";  
+            output << "    setle %cl\n";         
+            output << "    movzbq %cl, %rdx\n"; 
+            storeToTemp(output, instr.dest, "%rdx");
         }
 
         void emitGt(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -446,8 +454,11 @@ output << ".section .data\n";
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rbx");
-            output << "    cmpq %rax, %rbx\n";
-            output << "    setg " << getOperand(instr.dest) << "\n";
+            output << "    cmpq %rbx, %rax\n";  
+            output << "    setg %cl\n";         
+            output << "    movzbq %cl, %rdx\n"; 
+            storeToTemp(output, instr.dest, "%rdx");
+
         }
 
         void emitGe(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -459,8 +470,10 @@ output << ".section .data\n";
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rbx");
-            output << "    cmpq %rax, %rbx\n";
-            output << "    setge " << getOperand(instr.dest) << "\n";
+            output << "    cmpq %rbx, %rax\n";  
+            output << "    setge %cl\n";         
+            output << "    movzbq %cl, %rdx\n"; 
+            storeToTemp(output, instr.dest, "%rdx");
         }
 
         void emitAnd(std::ostringstream &output, const ir::IRInstruction &instr) {
