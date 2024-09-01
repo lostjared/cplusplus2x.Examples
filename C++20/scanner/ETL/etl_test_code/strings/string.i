@@ -4,6 +4,23 @@
 # 1 "/usr/include/stdc-predef.h" 1 3 4
 # 0 "<command-line>" 2
 # 1 "string.e"
+# 1 "/usr/local/include/libetl/etl.e" 1 3
+
+
+
+
+# 4 "/usr/local/include/libetl/etl.e" 3
+define scan_integer();
+define len($value);
+define $str(value);
+define exit(code);
+define puts($output);
+define srand(seed);
+define time(value);
+# 2 "string.e" 2
+
+
+# 3 "string.e"
 proc $format($hello, x, y) {
     return hello + ": " + str(x) + "+" + str(y) + "=" + str(x+y);
 }

@@ -1,1 +1,30 @@
-make: 'program' is up to date.
+g++ code.cpp -o code.o -c
+etl program hello.e code.o -- -lstdc++
+ETL: Scanned 67 tokens.
+ETL: parsing ...  [complete]
+ETL: IR code: {
+	DEFINE scan_integer
+	DEFINE len
+	PARAM_STRING value
+	DEFINE str
+	PARAM value
+	DEFINE exit
+	PARAM code
+	DEFINE puts
+	PARAM_STRING output
+	DEFINE srand
+	PARAM seed
+	DEFINE time
+	PARAM value
+	DEFINE hello
+	LABEL init
+	CALL t0 hello
+	LOAD_CONST t1 "Goodbye!\n"
+	CALL t2 printf t1
+	LOAD_CONST t3 0
+	RETURN t3
+}
+ETL: compiled [hello.s]
+Assembled hello.s to hello.o
+Linked [hello.o code.o] with flags [-lstdc++]
+Executable: [program]

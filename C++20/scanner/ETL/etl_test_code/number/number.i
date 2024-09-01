@@ -7,6 +7,23 @@
 
 
 
+# 1 "/usr/local/include/libetl/etl.e" 1 3
+
+
+
+
+# 4 "/usr/local/include/libetl/etl.e" 3
+define scan_integer();
+define len($value);
+define $str(value);
+define exit(code);
+define puts($output);
+define srand(seed);
+define time(value);
+# 5 "number.e" 2
+
+
+# 6 "number.e"
 proc print_numbers() {
     let x = 25;
     let y = 100;

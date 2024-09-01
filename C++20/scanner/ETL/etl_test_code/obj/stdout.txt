@@ -1,7 +1,21 @@
 etl program main.e obj.e
-ETL: Scanned 18 tokens.
+ETL: Scanned 67 tokens.
 ETL: parsing ...  [complete]
 ETL: IR code: {
+	DEFINE scan_integer
+	DEFINE len
+	PARAM_STRING value
+	DEFINE str
+	PARAM value
+	DEFINE exit
+	PARAM code
+	DEFINE puts
+	PARAM_STRING output
+	DEFINE srand
+	PARAM seed
+	DEFINE time
+	PARAM value
+	DEFINE program
 	LABEL init
 	CALL t0 program
 	LOAD_CONST t1 "Goodbye \n"
@@ -11,9 +25,22 @@ ETL: IR code: {
 }
 ETL: compiled [main.s]
 Assembled main.s to main.o
-ETL: Scanned 44 tokens.
+ETL: Scanned 88 tokens.
 ETL: parsing ...  [complete]
 ETL: IR code: {
+	DEFINE scan_integer
+	DEFINE len
+	PARAM_STRING value
+	DEFINE str
+	PARAM value
+	DEFINE exit
+	PARAM code
+	DEFINE puts
+	PARAM_STRING output
+	DEFINE srand
+	PARAM seed
+	DEFINE time
+	PARAM value
 	LABEL program
 	LOAD_CONST t0 "Hello, World"
 	CALL t1 puts t0

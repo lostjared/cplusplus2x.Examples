@@ -1,3 +1,4 @@
+#include<libetl/etl.e>
 
 proc testLen($what) {
     let n_s = "hey: " + what;

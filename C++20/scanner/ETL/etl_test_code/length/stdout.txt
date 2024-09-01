@@ -1,7 +1,20 @@
 etl program length.e
-ETL: Scanned 48 tokens.
+ETL: Scanned 92 tokens.
 ETL: parsing ...  [complete]
 ETL: IR code: {
+	DEFINE scan_integer
+	DEFINE len
+	PARAM_STRING value
+	DEFINE str
+	PARAM value
+	DEFINE exit
+	PARAM code
+	DEFINE puts
+	PARAM_STRING output
+	DEFINE srand
+	PARAM seed
+	DEFINE time
+	PARAM value
 	LABEL testLen
 	PARAM_STRING what
 	LOAD_CONST t0 "hey: "

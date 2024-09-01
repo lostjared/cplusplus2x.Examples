@@ -7,13 +7,20 @@ main:
     movq %rsp, %rbp
     subq $16, %rsp
     call init
+    movq $0, %rax
     leave
     ret
+    movq %rdi, -8(%rbp)
+    movq %rsi, -8(%rbp)
+    movq %rdx, -16(%rbp)
+    movq %rcx, -24(%rbp)
+    movq %r8, -32(%rbp)
+    movq %r9, -8(%rbp)
 .globl print_numbers
 print_numbers:
     pushq %rbp
     movq %rsp, %rbp
-    subq $176, %rsp
+    subq $192, %rsp
     movq $0, %rcx
     movq $25, %rax
     movq %rax, -8(%rbp)
@@ -59,13 +66,13 @@ print_numbers:
 init:
     pushq %rbp
     movq %rsp, %rbp
-    subq $64, %rsp
+    subq $80, %rsp
     movq $0, %rcx
     movq $0, %rax
     call print_numbers
-    movq %rax, -8(%rbp)
+    movq %rax, -40(%rbp)
     movq $0, %rax
-    movq %rax, -16(%rbp)
+    movq %rax, -48(%rbp)
     leave
     ret
 .section .note.GNU-stack,"",@progbits

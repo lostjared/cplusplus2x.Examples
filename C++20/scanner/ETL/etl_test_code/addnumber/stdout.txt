@@ -1,7 +1,20 @@
 etl program add.e
-ETL: Scanned 70 tokens.
+ETL: Scanned 124 tokens.
 ETL: parsing ...  [complete]
 ETL: IR code: {
+	DEFINE scan_integer
+	DEFINE len
+	PARAM_STRING value
+	DEFINE str
+	PARAM value
+	DEFINE exit
+	PARAM code
+	DEFINE puts
+	PARAM_STRING output
+	DEFINE srand
+	PARAM seed
+	DEFINE time
+	PARAM value
 	LABEL add_numbers
 	LOAD_CONST t0 "Enter firsT number: "
 	CALL t1 puts t0
@@ -25,6 +38,8 @@ ETL: IR code: {
 	LOAD_CONST t17 0
 	RETURN t17
 	LABEL init
+	LOAD_CONST x 0
+	LOAD_CONST y 0
 	CALL t18 add_numbers
 	LOAD_CONST t19 0
 	RETURN t19

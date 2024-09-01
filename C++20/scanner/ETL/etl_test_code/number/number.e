@@ -1,6 +1,8 @@
 #define OUTPUT "The Value is: %d"
 #define ADD(x,y) x+y
 
+#include<libetl/etl.e>
+
 proc print_numbers() {
     let x = 25;
     let y = 100;

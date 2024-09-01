@@ -1,3 +1,5 @@
+#include<libetl/etl.e>
+
 proc $format($hello, x, y) {
     return hello + ": " + str(x) + "+" + str(y) + "=" + str(x+y);
 }

@@ -1,4 +1,5 @@
 
+#include<libetl/etl.e>
 
 proc init() {
     let x = 200;

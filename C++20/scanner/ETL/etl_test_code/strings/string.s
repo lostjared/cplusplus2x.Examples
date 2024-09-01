@@ -11,13 +11,20 @@ main:
     movq %rsp, %rbp
     subq $16, %rsp
     call init
+    movq $0, %rax
     leave
     ret
+    movq %rdi, -8(%rbp)
+    movq %rsi, -8(%rbp)
+    movq %rdx, -16(%rbp)
+    movq %rcx, -24(%rbp)
+    movq %r8, -32(%rbp)
+    movq %r9, -8(%rbp)
 .globl format
 format:
     pushq %rbp
     movq %rsp, %rbp
-    subq $192, %rsp
+    subq $208, %rsp
     movq $0, %rcx
     movq %rdi, -8(%rbp)
     movq %rsi, -16(%rbp)
@@ -182,52 +189,52 @@ format:
 init:
     pushq %rbp
     movq %rsp, %rbp
-    subq $160, %rsp
+    subq $176, %rsp
     movq $0, %rcx
     movq $25, %rax
-    movq %rax, -8(%rbp)
-    movq $25, %rax
-    movq %rax, -16(%rbp)
-    leaq t18(%rip), %rax
-    movq %rax, -24(%rbp)
-    movq -8(%rbp), %rax # x # x
-    movq %rax, -32(%rbp)
-    movq -16(%rbp), %rax # y # y
     movq %rax, -40(%rbp)
-    movq -24(%rbp), %rdi # t18 # t18
-    movq -32(%rbp), %rsi # t19 # t19
-    movq -40(%rbp), %rdx # t20 # t20
-    movq $0, %rax
-    call format
+    movq $25, %rax
     movq %rax, -48(%rbp)
-    movq -48(%rbp), %rdi # t21 # t21
-    movq $0, %rax
-    call puts
+    leaq t18(%rip), %rax
     movq %rax, -56(%rbp)
-    leaq s(%rip), %rax
+    movq -40(%rbp), %rax # x # x
     movq %rax, -64(%rbp)
+    movq -48(%rbp), %rax # y # y
     movq %rax, -72(%rbp)
-    movq $10, %rax
-    movq %rax, -80(%rbp)
-    movq $10, %rax
-    movq %rax, -88(%rbp)
-    movq -72(%rbp), %rdi # t23 # t23
-    movq -80(%rbp), %rsi # t24 # t24
-    movq -88(%rbp), %rdx # t25 # t25
+    movq -56(%rbp), %rdi # t18 # t18
+    movq -64(%rbp), %rsi # t19 # t19
+    movq -72(%rbp), %rdx # t20 # t20
     movq $0, %rax
     call format
-    movq %rax, -96(%rbp)
-    movq -96(%rbp), %rdi # t26 # t26
+    movq %rax, -80(%rbp)
+    movq -80(%rbp), %rdi # t21 # t21
     movq $0, %rax
     call puts
+    movq %rax, -88(%rbp)
+    leaq s(%rip), %rax
+    movq %rax, -96(%rbp)
     movq %rax, -104(%rbp)
-    movq $0, %rax
+    movq $10, %rax
     movq %rax, -112(%rbp)
-    movq -96(%rbp), %rdi # t26 # t26
+    movq $10, %rax
+    movq %rax, -120(%rbp)
+    movq -104(%rbp), %rdi # t23 # t23
+    movq -112(%rbp), %rsi # t24 # t24
+    movq -120(%rbp), %rdx # t25 # t25
+    movq $0, %rax
+    call format
+    movq %rax, -128(%rbp)
+    movq -128(%rbp), %rdi # t26 # t26
+    movq $0, %rax
+    call puts
+    movq %rax, -136(%rbp)
+    movq $0, %rax
+    movq %rax, -144(%rbp)
+    movq -128(%rbp), %rdi # t26 # t26
     call free #t26
-    movq -48(%rbp), %rdi # t21 # t21
+    movq -80(%rbp), %rdi # t21 # t21
     call free #t21
-    movq -112(%rbp), %rax # t28 # t28
+    movq -144(%rbp), %rax # t28 # t28
     leave
     ret
 .section .note.GNU-stack,"",@progbits
