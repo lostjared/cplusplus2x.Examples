@@ -1,3 +1,5 @@
+// Coded by Jared Bruni GPL v3
+
 #include"argz.hpp"
 #include"version_info.hpp"
 
