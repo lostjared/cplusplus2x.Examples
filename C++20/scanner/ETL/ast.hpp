@@ -96,9 +96,10 @@ namespace ast {
         std::unique_ptr<Expression> left;
         std::unique_ptr<Expression> right;
         VarType vtype;
+        bool there = false;
 
-        Assignment(std::unique_ptr<Expression> l, std::unique_ptr<Expression> r, VarType vtype = VarType::NUMBER )
-            : left(std::move(l)), right(std::move(r)) {}
+        Assignment(std::unique_ptr<Expression> l, std::unique_ptr<Expression> r, VarType vtype = VarType::NUMBER, bool there = false)
+            : left(std::move(l)), right(std::move(r)), vtype(vtype), there(there) {}
 
         std::string text() const override {
             return left->text() + " = " + right->text() + ";";
@@ -142,6 +143,26 @@ namespace ast {
                 result += "}";
             }
             return result;
+        }
+    };
+
+    struct WhileStatement : Statement {
+        std::unique_ptr<Expression> condition;
+        std::vector<std::unique_ptr<ASTNode>> body;
+
+         WhileStatement(std::unique_ptr<Expression> cond, 
+                    std::vector<std::unique_ptr<ASTNode>> b)
+            : condition(std::move(cond)), body(std::move(b)) {}
+
+        std::string text() const override {
+            std::ostringstream oss;
+            oss << "while (" << condition->text() << ") {\n";
+            
+            for (const auto& statement : body) {
+                oss << "    " << statement->text() << "\n";
+            }
+            oss << "}";
+            return oss.str();
         }
     };
 

@@ -341,15 +341,60 @@ output << ".section .data\n";
                     case ir::InstructionType::SUB_LABEL:
                         emitSubLabel(output, instr);
                         break;
-
                     case ir::InstructionType::JUMP:
                         emitJump(output, instr);
+                        break;
+                    case ir::InstructionType::SET:
+                        emitSet(output, instr);
                         break;  
+                    case ir::InstructionType::SET_CONST:
+                        emitSetConst(output, instr);
+                        break;
                     default:
                         std::cerr << "Unsupported IR Instruction: " << instr.toString() << std::endl;
                         break;
                 }
             }
+        }
+
+        void emitSet(std::ostringstream &output, const ir::IRInstruction &instr) {
+            variableInfo[curFunction][instr.dest].type = variableInfo[curFunction][instr.op1].type;
+            auto val = table.lookup(instr.dest);
+            if(val.has_value()) {
+                auto loc = table.lookup(instr.op1);
+                if(loc.has_value()) {
+                    val.value()->vtype = loc.value()->vtype;
+                }
+                auto val = ownedMemory[curFunction].find(instr.op1);
+                if(val != ownedMemory[curFunction].end()) {
+                    ownedMemory[curFunction].erase(val);
+                    ownedMemory[curFunction].insert(instr.dest);
+                }
+            }
+            loadToRegister(output, instr.op1, "%rdx");
+            storeToTemp(output, instr.dest, "%rdx");
+        }
+
+        void emitSetConst(std::ostringstream &output, const ir::IRInstruction &instr) {
+            auto loc = table.lookup(instr.dest);
+            if (instr.op1[0] == '\"') {
+                std::string label = stringLiterals[curFunction][instr.op1];
+                output << "    leaq " << label << "(%rip), %rdx\n";
+                variableInfo[curFunction][instr.dest].type = VariableType::STRING_CONST;
+                if(loc.has_value()) {
+                    loc.value()->vtype = ast::VarType::STRING;
+                    loc.value()->value = instr.op1;
+                }
+            } else {
+                std::string label = numericConstants[curFunction][instr.op1];
+                output << "    movq " << "$" << instr.op1 << ", %rdx\n";
+                variableInfo[curFunction][instr.dest].type = VariableType::NUMERIC_CONST;
+                if(loc.has_value()) {
+                    loc.value()->vtype = ast::VarType::NUMBER;
+                    loc.value()->value = instr.op1;
+                }
+            } 
+            storeToTemp(output, instr.dest, "%rdx");
         }
 
         void emitSubLabel(std::ostringstream &output, const ir::IRInstruction &instr) {

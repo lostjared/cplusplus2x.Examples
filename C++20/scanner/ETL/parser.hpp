@@ -58,11 +58,12 @@ namespace parse {
         std::unique_ptr<ast::Expression> parseMultiplicative();
         std::unique_ptr<ast::Expression> parseFactor();
         std::unique_ptr<ast::Expression> parsePrimary();
-        std::unique_ptr<ast::Assignment> parseAssignment();
+        std::unique_ptr<ast::Assignment> parseAssignment(bool there = false);
         std::unique_ptr<ast::Function> parseFunction();
         std::unique_ptr<ast::DefineFunction> parseDefine();
         std::unique_ptr<ast::Expression> parseCall(const std::string &functionName);
         std::unique_ptr<ast::IfStatement> parseIfStatement();
+        std::unique_ptr<ast::WhileStatement> parseWhileStatement();
     };
 }
 

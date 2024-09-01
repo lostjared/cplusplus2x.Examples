@@ -50,7 +50,9 @@ namespace ir {
         LOGICAL_AND, 
         LOGICAL_OR,
         SUB_LABEL,
-        JUMP
+        JUMP,
+        SET,
+        SET_CONST,
     };
 
     inline std::vector<std::string> InstructionStrings{
@@ -87,7 +89,9 @@ namespace ir {
         "LOGICAL_AND",
         "LOGICAL_OR",
         "SUB_LABEL",
-        "JUMP"
+        "JUMP", 
+        "SET",
+        "SET_CONST"
     };
 
     struct IRInstruction {
@@ -187,6 +191,8 @@ namespace parse {
                 generateReturn(rt, code);
             } else if(auto if_s = dynamic_cast<const ast::IfStatement *>(node)) {
                 generateIf(if_s, code);
+            } else if(auto while_s = dynamic_cast<const ast::WhileStatement *>(node)) {
+                generateWhile(while_s, code);
             }
         }
 
@@ -196,6 +202,19 @@ namespace parse {
             }
         }
 
+      void generateWhile(const ast::WhileStatement *while_s, ir::IRCode &code) {
+            std::string startLabel = "while_start_" + std::to_string(tempVarCounter);
+            std::string endLabel = "while_end_" + std::to_string(tempVarCounter++);
+            code.emplace_back(ir::InstructionType::SUB_LABEL, startLabel);
+            generate(while_s->condition.get(), code);
+            std::string conditionResult = lastComputedValue["result"];
+            code.emplace_back(ir::InstructionType::JUMP, endLabel, conditionResult, "0");
+            for (const auto &stmt : while_s->body) {
+                generate(stmt.get(), code);
+            }
+            code.emplace_back(ir::InstructionType::JUMP, startLabel);
+            code.emplace_back(ir::InstructionType::SUB_LABEL, endLabel);
+        }
         void generateIf(const ast::IfStatement *if_s, ir::IRCode &code) {
             generate(if_s->condition.get(), code);
             std::string conditionResult = lastComputedValue["result"];
@@ -221,7 +240,7 @@ namespace parse {
             if (lhs) {
                 auto rhsLiteral = dynamic_cast<const ast::Literal*>(assign->right.get());
                 if (rhsLiteral) {
-                    if(table.is_there(lhs->name)) {
+                    if(assign->there == false && table.is_there(lhs->name)) {
                         std::ostringstream stream;
                         stream << " Variable: " << lhs->name << " already defined in constant assignment.\n";
                         throw ir::IRException(stream.str());
@@ -237,18 +256,17 @@ namespace parse {
                         else if(rhsLiteral->type == types::TokenType::TT_STR)
                             e->vtype = ast::VarType::STRING;
                     }
-                    code.emplace_back(ir::InstructionType::LOAD_CONST, lhs->name, rhsLiteral->value);
+                    if(assign->there == false)
+                        code.emplace_back(ir::InstructionType::LOAD_CONST, lhs->name, rhsLiteral->value);
+                    else
+                        code.emplace_back(ir::InstructionType::SET_CONST, lhs->name, rhsLiteral->value);
+
                 } else {
                     generate(assign->right.get(), code);
                     std::string rhs = lastComputedValue["result"];
                     if (lastComputedValue[rhs] == lhs->name) {
                         lastComputedValue[lhs->name] = rhs;
                     } else {
-                         if(table.is_there(lhs->name)) {
-                            std::ostringstream stream;
-                            stream << " Variable: " << lhs->name << " already defined in assignment.\n";
-                            throw ir::IRException(stream.str());
-                        }
                         table.enter(lhs->name);
                         auto it = table.lookup(lhs->name);
                         if(it.has_value()) {
@@ -259,7 +277,10 @@ namespace parse {
                                 s->vtype = r.value()->vtype;
                             }
                         }
-                        code.emplace_back(ir::InstructionType::ASSIGN, lhs->name, rhs);
+                        if(assign->there == false)
+                            code.emplace_back(ir::InstructionType::ASSIGN, lhs->name, rhs);
+                        else
+                            code.emplace_back(ir::InstructionType::SET, lhs->name, rhs);
 
                         lastComputedValue[lhs->name] = lhs->name;
                     }
