@@ -66,6 +66,9 @@ namespace ir {
         std::vector<std::string> args;
         std::string functionName;
         std::string transfer_var;
+        bool is_allocated = false;
+
+        IRInstruction(const IRInstruction &i) : type{i.type}, dest{i.dest}, op1{i.op1}, op2{i.op2}, args(i.args), functionName(i.functionName), transfer_var(i.transfer_var), is_allocated(i.is_allocated) {}
 
         IRInstruction(InstructionType t, const std::string &d, const std::string &o1 = "", const std::string &o2 = "")
             : type(t), dest(d), op1(o1), op2(o2) {}
@@ -122,7 +125,9 @@ namespace parse {
 
     private:
         int tempVarCounter = 0;
-
+        std::string currentFunctionName;  
+        std::unordered_map<std::string, std::string> functionReturnValues;  
+      
         std::string getNextTempVar() {
             return "t" + std::to_string(tempVarCounter++);
         }
@@ -215,8 +220,9 @@ namespace parse {
                 generate(return_value->return_value.get(), code);
                 std::string result = lastComputedValue["result"];
                 ir::IRInstruction t(ir::InstructionType::RETURN, result);
-                t.transfer_var = result;
+                t.transfer_var = result; // how can I get this value to CALL in the IR code
                 code.push_back(t);
+                functionReturnValues[currentFunctionName] = result;
                 
             } else {
                 code.emplace_back(ir::InstructionType::RETURN, "");
@@ -263,7 +269,9 @@ namespace parse {
             }
      
             if (leftIsString && rightIsString) {
-                code.emplace_back(ir::InstructionType::CONCAT, dest, leftResult, rightResult);
+                ir::IRInstruction t(ir::InstructionType::CONCAT, dest, leftResult, rightResult);
+                t.is_allocated = true;
+                code.push_back(t);
                 table.enter(dest);
                 auto it = table.lookup(dest);
                 if (it.has_value()) {
@@ -342,6 +350,7 @@ namespace parse {
         }
 
         void generateFunction(const ast::Function *func, ir::IRCode &code) {
+            currentFunctionName = func->name;
             code.emplace_back(ir::InstructionType::LABEL, func->name, "");
             table.enterScope(func->name);
 
@@ -451,8 +460,17 @@ namespace parse {
                     s->vtype = ast::VarType::STRING;
                 }
             }
-            code.emplace_back(ir::InstructionType::CALL, callDest, call->functionName, argRegisters);
-            lastComputedValue["result"] = callDest;
+
+            if (functionReturnValues.find(call->functionName) != functionReturnValues.end()) {
+                std::string transfer_var = functionReturnValues[call->functionName];
+                ir::IRInstruction instr(ir::InstructionType::CALL, callDest, call->functionName, argRegisters);
+                instr.transfer_var = transfer_var;  // Set the transfer variable for the CALL instruction
+                std::cout << transfer_var << "!\n";
+                code.push_back(instr);
+            } else {
+                code.emplace_back(ir::InstructionType::CALL, callDest, call->functionName, argRegisters);
+            }
+         lastComputedValue["result"] = callDest;
         }
 
         std::unordered_map<std::string, std::string> lastComputedValue;
