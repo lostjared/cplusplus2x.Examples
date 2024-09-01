@@ -451,11 +451,11 @@ output << ".section .data\n";
             if (variableInfo[curFunction][instr.op1].type == VariableType::STRING_CONST) {
                 if(!variableInfo[curFunction][instr.op1].text.empty()  && variableInfo[curFunction][instr.op1].text[0] == '\"') {
                     auto len = variableInfo[curFunction][instr.op1].text.length()+1;
-                    output << "     addq $" << len << ", " << getOperand("counter") << "\n";
+                    output << "    addq $" << len << ", " << getOperand("counter") << "\n";
                 } else {
                     loadToRegister(output, instr.op1, "%rdi");
                     output << "     call " << prefix << "strlen #" << instr.op1 << "\n";
-                    output << "     addq  %rax, " << getOperand("counter") << "\n";
+                    output << "    addq  %rax, " << getOperand("counter") << "\n";
                 }
             } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR_STRING || op1_it.has_value()   && op1_it.value()->vtype == ast::VarType::STRING) {
                 loadToRegister(output, instr.op1, "%rdi");
