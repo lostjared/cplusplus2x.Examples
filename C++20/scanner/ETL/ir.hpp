@@ -220,7 +220,7 @@ namespace parse {
                 generate(return_value->return_value.get(), code);
                 std::string result = lastComputedValue["result"];
                 ir::IRInstruction t(ir::InstructionType::RETURN, result);
-                t.transfer_var = result; // how can I get this value to CALL in the IR code
+                t.transfer_var = result; 
                 code.push_back(t);
                 functionReturnValues[currentFunctionName] = result;
                 
