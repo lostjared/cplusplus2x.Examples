@@ -40,7 +40,13 @@ namespace ir {
         XOR,
         OR,
         LSHIFT,
-        RSHIFT
+        RSHIFT,
+        EQ,   
+        NEQ, 
+        LT,   
+        LE,
+        GT,
+        GE 
     };
 
     inline std::vector<std::string> InstructionStrings{
@@ -68,6 +74,12 @@ namespace ir {
         "OR",
         "LSHIFT",
         "RSHIFT",
+        "EQ", 
+        "NEQ",  
+        "LT",
+        "LE",
+        "GT",
+        "GE"
     };
 
     struct IRInstruction {
@@ -331,7 +343,25 @@ namespace parse {
                         case types::OperatorType::OP_XOR:
                             code.emplace_back(ir::InstructionType::XOR, dest, leftResult, rightResult);
                             break;
-                        // Add cases for other operators like relational and logical operators
+                        case types::OperatorType::OP_EQ:
+                            code.emplace_back(ir::InstructionType::EQ, dest, leftResult, rightResult);
+                            break;
+                        case types::OperatorType::OP_NEQ:
+                            code.emplace_back(ir::InstructionType::NEQ, dest, leftResult, rightResult);
+                            break;
+                        case types::OperatorType::OP_LT:
+                            code.emplace_back(ir::InstructionType::LT, dest, leftResult, rightResult);
+                            break;
+                        case types::OperatorType::OP_LE:
+                            code.emplace_back(ir::InstructionType::LE, dest, leftResult, rightResult);
+                            break;
+                        case types::OperatorType::OP_GT:
+                            code.emplace_back(ir::InstructionType::GT, dest, leftResult, rightResult);
+                            break;
+                        case types::OperatorType::OP_GE:
+                            code.emplace_back(ir::InstructionType::GE, dest, leftResult, rightResult);
+                            break;
+                                    // Add cases for other operators like relational and logical operators
                         default:
                             std::ostringstream stream;
                             stream << "Error: Unsupported numeric operation: " << static_cast<int>(binOp->op);

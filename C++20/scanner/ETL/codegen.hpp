@@ -94,7 +94,8 @@ namespace codegen {
         std::string curFunction;
 
         void collectLiteralsAndConstants(const ir::IRCode &code) {
-            for (const auto &instr : code) {
+        
+           for (const auto &instr : code) {
 
                 if(instr.type == ir::InstructionType::LABEL) {
                     curFunction = instr.dest;
@@ -313,11 +314,71 @@ output << ".section .data\n";
                     case ir::InstructionType::RSHIFT:
                         emitRShift(output, instr);
                         break; 
-                    default:
+                    case ir::InstructionType::EQ:  
+                        emitEq(output, instr);
+                        break;
+                    case ir::InstructionType::NEQ: 
+                        emitNeq(output, instr);
+                        break;
+                    case ir::InstructionType::LT:  
+                        emitLt(output, instr);
+                        break;
+                    case ir::InstructionType::LE:  
+                        emitLe(output, instr);
+                        break;
+                    case ir::InstructionType::GT:  
+                        emitGt(output, instr);
+                        break;
+                    case ir::InstructionType::GE:  
+                        emitGe(output, instr);
+                        break;
+                            default:
                         std::cerr << "Unsupported IR Instruction: " << instr.toString() << std::endl;
                         break;
                 }
             }
+        }
+
+        void emitEq(std::ostringstream &output, const ir::IRInstruction &instr) {
+            loadToRegister(output, instr.op1, "%rax");
+            loadToRegister(output, instr.op2, "%rbx");
+            output << "    cmpq %rax, %rbx\n";
+            output << "    sete " << getOperand(instr.dest) << "\n";
+        }
+
+        void emitNeq(std::ostringstream &output, const ir::IRInstruction &instr) {
+            loadToRegister(output, instr.op1, "%rax");
+            loadToRegister(output, instr.op2, "%rbx");
+            output << "    cmpq %rax, %rbx\n";
+            output << "    setne " << getOperand(instr.dest) << "\n";
+        }
+
+        void emitLt(std::ostringstream &output, const ir::IRInstruction &instr) {
+            loadToRegister(output, instr.op1, "%rax");
+            loadToRegister(output, instr.op2, "%rbx");
+            output << "    cmpq %rax, %rbx\n";
+            output << "    setl " << getOperand(instr.dest) << "\n";
+        }
+
+        void emitLe(std::ostringstream &output, const ir::IRInstruction &instr) {
+            loadToRegister(output, instr.op1, "%rax");
+            loadToRegister(output, instr.op2, "%rbx");
+            output << "    cmpq %rax, %rbx\n";
+            output << "    setle " << getOperand(instr.dest) << "\n";
+        }
+
+        void emitGt(std::ostringstream &output, const ir::IRInstruction &instr) {
+            loadToRegister(output, instr.op1, "%rax");
+            loadToRegister(output, instr.op2, "%rbx");
+            output << "    cmpq %rax, %rbx\n";
+            output << "    setg " << getOperand(instr.dest) << "\n";
+        }
+
+        void emitGe(std::ostringstream &output, const ir::IRInstruction &instr) {
+            loadToRegister(output, instr.op1, "%rax");
+            loadToRegister(output, instr.op2, "%rbx");
+            output << "    cmpq %rax, %rbx\n";
+            output << "    setge " << getOperand(instr.dest) << "\n";
         }
 
         void emitAnd(std::ostringstream &output, const ir::IRInstruction &instr) {

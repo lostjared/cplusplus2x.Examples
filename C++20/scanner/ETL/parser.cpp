@@ -22,7 +22,7 @@ namespace parse {
             } else {
                 token_index++;
             }
-        } 
+        }
     }
 
     void Parser::match(const string_type &t) {
@@ -36,7 +36,7 @@ namespace parse {
             } else {
                 token_index++;
             }
-        } 
+        }
     }
 
     void Parser::match(const types::OperatorType op) {
@@ -68,7 +68,7 @@ namespace parse {
                 }
             }
         }
-    } 
+    }
 
     bool Parser::test(const types::TokenType &type) {
         scan::TToken &token = scan->operator[](token_index);
@@ -96,7 +96,7 @@ namespace parse {
         token_index += num;
     }
 
-    void Parser::dec(const uint64_t num) { 
+    void Parser::dec(const uint64_t num) {
         if (token_index >= num) {
             token_index -= num;
         }
@@ -128,23 +128,17 @@ namespace parse {
         while (token_index < scan->size()) {
             if (test(types::KeywordType::KW_PROC)) {
                 inc();
-                auto function = parseFunction(); 
+                auto function = parseFunction();
                 program->body.push_back(std::move(function));
-            } else if(test(types::KeywordType::KW_DEFINE)) {
+            } else if (test(types::KeywordType::KW_DEFINE)) {
                 inc();
                 auto fdef = parseDefine();
                 program->body.push_back(std::move(fdef));
-            } 
-            else if (test(types::KeywordType::KW_LET)) {
-                /*
-                inc();
-                auto assignment = parseAssignment();
-                program->body.push_back(std::move(assignment));*/
+            } else if (test(types::KeywordType::KW_LET)) {
                 std::ostringstream stream;
                 auto pos = scan->operator[](token_index).get_pos();
                 stream << "Let statement must be in function body Line: " << pos.first << " Col: " << pos.second;
                 throw ParseException(stream.str());
-
             } else {
                 std::ostringstream stream;
                 auto pos = scan->operator[](token_index).get_pos();
@@ -156,53 +150,146 @@ namespace parse {
     }
 
     std::unique_ptr<ast::Expression> Parser::parseExpression() {
-        auto left = parseTerm();
+        return parseLogicalOr();
+    }
 
-        while (test(types::OperatorType::OP_PLUS) || test(types::OperatorType::OP_MINUS)) {
+    std::unique_ptr<ast::Expression> Parser::parseLogicalOr() {
+        auto left = parseLogicalAnd();
+        while (test(types::OperatorType::OP_OR_OR)) {
             auto op = types::lookUp(scan->operator[](token_index).getTokenValue());
-            inc();  
-            auto right = parseTerm();
+            inc();
+            auto right = parseLogicalAnd();
             left = std::make_unique<ast::BinaryOp>(*op, std::move(left), std::move(right));
         }
-
         return left;
     }
 
-    std::unique_ptr<ast::Expression> Parser::parseTerm() {
-        auto left = parseFactor();
-
-            while (
-                test(types::OperatorType::OP_MUL) || 
-                test(types::OperatorType::OP_DIV) ||  
-                test(types::OperatorType::OP_MOD) || 
-                test(types::OperatorType::OP_XOR) || 
-                test(types::OperatorType::OP_OR) ||
-                test(types::OperatorType::OP_AND) || 
-                test(types::OperatorType::OP_LSHIFT) || 
-                test(types::OperatorType::OP_RSHIFT)) {
-                    
+    std::unique_ptr<ast::Expression> Parser::parseLogicalAnd() {
+        auto left = parseBitwiseOr();
+        while (test(types::OperatorType::OP_AND_AND)) {
             auto op = types::lookUp(scan->operator[](token_index).getTokenValue());
-            inc();  
+            inc();
+            auto right = parseBitwiseOr();
+            left = std::make_unique<ast::BinaryOp>(*op, std::move(left), std::move(right));
+        }
+        return left;
+    }
+
+    std::unique_ptr<ast::Expression> Parser::parseBitwiseOr() {
+        auto left = parseBitwiseXor();
+        while (test(types::OperatorType::OP_OR)) {
+            auto op = types::lookUp(scan->operator[](token_index).getTokenValue());
+            inc();
+            auto right = parseBitwiseXor();
+            left = std::make_unique<ast::BinaryOp>(*op, std::move(left), std::move(right));
+        }
+        return left;
+    }
+
+    std::unique_ptr<ast::Expression> Parser::parseBitwiseXor() {
+        auto left = parseBitwiseAnd();
+        while (test(types::OperatorType::OP_XOR)) {
+            auto op = types::lookUp(scan->operator[](token_index).getTokenValue());
+            inc();
+            auto right = parseBitwiseAnd();
+            left = std::make_unique<ast::BinaryOp>(*op, std::move(left), std::move(right));
+        }
+        return left;
+    }
+
+    std::unique_ptr<ast::Expression> Parser::parseBitwiseAnd() {
+        auto left = parseEquality();
+        while (test(types::OperatorType::OP_AND)) {
+            auto op = types::lookUp(scan->operator[](token_index).getTokenValue());
+            inc();
+            auto right = parseEquality();
+            left = std::make_unique<ast::BinaryOp>(*op, std::move(left), std::move(right));
+        }
+        return left;
+    }
+
+    std::unique_ptr<ast::Expression> Parser::parseEquality() {
+        auto left = parseRelational();
+        while (test(types::OperatorType::OP_EQ) || test(types::OperatorType::OP_NEQ)) {
+            auto op = types::lookUp(scan->operator[](token_index).getTokenValue());
+            inc();
+            auto right = parseRelational();
+            left = std::make_unique<ast::BinaryOp>(*op, std::move(left), std::move(right));
+        }
+        return left;
+    }
+
+    std::unique_ptr<ast::Expression> Parser::parseRelational() {
+        auto left = parseShift();
+        while (test(types::OperatorType::OP_LT) || test(types::OperatorType::OP_LE) ||
+               test(types::OperatorType::OP_GT) || test(types::OperatorType::OP_GE)) {
+            auto op = types::lookUp(scan->operator[](token_index).getTokenValue());
+            inc();
+            auto right = parseShift();
+            left = std::make_unique<ast::BinaryOp>(*op, std::move(left), std::move(right));
+        }
+        return left;
+    }
+
+    std::unique_ptr<ast::Expression> Parser::parseShift() {
+        auto left = parseAdditive();
+        while (test(types::OperatorType::OP_LSHIFT) || test(types::OperatorType::OP_RSHIFT)) {
+            auto op = types::lookUp(scan->operator[](token_index).getTokenValue());
+            inc();
+            auto right = parseAdditive();
+            left = std::make_unique<ast::BinaryOp>(*op, std::move(left), std::move(right));
+        }
+        return left;
+    }
+
+    std::unique_ptr<ast::Expression> Parser::parseAdditive() {
+        auto left = parseMultiplicative();
+        while (test(types::OperatorType::OP_PLUS) || test(types::OperatorType::OP_MINUS)) {
+            auto op = types::lookUp(scan->operator[](token_index).getTokenValue());
+            inc();
+            auto right = parseMultiplicative();
+            left = std::make_unique<ast::BinaryOp>(*op, std::move(left), std::move(right));
+        }
+        return left;
+    }
+
+    std::unique_ptr<ast::Expression> Parser::parseMultiplicative() {
+        auto left = parseFactor();
+        while (test(types::OperatorType::OP_MUL) || test(types::OperatorType::OP_DIV) || test(types::OperatorType::OP_MOD)) {
+            auto op = types::lookUp(scan->operator[](token_index).getTokenValue());
+            inc();
             auto right = parseFactor();
             left = std::make_unique<ast::BinaryOp>(*op, std::move(left), std::move(right));
         }
-
         return left;
     }
 
     std::unique_ptr<ast::Expression> Parser::parseFactor() {
         if (test(types::OperatorType::OP_MINUS)) {
-            inc();  
-            auto operand = parseFactor();  
+            inc();
+            auto operand = parseFactor();
             return std::make_unique<ast::UnaryOp>(types::OperatorType::OP_MINUS, std::move(operand));
-        } else if (test(types::OperatorType::OP_LPAREN)) {
-            inc();  
-            auto expr = parseExpression();
-            match(types::OperatorType::OP_RPAREN);  
-            return expr;
-        } else {
-            return parsePrimary();  
+        } else if (test(types::OperatorType::OP_NOT)) {
+            inc();
+            auto operand = parseFactor();
+            return std::make_unique<ast::UnaryOp>(types::OperatorType::OP_NOT, std::move(operand));
+        } else if (test(types::OperatorType::OP_TILDE)) {
+            inc();
+            auto operand = parseFactor();
+            return std::make_unique<ast::UnaryOp>(types::OperatorType::OP_TILDE, std::move(operand));
+        } else if (test(types::OperatorType::OP_INC) || test(types::OperatorType::OP_DEC)) {
+            auto op = types::lookUp(scan->operator[](token_index).getTokenValue());
+            inc();
+            auto operand = parseFactor();
+            return std::make_unique<ast::UnaryOp>(*op, std::move(operand));
         }
+        if (test(types::OperatorType::OP_LPAREN)) {
+            inc();
+            auto expr = parseExpression();
+            match(types::OperatorType::OP_RPAREN);
+            return expr;
+        }
+        return parsePrimary();
     }
 
     std::unique_ptr<ast::Expression> Parser::parsePrimary() {
@@ -217,50 +304,36 @@ namespace parse {
                 return parseCall(token.getTokenValue());
             }
             return std::make_unique<ast::Identifier>(token.getTokenValue());
-        } else if (test(types::OperatorType::OP_LPAREN)) {
-            inc();  
-            auto expr = parseExpression();  
-            match(types::OperatorType::OP_RPAREN);  
-            return expr;
-        }  else if (test(types::OperatorType::OP_TILDE)) {
-            inc();
-            auto expr = parsePrimary(); 
-            return std::make_unique<ast::UnaryOp>(types::OperatorType::OP_TILDE, std::move(expr));
         }
         std::ostringstream stream;
         auto pos = scan->operator[](token_index).get_pos();
-        stream << "Parse Error: Excepted Type on Line: " << pos.first << " Col: " << pos.second << "\n";
+        stream << "Parse Error: Expected primary expression at Line: " << pos.first << " Col: " << pos.second << "\n";
         throw ParseException(stream.str());
-        return nullptr;  
+        return nullptr;
     }
-    
-    std::unique_ptr<ast::Expression> Parser::parseCall(const std::string &functionName) {
-        match(types::OperatorType::OP_LPAREN);  
-        std::vector<std::unique_ptr<ast::Expression>> arguments;
 
-        if (!test(types::OperatorType::OP_RPAREN)) {  
+    std::unique_ptr<ast::Expression> Parser::parseCall(const std::string &functionName) {
+        match(types::OperatorType::OP_LPAREN);
+        std::vector<std::unique_ptr<ast::Expression>> arguments;
+        if (!test(types::OperatorType::OP_RPAREN)) {
             do {
-                arguments.push_back(parseExpression());  
+                arguments.push_back(parseExpression());
             } while (test(types::OperatorType::OP_COMMA) && token_index++ < scan->size());
         }
-
-        match(types::OperatorType::OP_RPAREN);  // Consume ')'
+        match(types::OperatorType::OP_RPAREN);
         auto callExpr = std::make_unique<ast::Call>(functionName, std::move(arguments));
-        if(functionName == "str") {
+        if (functionName == "str") {
             callExpr->vtype = ast::VarType::STRING;
-        } 
+        }
         return callExpr;
     }
-        
 
     std::unique_ptr<ast::Assignment> Parser::parseAssignment() {
         if (test(types::TokenType::TT_ID)) {
             auto lhs = parsePrimary();
-            
             if (test(types::OperatorType::OP_ASSIGN)) {
                 inc();
                 auto rhs = parseExpression();
-
                 if (auto literal = dynamic_cast<ast::Literal*>(rhs.get())) {
                     if (literal->type == types::TokenType::TT_STR) {
                         if (auto identifier = dynamic_cast<ast::Identifier*>(lhs.get())) {
@@ -272,7 +345,6 @@ namespace parse {
                         }
                     }
                 }
-
                 if (auto callExpr = dynamic_cast<ast::Call*>(rhs.get())) {
                     auto functionName = callExpr->functionName;
                     if (functionName == "str") {
@@ -281,7 +353,6 @@ namespace parse {
                         }
                     }
                 }
-
                 if (auto rhsIdentifier = dynamic_cast<ast::Identifier*>(rhs.get())) {
                     if (rhsIdentifier->vtype == ast::VarType::STRING) {
                         if (auto lhsIdentifier = dynamic_cast<ast::Identifier*>(lhs.get())) {
@@ -293,39 +364,35 @@ namespace parse {
                         }
                     }
                 }
-                
                 match(types::OperatorType::OP_SEMICOLON);
                 return std::make_unique<ast::Assignment>(std::move(lhs), std::move(rhs));
             }
         }
-
-    std::ostringstream stream;
-    auto pos = scan->operator[](token_index).get_pos();
-    throw ParseException(stream.str());
-    return nullptr;
-}
+        std::ostringstream stream;
+        auto pos = scan->operator[](token_index).get_pos();
+        throw ParseException(stream.str());
+        return nullptr;
+    }
 
     std::unique_ptr<ast::DefineFunction> Parser::parseDefine() {
         ast::VarType rt_type = ast::VarType::NUMBER;
-        if(test(types::OperatorType::OP_DOLLAR)) {
+        if (test(types::OperatorType::OP_DOLLAR)) {
             inc();
             rt_type = ast::VarType::STRING;
         }
-
         if (test(types::TokenType::TT_ID)) {
             std::string name = scan->operator[](token_index).getTokenValue();
-            inc(); 
-            match(types::OperatorType::OP_LPAREN);    
+            inc();
+            match(types::OperatorType::OP_LPAREN);
             std::vector<std::pair<std::string, ast::VarType>> parameters;
-            if (!test(types::OperatorType::OP_RPAREN)) { 
+            if (!test(types::OperatorType::OP_RPAREN)) {
                 do {
                     ast::VarType ptype = ast::VarType::NUMBER;
-                    if(test(types::OperatorType::OP_DOLLAR)) {
+                    if (test(types::OperatorType::OP_DOLLAR)) {
                         inc();
                         ptype = ast::VarType::STRING;
-                    } 
-
-                    if (!test(types::TokenType::TT_ID)) { 
+                    }
+                    if (!test(types::TokenType::TT_ID)) {
                         std::ostringstream stream;
                         auto pos = scan->operator[](token_index).get_pos();
                         stream << "Parse Error: Expected identifier for parameter on Line: " << pos.first << " Col: " << pos.second << "\n";
@@ -333,50 +400,43 @@ namespace parse {
                     }
                     std::string param = scan->operator[](token_index).getTokenValue();
                     parameters.push_back(std::make_pair(param, ptype));
-                    inc(); 
+                    inc();
                     if (test(types::OperatorType::OP_COMMA)) {
-                        inc(); 
+                        inc();
                     } else {
-                        break; 
+                        break;
                     }
                 } while (true);
             }
-
             match(types::OperatorType::OP_RPAREN);
             match(types::OperatorType::OP_SEMICOLON);
             return std::make_unique<ast::DefineFunction>(name, parameters, rt_type);
         }
         std::ostringstream stream;
         stream << "Parse Error on function Define\n";
-        throw ParseException(stream.str()); 
+        throw ParseException(stream.str());
         return nullptr;
     }
 
-
     std::unique_ptr<ast::Function> Parser::parseFunction() {
-
         ast::VarType rt_type = ast::VarType::NUMBER;
-        if(test(types::OperatorType::OP_DOLLAR)) {
+        if (test(types::OperatorType::OP_DOLLAR)) {
             inc();
             rt_type = ast::VarType::STRING;
         }
-
         if (test(types::TokenType::TT_ID)) {
             std::string name = scan->operator[](token_index).getTokenValue();
-            inc(); 
+            inc();
             match(types::OperatorType::OP_LPAREN);
-
-            
             std::vector<std::pair<std::string, ast::VarType>> parameters;
-            if (!test(types::OperatorType::OP_RPAREN)) { 
+            if (!test(types::OperatorType::OP_RPAREN)) {
                 do {
                     ast::VarType ptype = ast::VarType::NUMBER;
-                    if(test(types::OperatorType::OP_DOLLAR)) {
+                    if (test(types::OperatorType::OP_DOLLAR)) {
                         inc();
                         ptype = ast::VarType::STRING;
-                    } 
-
-                    if (!test(types::TokenType::TT_ID)) { 
+                    }
+                    if (!test(types::TokenType::TT_ID)) {
                         std::ostringstream stream;
                         auto pos = scan->operator[](token_index).get_pos();
                         stream << "Parse Error: Expected identifier for parameter on Line: " << pos.first << " Col: " << pos.second << "\n";
@@ -384,27 +444,24 @@ namespace parse {
                     }
                     std::string param = scan->operator[](token_index).getTokenValue();
                     parameters.push_back(std::make_pair(param, ptype));
-                    inc(); 
+                    inc();
                     if (test(types::OperatorType::OP_COMMA)) {
-                        inc(); 
+                        inc();
                     } else {
-                        break; 
+                        break;
                     }
                 } while (true);
             }
-
             match(types::OperatorType::OP_RPAREN);
             match(types::OperatorType::OP_LBRACE);
-
             bool return_found = false;
             auto function = std::make_unique<ast::Function>(name, parameters, rt_type);
-
             while (!test(types::OperatorType::OP_RBRACE)) {
                 if (test(types::KeywordType::KW_RETURN)) {
                     inc();
                     auto e = parseExpression();
                     if (e) {
-                        match(types::OperatorType::OP_SEMICOLON);\
+                        match(types::OperatorType::OP_SEMICOLON);
                         function->body.push_back(std::make_unique<ast::Return>(std::move(e)));
                         return_found = true;
                     }
@@ -418,30 +475,27 @@ namespace parse {
                     auto token = scan->operator[](token_index);
                     inc();
                     auto call_st = parseCall(token.getTokenValue());
-                    inc(); // eat ';'
+                    inc();
                     if (call_st) {
                         function->body.push_back(std::move(call_st));
                     }
                 } else {
                     break;
                 }
+            }
+            match(types::OperatorType::OP_RBRACE);
+            if (!return_found) {
+                std::ostringstream stream;
+                stream << "Error: Function " << name << " does not include a return statement.\n";
+                throw ParseException(stream.str());
+            }
+            return function;
         }
-
-        match(types::OperatorType::OP_RBRACE);
-
-        if (!return_found) {
-            std::ostringstream stream;
-            stream << "Error: Function " << name << " does not include a return statement.\n";
-            throw ParseException(stream.str());
-        }
-
-        return function;
+        std::ostringstream stream;
+        auto pos = scan->operator[](token_index).get_pos();
+        stream << "Parse Error: Expected Function on Line: " << pos.first << " Col: " << pos.second << "\n";
+        throw ParseException(stream.str());
+        return nullptr;
     }
 
-    std::ostringstream stream;
-    auto pos = scan->operator[](token_index).get_pos();
-    stream << "Parse Error: Expected Function on Line: " << pos.first << " Col: " << pos.second << "\n";
-    throw ParseException(stream.str());
-    return nullptr;
-}
 }

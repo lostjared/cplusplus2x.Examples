@@ -46,9 +46,19 @@ namespace parse {
         void proc_tokens();
 
         std::unique_ptr<ast::Expression> parseExpression();
-        std::unique_ptr<ast::Expression> parseTerm();
+        std::unique_ptr<ast::Expression> parseLogicalOr();
+        std::unique_ptr<ast::Expression> parseLogicalAnd();
+        std::unique_ptr<ast::Expression> parseBitwiseOr();
+        std::unique_ptr<ast::Expression> parseBitwiseXor();
+        std::unique_ptr<ast::Expression> parseBitwiseAnd();
+        std::unique_ptr<ast::Expression> parseEquality();
+        std::unique_ptr<ast::Expression> parseRelational();
+        std::unique_ptr<ast::Expression> parseShift();
+        std::unique_ptr<ast::Expression> parseAdditive();
+        std::unique_ptr<ast::Expression> parseMultiplicative();
         std::unique_ptr<ast::Expression> parseFactor();
         std::unique_ptr<ast::Expression> parsePrimary();
+
         std::unique_ptr<ast::Assignment> parseAssignment();
         std::unique_ptr<ast::Function> parseFunction();
         std::unique_ptr<ast::DefineFunction> parseDefine();
