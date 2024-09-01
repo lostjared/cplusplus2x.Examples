@@ -520,7 +520,15 @@ namespace parse {
 
         std::vector<std::unique_ptr<ast::ASTNode>> if_body;
         while (!test(types::OperatorType::OP_RBRACE)) {
-               if (test(types::KeywordType::KW_IF)) {
+                if (test(types::KeywordType::KW_BREAK)) {
+                    inc();
+                    match(types::OperatorType::OP_SEMICOLON);
+                    if_body.push_back(std::make_unique<ast::Break>());
+                } else if (test(types::KeywordType::KW_CONTINUE)) {
+                    inc();
+                    match(types::OperatorType::OP_SEMICOLON);
+                    if_body.push_back(std::make_unique<ast::Continue>());
+                } else if (test(types::KeywordType::KW_IF)) {
                     auto nested_if = parseIfStatement();
                     if_body.push_back(std::move(nested_if));
                 } else if (test(types::KeywordType::KW_WHILE)) {
@@ -559,7 +567,15 @@ namespace parse {
             inc();
             match(types::OperatorType::OP_LBRACE);
             while (!test(types::OperatorType::OP_RBRACE)) {
-                if (test(types::KeywordType::KW_IF)) {
+                if (test(types::KeywordType::KW_BREAK)) {
+                    inc();
+                    match(types::OperatorType::OP_SEMICOLON);
+                    else_body.push_back(std::make_unique<ast::Break>());
+                } else if (test(types::KeywordType::KW_CONTINUE)) {
+                    inc();
+                    match(types::OperatorType::OP_SEMICOLON);
+                    else_body.push_back(std::make_unique<ast::Continue>());
+                } else if (test(types::KeywordType::KW_IF)) {
                     auto nested_if = parseIfStatement();
                     else_body.push_back(std::move(nested_if));
                 } else if (test(types::KeywordType::KW_WHILE)) {
@@ -605,7 +621,15 @@ namespace parse {
 
         std::vector<std::unique_ptr<ast::ASTNode>> body;
         while (!test(types::OperatorType::OP_RBRACE)) {
-            if (test(types::KeywordType::KW_WHILE)) {
+            if (test(types::KeywordType::KW_BREAK)) {
+                inc();
+                match(types::OperatorType::OP_SEMICOLON);
+                body.push_back(std::make_unique<ast::Break>());
+            } else if (test(types::KeywordType::KW_CONTINUE)) {
+                inc();
+                match(types::OperatorType::OP_SEMICOLON);
+                body.push_back(std::make_unique<ast::Continue>());
+            } else if (test(types::KeywordType::KW_WHILE)) {
                 auto nested_while = parseWhileStatement();
                 body.push_back(std::move(nested_while));
             } else if (test(types::KeywordType::KW_IF)) {

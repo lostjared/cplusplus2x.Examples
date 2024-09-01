@@ -146,6 +146,18 @@ namespace ast {
         }
     };
 
+    struct Break : Statement {
+        std::string text() const override {
+            return "break;";
+        }
+    };
+
+    struct Continue : Statement {
+        std::string text() const override {
+            return "continue;";
+        }
+    };
+
     struct WhileStatement : Statement {
         std::unique_ptr<Expression> condition;
         std::vector<std::unique_ptr<ASTNode>> body;

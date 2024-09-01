@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <memory>
 #include <algorithm>
+#include <stack>
 #include "symbol.hpp"
 #include "ast.hpp"
 
@@ -163,7 +164,8 @@ namespace parse {
         int tempVarCounter = 0;
         std::string currentFunctionName;  
         std::unordered_map<std::string, std::string> functionReturnValues;  
-      
+        std::stack<std::pair<std::string, std::string>> loopLabelStack;
+
         std::string getNextTempVar() {
             return "t" + std::to_string(tempVarCounter++);
         }
@@ -193,8 +195,13 @@ namespace parse {
                 generateIf(if_s, code);
             } else if(auto while_s = dynamic_cast<const ast::WhileStatement *>(node)) {
                 generateWhile(while_s, code);
+            }  if (auto break_s = dynamic_cast<const ast::Break *>(node)) {
+                generateBreak(break_s, code);
+            } else if (auto cont_s = dynamic_cast<const ast::Continue *>(node)) {
+                generateCont(cont_s, code);
             }
         }
+
 
         void generateProgram(const ast::Program *program, ir::IRCode &code) {
             for (const auto &stmt : program->body) {
@@ -202,9 +209,27 @@ namespace parse {
             }
         }
 
-      void generateWhile(const ast::WhileStatement *while_s, ir::IRCode &code) {
+   
+        void generateBreak(const ast::Break *break_s, ir::IRCode &code) {
+            if (loopLabelStack.empty()) {
+                throw ir::IRException("Error: 'break' statement used outside of a loop");
+            }
+            std::string endLabel = loopLabelStack.top().second;
+            code.emplace_back(ir::InstructionType::JUMP, endLabel);
+        }
+
+        void generateCont(const ast::Continue *cont_s, ir::IRCode &code) {
+            if (loopLabelStack.empty()) {
+                throw ir::IRException("Error: 'continue' statement used outside of a loop");
+            }
+            std::string startLabel = loopLabelStack.top().first;
+            code.emplace_back(ir::InstructionType::JUMP, startLabel);
+        }
+
+        void generateWhile(const ast::WhileStatement *while_s, ir::IRCode &code) {
             std::string startLabel = "while_start_" + std::to_string(tempVarCounter);
             std::string endLabel = "while_end_" + std::to_string(tempVarCounter++);
+            loopLabelStack.push({startLabel, endLabel});
             code.emplace_back(ir::InstructionType::SUB_LABEL, startLabel);
             generate(while_s->condition.get(), code);
             std::string conditionResult = lastComputedValue["result"];
@@ -214,7 +239,9 @@ namespace parse {
             }
             code.emplace_back(ir::InstructionType::JUMP, startLabel);
             code.emplace_back(ir::InstructionType::SUB_LABEL, endLabel);
+            loopLabelStack.pop();
         }
+        
         void generateIf(const ast::IfStatement *if_s, ir::IRCode &code) {
             generate(if_s->condition.get(), code);
             std::string conditionResult = lastComputedValue["result"];
