@@ -116,6 +116,35 @@ namespace ast {
         }
     };
 
+    struct IfStatement : Statement {
+        std::unique_ptr<Expression> condition;
+        std::vector<std::unique_ptr<ASTNode>> if_body;
+        std::vector<std::unique_ptr<ASTNode>> else_body;
+
+        IfStatement(std::unique_ptr<Expression> cond, 
+                    std::vector<std::unique_ptr<ASTNode>> if_b, 
+                    std::vector<std::unique_ptr<ASTNode>> else_b = {})
+            : condition(std::move(cond)), if_body(std::move(if_b)), else_body(std::move(else_b)) {}
+
+        std::string text() const override {
+            std::string result = "if (" + condition->text() + ") {\n";
+            
+            for (const auto& stmt : if_body) {
+                result += "  " + stmt->text() + "\n";
+            }
+            result += "}";
+
+            if (!else_body.empty()) {
+                result += " else {\n";
+                for (const auto& stmt : else_body) {
+                    result += "  " + stmt->text() + "\n";
+                }
+                result += "}";
+            }
+            return result;
+        }
+    };
+
     struct Function : ASTNode {
         std::string name;
         std::vector<std::unique_ptr<ASTNode>> body;

@@ -338,12 +338,34 @@ output << ".section .data\n";
                     case ir::InstructionType::LOGICAL_OR:  
                         emitLogicalOr(output, instr);
                         break;
+                    case ir::InstructionType::SUB_LABEL:
+                        emitSubLabel(output, instr);
+                        break;
+
+                    case ir::InstructionType::JUMP:
+                        emitJump(output, instr);
+                        break;  
                     default:
                         std::cerr << "Unsupported IR Instruction: " << instr.toString() << std::endl;
                         break;
                 }
             }
         }
+
+        void emitSubLabel(std::ostringstream &output, const ir::IRInstruction &instr) {
+            output << instr.dest << ": \n";
+        }
+
+        void emitJump(std::ostringstream &output, const ir::IRInstruction &instr) {
+            if (instr.op1.empty() && instr.op2.empty()) {
+                output << "    jmp " << instr.dest << "\n";
+            } else {
+                loadToRegister(output, instr.op1, "%rax");
+                output << "    cmpq $0, %rax\n";
+                output << "    je " << instr.dest << "\n";
+            }
+        }
+
         void emitLogicalAnd(std::ostringstream &output, const ir::IRInstruction &instr) {
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
@@ -354,11 +376,11 @@ output << ".section .data\n";
 
             loadToRegister(output, instr.op1, "%rbx");
             output << "    cmpq $0, %rbx\n";
-            output << "    setne %cl\n";  // Correct use of setne for non-zero
+            output << "    setne %cl\n";  
 
             loadToRegister(output, instr.op2, "%rbx");
             output << "    cmpq $0, %rbx\n";
-            output << "    setne %dl\n";  // Correct use of setne for non-zero
+            output << "    setne %dl\n";  
 
             output << "    movzbl %cl, %ecx\n";
             output << "    movzbl %dl, %edx\n";

@@ -48,7 +48,9 @@ namespace ir {
         GT,
         GE,
         LOGICAL_AND, 
-        LOGICAL_OR
+        LOGICAL_OR,
+        SUB_LABEL,
+        JUMP
     };
 
     inline std::vector<std::string> InstructionStrings{
@@ -83,7 +85,9 @@ namespace ir {
         "GT",
         "GE",
         "LOGICAL_AND",
-        "LOGICAL_OR"
+        "LOGICAL_OR",
+        "SUB_LABEL",
+        "JUMP"
     };
 
     struct IRInstruction {
@@ -181,6 +185,8 @@ namespace parse {
                 generateIdentifier(identifier, code);
             } else if (auto rt = dynamic_cast<const ast::Return*>(node)) {
                 generateReturn(rt, code);
+            } else if(auto if_s = dynamic_cast<const ast::IfStatement *>(node)) {
+                generateIf(if_s, code);
             }
         }
 
@@ -190,6 +196,26 @@ namespace parse {
             }
         }
 
+        void generateIf(const ast::IfStatement *if_s, ir::IRCode &code) {
+            generate(if_s->condition.get(), code);
+            std::string conditionResult = lastComputedValue["result"];
+            std::string ifLabel = "sublabel_if_" + std::to_string(tempVarCounter);
+            std::string elseLabel = "sublabel_else_" + std::to_string(tempVarCounter);
+            std::string endLabel = "sublabel_end_" + std::to_string(tempVarCounter++);
+            code.emplace_back(ir::InstructionType::JUMP, elseLabel, conditionResult, "0");
+            code.emplace_back(ir::InstructionType::SUB_LABEL, ifLabel);
+            for (const auto &stmt : if_s->if_body) {
+                generate(stmt.get(), code);
+            }
+            code.emplace_back(ir::InstructionType::JUMP, endLabel);
+            code.emplace_back(ir::InstructionType::SUB_LABEL, elseLabel);
+            if (!if_s->else_body.empty()) {
+                for (const auto &stmt : if_s->else_body) {
+                    generate(stmt.get(), code);
+                }
+            }
+            code.emplace_back(ir::InstructionType::SUB_LABEL, endLabel);
+        }
         void generateAssignment(const ast::Assignment *assign, ir::IRCode &code) {
             auto lhs = dynamic_cast<const ast::Identifier*>(assign->left.get());
             if (lhs) {
@@ -378,7 +404,7 @@ namespace parse {
                     }
             } else {
                 std::ostringstream stream;
-                stream << "Error: Operator + requires both operands to be of string type or both to be of number type. "
+                stream << "Error: Binary Operator requires both operands to be of string type or both to be of number type. "
                     << "Found: " << (leftIsString ? "string" : "number") << " + " 
                     << (rightIsString ? "string" : "number") << ". Use str() to convert.";
                 throw ir::IRException(stream.str());
