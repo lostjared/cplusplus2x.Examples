@@ -593,8 +593,9 @@ output << ".section .data\n";
 #endif
             storeToTemp(output, instr.dest, "%rax");
             table.enter(instr.dest);
-            if(variableInfo[curFunction][instr.dest].type == VariableType::VAR_STRING)
+            if(variableInfo[curFunction][instr.dest].type == VariableType::VAR_STRING) {
                 ownedMemory[curFunction].insert(instr.dest);
+            }
 
             
 
@@ -690,8 +691,10 @@ output << ".section .data\n";
 
                        switch (returnType) {
                         case ast::VarType::STRING:
-                            variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
-                            allocatedMemory[curFunction].insert(instr.dest);
+                                if(variableInfo[instr.functionName][instr.transfer_var].type == VariableType::VAR_STRING) {
+                                    variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
+                                    allocatedMemory[curFunction].insert(instr.dest);
+                                }
                             break;
                         case ast::VarType::NUMBER:
                             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
@@ -732,8 +735,7 @@ output << ".section .data\n";
                 if(val != allocatedMemory[curFunction].end()) {
                     allocatedMemory[curFunction].erase(val);
                 }
-
-            }
+            } 
 
             std::string prefix;
 #ifdef __APPLE__
@@ -743,13 +745,13 @@ output << ".section .data\n";
             for (const auto &var : allocatedMemory[curFunction]) {
                 if(variableInfo[curFunction][var].type == VariableType::VAR_STRING) {
                     loadToRegister(output, var, "%rdi");
-                    output << "    call " << prefix << "free #"<<var<<"\n";
+                    output << "    call " << prefix << "free # local variable: "<<var<<"\n";
                 }
             }
 
             for(const auto &var : ownedMemory[curFunction]) {
                     loadToRegister(output, var, "%rdi");
-                    output << "    call " << prefix << "free #"<<var<<"\n";
+                    output << "    call " << prefix << "free # ownership transfer: "<<var<<"\n";
             }
 
             if (!instr.dest.empty()) {

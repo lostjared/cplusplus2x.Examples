@@ -65,6 +65,7 @@ namespace ir {
         std::string op2;
         std::vector<std::string> args;
         std::string functionName;
+        std::string transfer_var;
 
         IRInstruction(InstructionType t, const std::string &d, const std::string &o1 = "", const std::string &o2 = "")
             : type(t), dest(d), op1(o1), op2(o2) {}
@@ -213,7 +214,10 @@ namespace parse {
             if (return_value->return_value) {
                 generate(return_value->return_value.get(), code);
                 std::string result = lastComputedValue["result"];
-                code.emplace_back(ir::InstructionType::RETURN, result);
+                ir::IRInstruction t(ir::InstructionType::RETURN, result);
+                t.transfer_var = result;
+                code.push_back(t);
+                
             } else {
                 code.emplace_back(ir::InstructionType::RETURN, "");
             }
