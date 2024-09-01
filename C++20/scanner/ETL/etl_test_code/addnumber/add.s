@@ -13,12 +13,6 @@ main:
     movq $0, %rax
     leave
     ret
-    movq %rdi, -8(%rbp)
-    movq %rsi, -8(%rbp)
-    movq %rdx, -16(%rbp)
-    movq %rcx, -24(%rbp)
-    movq %r8, -32(%rbp)
-    movq %r9, -8(%rbp)
 .globl add_numbers
 add_numbers:
     pushq %rbp
@@ -166,14 +160,14 @@ init:
     subq $96, %rsp
     movq $0, %rcx
     movq $0, %rax
-    movq %rax, -40(%rbp)
+    movq %rax, -8(%rbp)
     movq $0, %rax
-    movq %rax, -48(%rbp)
+    movq %rax, -16(%rbp)
     movq $0, %rax
     call add_numbers
-    movq %rax, -56(%rbp)
+    movq %rax, -24(%rbp)
     movq $0, %rax
-    movq %rax, -64(%rbp)
+    movq %rax, -32(%rbp)
     leave
     ret
 .section .note.GNU-stack,"",@progbits

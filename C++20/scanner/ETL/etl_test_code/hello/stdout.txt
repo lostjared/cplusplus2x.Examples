@@ -4,17 +4,17 @@ ETL: parsing ...  [complete]
 ETL: IR code: {
 	DEFINE scan_integer
 	DEFINE len
-	PARAM_STRING value
+	DEF_PARAM_STRING value
 	DEFINE str
-	PARAM value
+	DEF_PARAM value
 	DEFINE exit
-	PARAM code
+	DEF_PARAM code
 	DEFINE puts
-	PARAM_STRING output
+	DEF_PARAM_STRING output
 	DEFINE srand
-	PARAM seed
+	DEF_PARAM seed
 	DEFINE time
-	PARAM value
+	DEF_PARAM value
 	LABEL init
 	LOAD_CONST t0 "Hello,$### \" World!"
 	CALL t1 puts t0
