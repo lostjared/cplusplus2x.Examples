@@ -46,7 +46,9 @@ namespace ir {
         LT,   
         LE,
         GT,
-        GE 
+        GE,
+        LOGICAL_AND, 
+        LOGICAL_OR
     };
 
     inline std::vector<std::string> InstructionStrings{
@@ -79,7 +81,9 @@ namespace ir {
         "LT",
         "LE",
         "GT",
-        "GE"
+        "GE",
+        "LOGICAL_AND",
+        "LOGICAL_OR"
     };
 
     struct IRInstruction {
@@ -361,7 +365,12 @@ namespace parse {
                         case types::OperatorType::OP_GE:
                             code.emplace_back(ir::InstructionType::GE, dest, leftResult, rightResult);
                             break;
-                                    // Add cases for other operators like relational and logical operators
+                        case types::OperatorType::OP_AND_AND: 
+                            code.emplace_back(ir::InstructionType::LOGICAL_AND, dest, leftResult, rightResult);
+                            break;
+                        case types::OperatorType::OP_OR_OR:   
+                            code.emplace_back(ir::InstructionType::LOGICAL_OR, dest, leftResult, rightResult);
+                            break;                        
                         default:
                             std::ostringstream stream;
                             stream << "Error: Unsupported numeric operation: " << static_cast<int>(binOp->op);

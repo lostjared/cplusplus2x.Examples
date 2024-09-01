@@ -332,14 +332,66 @@ output << ".section .data\n";
                     case ir::InstructionType::GE:  
                         emitGe(output, instr);
                         break;
-                            default:
+                    case ir::InstructionType::LOGICAL_AND:  
+                        emitLogicalAnd(output, instr);
+                        break;
+                    case ir::InstructionType::LOGICAL_OR:  
+                        emitLogicalOr(output, instr);
+                        break;
+                    default:
                         std::cerr << "Unsupported IR Instruction: " << instr.toString() << std::endl;
                         break;
                 }
             }
         }
+        void emitLogicalAnd(std::ostringstream &output, const ir::IRInstruction &instr) {
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if (it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
 
+            loadToRegister(output, instr.op1, "%rbx");
+            output << "    cmpq $0, %rbx\n";
+            output << "    setne %cl\n";  // Correct use of setne for non-zero
+
+            loadToRegister(output, instr.op2, "%rbx");
+            output << "    cmpq $0, %rbx\n";
+            output << "    setne %dl\n";  // Correct use of setne for non-zero
+
+            output << "    movzbl %cl, %ecx\n";
+            output << "    movzbl %dl, %edx\n";
+            output << "    andl %ecx, %edx\n";
+            output << "    movl %edx, %edx\n";
+
+            storeToTemp(output, instr.dest, "%rdx");
+        }
+
+        void emitLogicalOr(std::ostringstream &output, const ir::IRInstruction &instr) {
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if (it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
+            loadToRegister(output, instr.op1, "%rbx");
+            output << "    cmpq $0, %rbx\n";
+            output << "    setne %al\n";
+            loadToRegister(output, instr.op2, "%rbx");
+            output << "    cmpq $0, %rbx\n";
+            output << "    setne %bl\n";
+            output << "    orb %al, %bl\n";
+            output << "    movzbq %bl, %rcx\n"; 
+            storeToTemp(output, instr.dest, "%rcx");
+        }
         void emitEq(std::ostringstream &output, const ir::IRInstruction &instr) {
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if(it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rbx");
             output << "    cmpq %rax, %rbx\n";
@@ -347,6 +399,12 @@ output << ".section .data\n";
         }
 
         void emitNeq(std::ostringstream &output, const ir::IRInstruction &instr) {
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if(it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rbx");
             output << "    cmpq %rax, %rbx\n";
@@ -354,6 +412,12 @@ output << ".section .data\n";
         }
 
         void emitLt(std::ostringstream &output, const ir::IRInstruction &instr) {
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if(it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rbx");
             output << "    cmpq %rax, %rbx\n";
@@ -361,6 +425,12 @@ output << ".section .data\n";
         }
 
         void emitLe(std::ostringstream &output, const ir::IRInstruction &instr) {
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if(it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rbx");
             output << "    cmpq %rax, %rbx\n";
@@ -368,6 +438,12 @@ output << ".section .data\n";
         }
 
         void emitGt(std::ostringstream &output, const ir::IRInstruction &instr) {
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if(it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rbx");
             output << "    cmpq %rax, %rbx\n";
@@ -375,6 +451,12 @@ output << ".section .data\n";
         }
 
         void emitGe(std::ostringstream &output, const ir::IRInstruction &instr) {
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if(it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rbx");
             output << "    cmpq %rax, %rbx\n";
@@ -382,6 +464,12 @@ output << ".section .data\n";
         }
 
         void emitAnd(std::ostringstream &output, const ir::IRInstruction &instr) {
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if(it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rbx");
             output << "    andq %rbx, %rax\n";
@@ -389,6 +477,12 @@ output << ".section .data\n";
         }
 
         void emitOr(std::ostringstream &output, const ir::IRInstruction &instr) {
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if(it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rbx");
             output << "    orq %rbx, %rax\n";
@@ -396,6 +490,12 @@ output << ".section .data\n";
         }
 
         void emitXor(std::ostringstream &output, const ir::IRInstruction &instr) {
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if(it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rbx");
             output << "    xorq %rbx, %rax\n";
@@ -403,6 +503,12 @@ output << ".section .data\n";
         }
 
         void emitLShift(std::ostringstream &output, const ir::IRInstruction &instr) {
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if(it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rcx");
             output << "    salq %cl, %rax\n";
@@ -410,6 +516,12 @@ output << ".section .data\n";
         }
 
         void emitRShift(std::ostringstream &output, const ir::IRInstruction &instr) {
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if(it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rcx");
             output << "    sarq %cl, %rax\n";
@@ -417,6 +529,12 @@ output << ".section .data\n";
         }
 
         void emitMod(std::ostringstream &output, const ir::IRInstruction &instr) {
+            table.enter(instr.dest);
+            auto it = table.lookup(instr.dest);
+            if(it.has_value()) {
+                it.value()->vtype = ast::VarType::NUMBER;
+            }
+            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             output << "    cqto\n";          
             loadToRegister(output, instr.op2, "%rbx");
