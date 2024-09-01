@@ -32,10 +32,7 @@ init:
     addq $22, -48(%rbp)
     movq $0, %rcx
     movq %rcx, -48(%rbp)
-     addq $25, -48(%rbp)
-    movq -40(%rbp), %rdi # t4 # t4
-    call strlen # t4
-    addq %rax, -48(%rbp)
+    addq $25, -48(%rbp)
     addq $1, -48(%rbp)
     movq $1, %rsi
     xorq %rax, %rax
@@ -54,9 +51,7 @@ init:
     movq $0, %rax
     movq %rax, -72(%rbp)
     movq -56(%rbp), %rdi # t5 # t5
-    call free #t5
-    movq -40(%rbp), %rdi # t4 # t4
-    call free #t4
+    call free # local variable: t5
     movq -72(%rbp), %rax # t7 # t7
     leave
     ret

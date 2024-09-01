@@ -1,6 +1,6 @@
 cc code.c -o code.o -c
 etl program hello.e code.o 
-ETL: Scanned 62 tokens.
+ETL: Scanned 79 tokens.
 ETL: parsing ...  [complete]
 ETL: IR code: {
 	DEFINE scan_integer
@@ -16,6 +16,11 @@ ETL: IR code: {
 	DEF_PARAM seed
 	DEFINE time
 	DEF_PARAM value
+	DEFINE strlen
+	DEF_PARAM_STRING value
+	DEFINE strcmp
+	DEF_PARAM_STRING value1
+	DEF_PARAM_STRING value2
 	DEFINE hello
 	LABEL init
 	CALL t0 hello

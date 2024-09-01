@@ -25,7 +25,7 @@ testLen:
     movq %rax, -24(%rbp)
     movq $0, %rcx
     movq %rcx, -32(%rbp)
-     addq $8, -32(%rbp)
+    addq $8, -32(%rbp)
     movq -24(%rbp), %rdi # t1 # t1
     call strlen # t1
     addq %rax, -32(%rbp)
@@ -51,7 +51,7 @@ testLen:
     call len
     movq %rax, -64(%rbp)
     movq -40(%rbp), %rdi # t2 # t2
-    call free #t2
+    call free # local variable: t2
     movq -64(%rbp), %rax # t4 # t4
     leave
     ret
@@ -76,10 +76,7 @@ init:
     addq $22, -40(%rbp)
     movq $0, %rcx
     movq %rcx, -40(%rbp)
-     addq $13, -40(%rbp)
-    movq -32(%rbp), %rdi # t8 # t8
-    call strlen # t8
-    addq %rax, -40(%rbp)
+    addq $13, -40(%rbp)
     addq $1, -40(%rbp)
     movq $1, %rsi
     xorq %rax, %rax
@@ -98,9 +95,7 @@ init:
     movq $0, %rax
     movq %rax, -64(%rbp)
     movq -48(%rbp), %rdi # t9 # t9
-    call free #t9
-    movq -32(%rbp), %rdi # t8 # t8
-    call free #t8
+    call free # local variable: t9
     movq -64(%rbp), %rax # t11 # t11
     leave
     ret

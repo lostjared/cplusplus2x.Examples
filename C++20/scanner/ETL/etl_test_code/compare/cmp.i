@@ -1,10 +1,9 @@
-# 0 "macros.e"
+# 0 "cmp.e"
 # 0 "<built-in>"
 # 0 "<command-line>"
 # 1 "/usr/include/stdc-predef.h" 1 3 4
 # 0 "<command-line>" 2
-# 1 "macros.e"
-
+# 1 "cmp.e"
 # 1 "/usr/local/include/libetl/etl.e" 1 3
 
 
@@ -20,15 +19,14 @@ define srand(seed);
 define time(value);
 define strlen($value);
 define strcmp($value1, $value2);
-# 3 "macros.e" 2
+# 2 "cmp.e" 2
 
 
-
-
-
-
-# 8 "macros.e"
+# 3 "cmp.e"
 proc init() {
-    puts("Hey this is a number: " + str(10*10));
+    let v = "Hello World";
+    printf("value is: %d\n", strlen(v));
+    let x = strlen(v) > 0 && strcmp(v, "Hello World") == 0;
+    puts("Comparison: " + str(x));
     return 0;
 }

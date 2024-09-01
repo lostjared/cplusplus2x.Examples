@@ -1,5 +1,5 @@
 etl program main.e obj.e
-ETL: Scanned 67 tokens.
+ETL: Scanned 84 tokens.
 ETL: parsing ...  [complete]
 ETL: IR code: {
 	DEFINE scan_integer
@@ -15,6 +15,11 @@ ETL: IR code: {
 	DEF_PARAM seed
 	DEFINE time
 	DEF_PARAM value
+	DEFINE strlen
+	DEF_PARAM_STRING value
+	DEFINE strcmp
+	DEF_PARAM_STRING value1
+	DEF_PARAM_STRING value2
 	DEFINE program
 	LABEL init
 	CALL t0 program
@@ -25,7 +30,7 @@ ETL: IR code: {
 }
 ETL: compiled [main.s]
 Assembled main.s to main.o
-ETL: Scanned 88 tokens.
+ETL: Scanned 105 tokens.
 ETL: parsing ...  [complete]
 ETL: IR code: {
 	DEFINE scan_integer
@@ -41,6 +46,11 @@ ETL: IR code: {
 	DEF_PARAM seed
 	DEFINE time
 	DEF_PARAM value
+	DEFINE strlen
+	DEF_PARAM_STRING value
+	DEFINE strcmp
+	DEF_PARAM_STRING value1
+	DEF_PARAM_STRING value2
 	LABEL program
 	LOAD_CONST t0 "Hello, World"
 	CALL t1 puts t0

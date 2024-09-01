@@ -1,5 +1,5 @@
 etl program number.e
-ETL: Scanned 103 tokens.
+ETL: Scanned 120 tokens.
 ETL: parsing ...  [complete]
 ETL: IR code: {
 	DEFINE scan_integer
@@ -15,6 +15,11 @@ ETL: IR code: {
 	DEF_PARAM seed
 	DEFINE time
 	DEF_PARAM value
+	DEFINE strlen
+	DEF_PARAM_STRING value
+	DEFINE strcmp
+	DEF_PARAM_STRING value1
+	DEF_PARAM_STRING value2
 	LABEL print_numbers
 	LOAD_CONST x 25
 	LOAD_CONST y 100

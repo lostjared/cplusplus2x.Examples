@@ -72,9 +72,6 @@ add_numbers:
     movq -96(%rbp), %rdi # t8 # t8
     call strlen # t8
     addq %rax, -80(%rbp)
-    movq -104(%rbp), %rdi # t9 # t9
-    call strlen # t9
-    addq %rax, -80(%rbp)
     addq $1, -80(%rbp)
     movq $1, %rsi
     xorq %rax, %rax
@@ -116,9 +113,6 @@ add_numbers:
     movq -128(%rbp), %rdi # t12 # t12
     call strlen # t12
     addq %rax, -80(%rbp)
-    movq -144(%rbp), %rdi # t14 # t14
-    call strlen # t14
-    addq %rax, -80(%rbp)
     addq $1, -80(%rbp)
     movq $1, %rsi
     xorq %rax, %rax
@@ -136,20 +130,14 @@ add_numbers:
     movq %rax, -160(%rbp)
     movq $0, %rax
     movq %rax, -168(%rbp)
-    movq -144(%rbp), %rdi # t14 # t14
-    call free #t14
-    movq -112(%rbp), %rdi # t10 # t10
-    call free #t10
     movq -128(%rbp), %rdi # t12 # t12
-    call free #t12
-    movq -104(%rbp), %rdi # t9 # t9
-    call free #t9
+    call free # local variable: t12
+    movq -112(%rbp), %rdi # t10 # t10
+    call free # local variable: t10
     movq -152(%rbp), %rdi # t15 # t15
-    call free #t15
+    call free # local variable: t15
     movq -96(%rbp), %rdi # t8 # t8
-    call free #t8
-    movq -72(%rbp), %rdi # t6 # t6
-    call free #t6
+    call free # local variable: t8
     movq -168(%rbp), %rax # t17 # t17
     leave
     ret

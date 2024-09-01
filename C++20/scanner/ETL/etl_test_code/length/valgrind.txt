@@ -1,16 +1,22 @@
-==1983== Memcheck, a memory error detector
-==1983== Copyright (C) 2002-2024, and GNU GPL'd, by Julian Seward et al.
-==1983== Using Valgrind-3.23.0 and LibVEX; rerun with -h for copyright info
-==1983== Command: ./program
-==1983== 
+==1785== Memcheck, a memory error detector
+==1785== Copyright (C) 2002-2024, and GNU GPL'd, by Julian Seward et al.
+==1785== Using Valgrind-3.23.0 and LibVEX; rerun with -h for copyright info
+==1785== Command: ./program
+==1785== 
 hey: value is here
 Len value:18
-==1983== 
-==1983== HEAP SUMMARY:
-==1983==     in use at exit: 0 bytes in 0 blocks
-==1983==   total heap usage: 4 allocs, 4 frees, 4,156 bytes allocated
-==1983== 
-==1983== All heap blocks were freed -- no leaks are possible
-==1983== 
-==1983== For lists of detected and suppressed errors, rerun with: -s
-==1983== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+==1785== 
+==1785== HEAP SUMMARY:
+==1785==     in use at exit: 22 bytes in 1 blocks
+==1785==   total heap usage: 4 allocs, 3 frees, 4,154 bytes allocated
+==1785== 
+==1785== LEAK SUMMARY:
+==1785==    definitely lost: 22 bytes in 1 blocks
+==1785==    indirectly lost: 0 bytes in 0 blocks
+==1785==      possibly lost: 0 bytes in 0 blocks
+==1785==    still reachable: 0 bytes in 0 blocks
+==1785==         suppressed: 0 bytes in 0 blocks
+==1785== Rerun with --leak-check=full to see details of leaked memory
+==1785== 
+==1785== For lists of detected and suppressed errors, rerun with: -s
+==1785== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
