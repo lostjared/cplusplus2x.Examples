@@ -565,7 +565,7 @@ namespace parse {
                 if_body.push_back(std::move(stmt));
             } else if (test(types::TokenType::TT_ID)) {
                 auto token = scan->operator[](token_index);
-                 inc();
+                inc();
                  if(test(types::OperatorType::OP_ASSIGN)) {
                         dec();
                         auto stmt = parseAssignment(true);

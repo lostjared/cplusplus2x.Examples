@@ -407,14 +407,14 @@ output << ".section .data\n";
                 }
             } else {
                 std::string label = numericConstants[curFunction][instr.op1];
-                output << "    movq " << "$" << instr.op1 << ", %rdx\n";
                 variableInfo[curFunction][instr.dest].type = VariableType::NUMERIC_CONST;
                 if(loc.has_value()) {
                     loc.value()->vtype = ast::VarType::NUMBER;
                     loc.value()->value = instr.op1;
                 }
             } 
-            storeToTemp(output, instr.dest, "%rdx");
+            output << "    movq $" << instr.op1 << ", %rcx # here\n";
+            output << "    movq %rcx, " << getOperand(instr.dest) << "\n";
         }
 
         void emitSubLabel(std::ostringstream &output, const ir::IRInstruction &instr) {
