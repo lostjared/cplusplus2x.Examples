@@ -83,7 +83,7 @@ namespace parse {
     bool Parser::test(const types::OperatorType &op) {
         scan::TToken &token = scan->operator[](token_index);
         auto op_t = types::lookUp(token.getTokenValue());
-        return op_t.has_value() && op == *op_t;
+        return token.getTokenType() == types::TokenType::TT_SYM && op_t.has_value() && op == *op_t;
     }
 
     bool Parser::test(const types::KeywordType &kw) {
@@ -293,13 +293,9 @@ namespace parse {
     }
 
     std::unique_ptr<ast::Expression> Parser::parsePrimary() {
-        std::cerr << "Debug: Current token value: " << scan->operator[](token_index).getTokenValue() << "\n";
-        std::cerr << "Debug: Current token type: " << static_cast<int>(scan->operator[](token_index).getTokenType()) << "\n";
-
         if (test(types::TokenType::TT_NUM) || test(types::TokenType::TT_STR)) {
             auto token = scan->operator[](token_index);
             inc();
-            std::cerr << "Debug: Handling primary token: " << token.getTokenValue() << "\n";
             return std::make_unique<ast::Literal>(token.getTokenValue(), token.getTokenType());
         } else if (test(types::TokenType::TT_ID)) {
             auto token = scan->operator[](token_index);
