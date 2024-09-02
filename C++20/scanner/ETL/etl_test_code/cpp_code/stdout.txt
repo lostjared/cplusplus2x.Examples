@@ -1,6 +1,6 @@
 g++ code.cpp -o code.o -c
 etl program hello.e code.o -- -lstdc++
-ETL: Scanned 84 tokens.
+ETL: Scanned 93 tokens.
 ETL: parsing ...  [complete]
 ETL: IR code: {
 	DEFINE scan_integer
@@ -21,6 +21,9 @@ ETL: IR code: {
 	DEFINE strcmp
 	DEF_PARAM_STRING value1
 	DEF_PARAM_STRING value2
+	DEFINE at
+	DEF_PARAM_STRING value
+	DEF_PARAM index
 	DEFINE hello
 	LABEL init
 	CALL t0 hello

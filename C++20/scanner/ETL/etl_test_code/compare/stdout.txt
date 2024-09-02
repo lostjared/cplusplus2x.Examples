@@ -1,5 +1,5 @@
 etl program cmp.e
-ETL: Scanned 114 tokens.
+ETL: Scanned 123 tokens.
 ETL: parsing ...  [complete]
 ETL: IR code: {
 	DEFINE scan_integer
@@ -20,6 +20,9 @@ ETL: IR code: {
 	DEFINE strcmp
 	DEF_PARAM_STRING value1
 	DEF_PARAM_STRING value2
+	DEFINE at
+	DEF_PARAM_STRING value
+	DEF_PARAM index
 	LABEL init
 	LOAD_CONST v "Hello World"
 	LOAD_CONST t0 "value is: %d\n"

@@ -22,6 +22,7 @@ define srand(seed);
 define time(value);
 define strlen($value);
 define strcmp($value1, $value2);
+define at($value, index);
 # 5 "number.e" 2
 
 

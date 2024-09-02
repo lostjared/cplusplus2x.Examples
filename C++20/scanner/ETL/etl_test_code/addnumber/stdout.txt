@@ -1,5 +1,5 @@
 etl program add.e
-ETL: Scanned 141 tokens.
+ETL: Scanned 150 tokens.
 ETL: parsing ...  [complete]
 ETL: IR code: {
 	DEFINE scan_integer
@@ -20,6 +20,9 @@ ETL: IR code: {
 	DEFINE strcmp
 	DEF_PARAM_STRING value1
 	DEF_PARAM_STRING value2
+	DEFINE at
+	DEF_PARAM_STRING value
+	DEF_PARAM index
 	LABEL add_numbers
 	LOAD_CONST t0 "Enter firsT number: "
 	CALL t1 puts t0
