@@ -50,6 +50,7 @@ namespace ir {
         GE,
         LOGICAL_AND, 
         LOGICAL_OR,
+        LOGICAL_NOT,
         SUB_LABEL,
         JUMP,
         SET,
@@ -89,6 +90,7 @@ namespace ir {
         "GE",
         "LOGICAL_AND",
         "LOGICAL_OR",
+        "LOGICAL_NOT",
         "SUB_LABEL",
         "JUMP", 
         "SET",
@@ -465,11 +467,13 @@ namespace parse {
             std::string result = lastComputedValue["result"];
 
             std::string dest = getNextTempVar();
-            if(unaryOp->op == types::OperatorType::OP_TILDE)
-                code.emplace_back(ir::InstructionType::NOT, dest, result);
-            else
-                code.emplace_back(ir::InstructionType::NEG, dest, result);
-               
+            if (unaryOp->op == types::OperatorType::OP_TILDE) {
+                code.emplace_back(ir::InstructionType::NOT, dest, result); 
+            } else if (unaryOp->op == types::OperatorType::OP_NOT) {
+                code.emplace_back(ir::InstructionType::LOGICAL_NOT, dest, result); 
+            } else {
+                code.emplace_back(ir::InstructionType::NEG, dest, result); 
+            }   
             lastComputedValue["result"] = dest;
         }
 

@@ -269,7 +269,7 @@ namespace parse {
             inc();
             auto operand = parseFactor();
             return std::make_unique<ast::UnaryOp>(types::OperatorType::OP_MINUS, std::move(operand));
-        } else if (test(types::OperatorType::OP_NOT)) {
+        } else if (test(types::OperatorType::OP_NOT) && test(types::TokenType::TT_SYM)) {
             inc();
             auto operand = parseFactor();
             return std::make_unique<ast::UnaryOp>(types::OperatorType::OP_NOT, std::move(operand));
@@ -293,9 +293,13 @@ namespace parse {
     }
 
     std::unique_ptr<ast::Expression> Parser::parsePrimary() {
+        std::cerr << "Debug: Current token value: " << scan->operator[](token_index).getTokenValue() << "\n";
+        std::cerr << "Debug: Current token type: " << static_cast<int>(scan->operator[](token_index).getTokenType()) << "\n";
+
         if (test(types::TokenType::TT_NUM) || test(types::TokenType::TT_STR)) {
             auto token = scan->operator[](token_index);
             inc();
+            std::cerr << "Debug: Handling primary token: " << token.getTokenValue() << "\n";
             return std::make_unique<ast::Literal>(token.getTokenValue(), token.getTokenType());
         } else if (test(types::TokenType::TT_ID)) {
             auto token = scan->operator[](token_index);
@@ -307,7 +311,7 @@ namespace parse {
         }
         std::ostringstream stream;
         auto pos = scan->operator[](token_index).get_pos();
-        stream << "Parse Error: Expected primary expression at Line: " << pos.first << " Col: " << pos.second << "\n";
+        stream << "Parse Error: Expected primary expression found: " << static_cast<int>(scan->operator[](token_index).getTokenType()) << ":" << scan->operator[](token_index).getTokenValue() << " at Line: " << pos.first << " Col: " << pos.second << "\n";
         throw ParseException(stream.str());
         return nullptr;
     }

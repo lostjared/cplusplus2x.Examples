@@ -350,11 +350,22 @@ output << ".section .data\n";
                     case ir::InstructionType::SET_CONST:
                         emitSetConst(output, instr);
                         break;
+                    case ir::InstructionType::LOGICAL_NOT:
+                        emitLogicalNot(output, instr);
+                        break;
                     default:
                         std::cerr << "Unsupported IR Instruction: " << instr.toString() << std::endl;
                         break;
                 }
             }
+        }
+
+        void emitLogicalNot(std::ostringstream &output, const ir::IRInstruction &instr) {
+            loadToRegister(output, instr.op1, "%rax");
+            output << "    cmpq $0, %rax\n";
+            output << "    sete %al\n";
+            output << "    movzbq %al, %rax\n";
+            storeToTemp(output, instr.dest, "%rax");
         }
 
         void emitSet(std::ostringstream &output, const ir::IRInstruction &instr) {
