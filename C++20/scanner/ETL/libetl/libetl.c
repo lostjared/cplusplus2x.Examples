@@ -49,6 +49,15 @@ void *str(long value) {
     return (void*)buf;
 }
 
+long at(char *buffer, long value) {
+    if(buffer != NULL) {
+        if(value < strlen(buffer)) {
+            return (long)buffer[value];
+        }
+    }
+    return -1;
+}
+
 long scan_integer() {
     long value;
     if (scanf("%ld", &value) != 1) {
