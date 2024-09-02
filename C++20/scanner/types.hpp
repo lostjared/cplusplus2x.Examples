@@ -58,6 +58,7 @@ namespace types {
         OP_SCOPE,           // '::' 
         OP_TILDE,            // '~'q
         OP_DOLLAR,          // '$'
+        OP_AT,              // '@'
     };
 
     inline std::vector<std::string> opName = {
@@ -109,6 +110,7 @@ namespace types {
         "Scope",               // OP_SCOPE           -> '::'
         "Tilde"                // OP_TILDE           -> '~'
         "Dollar",              // OP_DOLLAR          -> '$'
+        "AT",                  // OP_AT              -> '@'
     };
 
     inline std::vector<std::string> opStrings = {
@@ -159,7 +161,8 @@ namespace types {
         "#",        // OP_HASH
         "::",
         "~",         // OP_TILDE
-        "$"
+        "$",
+        "@",
 
     };
 
