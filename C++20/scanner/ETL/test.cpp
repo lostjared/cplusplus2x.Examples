@@ -77,6 +77,7 @@ void test_parse(const std::string &filename, const std::string &out_file) {
             }
         } else {
             std::cerr << "ETL: Parsing failed...\n";
+            exit(EXIT_FAILURE);
         }
     } else {
         std::cerr << "ETL: Zero bytes to read..\n";
