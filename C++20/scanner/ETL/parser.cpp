@@ -380,6 +380,9 @@ namespace parse {
         if (test(types::OperatorType::OP_DOLLAR)) {
             inc();
             rt_type = ast::VarType::STRING;
+        } else if(test(types::OperatorType::OP_AT)) {
+            inc();
+            rt_type = ast::VarType::POINTER;
         }
         if (test(types::TokenType::TT_ID)) {
             std::string name = scan->operator[](token_index).getTokenValue();
@@ -392,6 +395,9 @@ namespace parse {
                     if (test(types::OperatorType::OP_DOLLAR)) {
                         inc();
                         ptype = ast::VarType::STRING;
+                    } else if(test(types::OperatorType::OP_AT)) {
+                        inc();
+                        ptype = ast::VarType::POINTER;
                     }
                     if (!test(types::TokenType::TT_ID)) {
                         std::ostringstream stream;
@@ -424,6 +430,9 @@ namespace parse {
         if (test(types::OperatorType::OP_DOLLAR)) {
             inc();
             rt_type = ast::VarType::STRING;
+        } else if(test(types::OperatorType::OP_AT)) {
+            inc();
+            rt_type = ast::VarType::POINTER;
         }
         if (test(types::TokenType::TT_ID)) {
             std::string name = scan->operator[](token_index).getTokenValue();
@@ -436,6 +445,9 @@ namespace parse {
                     if (test(types::OperatorType::OP_DOLLAR)) {
                         inc();
                         ptype = ast::VarType::STRING;
+                    } else if(test(types::OperatorType::OP_AT)) {
+                        inc();
+                        ptype = ast::VarType::POINTER;
                     }
                     if (!test(types::TokenType::TT_ID)) {
                         std::ostringstream stream;

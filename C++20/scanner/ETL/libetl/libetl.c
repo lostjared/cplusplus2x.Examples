@@ -58,6 +58,40 @@ long at(char *buffer, long value) {
     return -1;
 }
 
+void memclr(void *buffer, long size) {
+    memset(buffer, 0, size);
+}
+
+long mematl(void *buffer, long index) {
+    if(buffer != NULL) {
+        long *values = (long *)buffer;
+        return *(values + index);
+    }
+    return -1;
+}
+
+long mematb(void *buffer, long index) {
+    if(buffer != NULL) {
+        char *ptr = (char*)buffer;
+        char c = ptr[index];
+        return (long)c;
+    }
+    return -1;
+}
+
+void memstorel(void *buffer, long index, long value) {
+    if(buffer != NULL) {
+        long *ptr = (long*)buffer;
+        *(ptr+index) = value;
+    }
+}
+void memstoreb(void *buffer, long index, long value) {
+    if(buffer != NULL) {
+        char *ptr = (char*)buffer;
+        *(ptr+index) = (char)value;
+    }
+}
+
 long scan_integer() {
     long value;
     if (scanf("%ld", &value) != 1) {

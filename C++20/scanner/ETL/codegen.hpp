@@ -30,6 +30,7 @@ namespace codegen {
         NUMERIC_CONST,
         VAR,
         VAR_STRING,
+        POINTER,
     };
 
     struct VariableInfo {
@@ -1027,6 +1028,9 @@ output << ".section .data\n";
                         case ast::VarType::NUMBER:
                             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
                             break;
+                        case ast::VarType::POINTER:
+                             variableInfo[curFunction][instr.dest].type = VariableType::POINTER;
+                             break;
                         default:
                             std::cerr << "ETL: Unsupported return type for local function " << instr.functionName << "\n";
                             exit(EXIT_FAILURE);
