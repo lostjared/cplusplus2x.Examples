@@ -634,7 +634,7 @@ output << ".section .data\n";
             output << "    cqto\n";          
             loadToRegister(output, instr.op2, "%rdi");
             output << "    idivq %rdi\n";
-            storeToTemp(output, instr.dest, "%rdi");
+            storeToTemp(output, instr.dest, "%rdx");
         }
 
         std::vector<std::string> cargs;

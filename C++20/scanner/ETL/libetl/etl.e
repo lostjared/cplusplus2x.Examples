@@ -6,6 +6,7 @@ define $str(value);
 define exit(code);
 define puts($output);
 define srand(seed);
+define rand();
 define time(value);
 define strlen($value);
 define strcmp($value1, $value2);
