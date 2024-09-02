@@ -26,11 +26,16 @@ namespace symbol {
         }
     };
 
-    struct Function {
+      struct Function {
         std::string functionName;
-        size_t num_args;   
+        std::vector<ast::VarType> argTypes;  // Store argument types
         ast::VarType vtype;
+        size_t num_args;
+        Function() = default;
+        Function(const std::string& name, const std::vector<ast::VarType>& args, ast::VarType retType, size_t num)
+            : functionName(name), argTypes(args), vtype(retType), num_args{num} {}
     };
+
 
     class SymbolTable {
     public:
@@ -60,9 +65,9 @@ namespace symbol {
             cur_scope = &symbols["global"];
         }
 
-        void enterFunction(const std::string &s, size_t args, ast::VarType vtype) {
+        void enterFunction(const std::string &s, const std::vector<ast::VarType>& args, ast::VarType vtype) {
             if(func.find(s) == func.end()) {
-                func[s] = Function{s, args, vtype};
+                func[s] = Function(s, args, vtype, args.size());
             }
         }
 

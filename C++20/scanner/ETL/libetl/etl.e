@@ -11,6 +11,7 @@ define strlen($value);
 define strcmp($value1, $value2);
 define at($value, index);
 define @malloc(bytes);
+define @calloc(bytes, size);
 define free(@memory);
 define mematl(@memory, index);
 define mematb(@memory, index);

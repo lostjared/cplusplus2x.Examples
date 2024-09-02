@@ -355,12 +355,19 @@ output << ".section .data\n";
                     case ir::InstructionType::LOGICAL_NOT:
                         emitLogicalNot(output, instr);
                         break;
+                    case ir::InstructionType::PARAM_POINTER:
+                        emitParamPointer(output, instr);
+                        break;
+                    case ir::InstructionType::DEF_PARAM_POINTER:
+                        emitDefParamPointer(output, instr);
+                        break;
                     default:
                         std::cerr << "Unsupported IR Instruction: " << instr.toString() << std::endl;
                         break;
                 }
             }
         }
+
 
         void emitLogicalNot(std::ostringstream &output, const ir::IRInstruction &instr) {
             loadToRegister(output, instr.op1, "%rax");
@@ -686,6 +693,64 @@ output << ".section .data\n";
             }
         }
 
+        
+        void emitParamPointer(std::ostringstream &output, const ir::IRInstruction  &instr) {
+            static std::vector<std::pair<std::string, int>> paramLocations = {
+                {"%rdi", -8},  
+                {"%rsi", -16}, 
+                {"%rdx", -24}, 
+                {"%rcx", -32}, 
+                {"%r8", -40},  
+                {"%r9", -48}   
+            };
+
+            if(curFunction == "main") return;
+
+            if (paramIndex < paramLocations.size()) {
+                std::string reg = paramLocations[paramIndex].first;
+                int offset = paramLocations[paramIndex].second;
+                storeToTemp(output, instr.dest, reg);
+                paramIndex++;
+                table.enter(instr.dest);
+                auto it = table.lookup(instr.dest);
+                if(it.has_value()) {
+                    it.value()->vtype = ast::VarType::POINTER;
+                }
+                variableInfo[curFunction][instr.dest].type = VariableType::VAR;
+            } else {
+                std::cerr << "ETL Error: More parameters than registers available.\n";
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        void emitDefParamPointer(std::ostringstream &output, const ir::IRInstruction &instr) {
+            static std::vector<std::pair<std::string, int>> paramLocations = {
+                {"%rdi", -8},  
+                {"%rsi", -16}, 
+                {"%rdx", -24}, 
+                {"%rcx", -32}, 
+                {"%r8", -40},  
+                {"%r9", -48}   
+            };
+
+            if(curFunction == "main") return;
+
+            if (paramIndex < paramLocations.size()) {
+                std::string reg = paramLocations[paramIndex].first;
+                int offset = paramLocations[paramIndex].second;
+                paramIndex++;
+                table.enter(instr.dest);
+                auto it = table.lookup(instr.dest);
+                if(it.has_value()) {
+                    it.value()->vtype = ast::VarType::POINTER;
+                }
+                variableInfo[curFunction][instr.dest].type = VariableType::VAR;
+            } else {
+                std::cerr << "ETL Error: More parameters than registers available.\n";
+                exit(EXIT_FAILURE);
+            }
+        }
+
         void emitParam(std::ostringstream &stream, const ir::IRInstruction &instr) {
             static std::vector<std::pair<std::string, int>> paramLocations = {
                 {"%rdi", -8},  
@@ -904,6 +969,55 @@ output << ".section .data\n";
         std::string lastFunctionCall;
         std::string lastFunctionCallDest;
 
+
+        bool checkArgumentTypes(const std::string& functionName, const std::vector<ast::VarType>& providedArgs, const std::vector<ast::VarType>& expectedArgs) {
+            if (providedArgs.size() != expectedArgs.size()) {
+                std::cerr << "Error: Function '" << functionName << "' expected " << expectedArgs.size() << " arguments, but got " << providedArgs.size() << ".\n";
+                return false;
+            }
+
+            for (size_t i = 0; i < providedArgs.size(); ++i) {
+                ast::VarType actual = providedArgs[i];
+                ast::VarType expected = expectedArgs[i];
+
+                if (actual != expected) {
+                    std::cerr << "Error: Type mismatch for argument " << i << " in function '" << functionName
+                            << "'. Expected type: " << ast::VarString[static_cast<int>(expected)]
+                            << ", Actual type: " << ast::VarString[static_cast<int>(actual)] << ".\n";
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        void checkFunctionArguments(const std::string& functionName, const std::vector<std::string>& args) {
+                std::vector<ast::VarType> providedArgs;
+                for (const auto& arg : args) {
+                    auto argIt = table.lookup(arg);
+                    if (argIt.has_value()) {
+                        providedArgs.push_back(argIt.value()->vtype);
+                    } else {
+                        std::cerr << "Error: Argument '" << arg << "' not found in symbol table.\n";
+                        exit(EXIT_FAILURE);
+                    }
+                }
+
+                auto localFunc = table.lookupFunc(functionName);
+                if (localFunc.has_value()) {
+                    const auto& expectedArgs = localFunc.value()->argTypes;
+                    if (!checkArgumentTypes(functionName, providedArgs, expectedArgs)) {
+                        std::cerr << "Error: Argument type check failed for function '" << functionName << "'.\n";
+                        exit(EXIT_FAILURE);
+                    }
+                } else {
+                    if(functionName != "printf") {
+                        std::cerr << "Error: Function '" << functionName << "' is not defined.\n";
+                        exit(EXIT_FAILURE);
+                    }
+                }
+        }
+
+
         void emitCall(std::ostringstream &output, const ir::IRInstruction &instr) {
             static const std::vector<std::string> argumentRegisters = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
             size_t numArgs = instr.args.size();
@@ -911,6 +1025,8 @@ output << ".section .data\n";
             for (size_t i = 0; i < numArgs && i < argumentRegisters.size(); ++i) {
                 loadToRegister(output, instr.args[i], argumentRegisters[i]);
             }
+
+            checkFunctionArguments(instr.functionName, instr.args);
 
             lastFunctionCall = instr.functionName;
             lastFunctionCallDest = instr.dest;

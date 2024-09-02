@@ -32,8 +32,10 @@ namespace ir {
         CONCAT,
         PARAM,
         PARAM_STRING,
+        PARAM_POINTER,
         DEF_PARAM,
         DEF_PARAM_STRING,
+        DEF_PARAM_POINTER,
         LABEL,
         DEFINE,
         MOD,
@@ -72,8 +74,10 @@ namespace ir {
         "CONCAT",
         "PARAM",
         "PARAM_STRING",
+        "PARAM_POINTER",
         "DEF_PARAM",
         "DEF_PARAM_STRING",
+        "DEF_PARAM_POINTER",
         "LABEL",
         "DEFINE",
         "MOD", 
@@ -517,13 +521,17 @@ namespace parse {
                 }
                 if(param.second == ast::VarType::STRING) {
                     code.emplace_back(ir::InstructionType::PARAM_STRING, param.first, "");  
-                } else {
+                } else if(param.second == ast::VarType::NUMBER) {
                     code.emplace_back(ir::InstructionType::PARAM, param.first, "");  
+                } else if(param.second == ast::VarType::POINTER){
+                    code.emplace_back(ir::InstructionType::PARAM_POINTER, param.first, "");
                 }
             }
-
-            table.enterFunction(func->name, func->parameters.size(), func->return_type);
-
+            std::vector<ast::VarType> paramTypes;
+            for (const auto& param : func->parameters) {
+                paramTypes.push_back(param.second); // Assuming parameters are stored as pairs <name, type>     
+            }
+            table.enterFunction(func->name, paramTypes, func->return_type);
             for (const auto &stmt : func->body) {
                 generate(stmt.get(), code);
             }
@@ -544,12 +552,19 @@ namespace parse {
                 }
                 if(param.second == ast::VarType::STRING) {
                     code.emplace_back(ir::InstructionType::DEF_PARAM_STRING, param.first, "");  
-                } else {
+                } else if(param.second == ast::VarType::NUMBER) {
                     code.emplace_back(ir::InstructionType::DEF_PARAM, param.first, "");  
+                } else if(param.second == ast::VarType::POINTER) {
+                    code.emplace_back(ir::InstructionType::DEF_PARAM_POINTER, param.first, "");
                 }
             }
 
-            table.enterFunction(func->name, func->parameters.size(), func->return_type);
+            std::vector<ast::VarType> paramTypes;
+            for (const auto& param : func->parameters) {
+                paramTypes.push_back(param.second); // Assuming parameters are stored as pairs <name, type>     
+            }
+            table.enterFunction(func->name, paramTypes, func->return_type);
+            //table.enterFunction(func->name, func->parameters.size(), func->return_type);
             table.exitScope();
         }
 

@@ -8,6 +8,7 @@
 namespace ast {
 
     enum class VarType { NUMBER, STRING, POINTER };
+    inline std::vector<std::string> VarString { "NUMBER", "STRING", "POINTER" };
 
     struct ASTNode {
         virtual ~ASTNode() = default;
