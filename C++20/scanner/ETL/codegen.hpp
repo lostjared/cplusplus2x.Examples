@@ -182,6 +182,7 @@ output << ".section .data\n";
             output << "    xor %rbp, %rbp\n";
             output << "    movq %rsp, %rdi\n";
             output << "    andq $-16, %rsp\n";
+            output << "    subq $8, %rsp \n";
             output << "    call _main\n";
             output << "    movq %rax, %rdi\n";
             output << "    movl $0, %edi\n";
@@ -364,8 +365,8 @@ output << ".section .data\n";
             loadToRegister(output, instr.op1, "%rax");
             output << "    cmpq $0, %rax\n";
             output << "    sete %al\n";
-            output << "    movzbq %al, %rax\n";
-            storeToTemp(output, instr.dest, "%rax");
+            output << "    movzbq %al, %rbx\n";
+            storeToTemp(output, instr.dest, "%rbx");
         }
 
         void emitSet(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -429,21 +430,15 @@ output << ".section .data\n";
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
-
-            loadToRegister(output, instr.op1, "%rbx");
-            output << "    cmpq $0, %rbx\n";
-            output << "    setne %cl\n";  
-
-            loadToRegister(output, instr.op2, "%rbx");
-            output << "    cmpq $0, %rbx\n";
-            output << "    setne %dl\n";  
-
-            output << "    movzbl %cl, %ecx\n";
-            output << "    movzbl %dl, %edx\n";
-            output << "    andl %ecx, %edx\n";
-            output << "    movl %edx, %edx\n";
-
-            storeToTemp(output, instr.dest, "%rdx");
+            loadToRegister(output, instr.op1, "%rsi");
+            output << "    cmpq $0, %rsi\n";
+            output << "    setne %al\n";
+            loadToRegister(output, instr.op2, "%rdi");
+            output << "    cmpq $0, %rdi\n";
+            output << "    setne %cl\n";
+            output << "    andb %al, %cl\n";
+            output << "    movzbq %cl, %rax\n"; 
+            storeToTemp(output, instr.dest, "%rax");
         }
 
         void emitLogicalOr(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -453,28 +448,29 @@ output << ".section .data\n";
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
-            loadToRegister(output, instr.op1, "%rbx");
-            output << "    cmpq $0, %rbx\n";
+            loadToRegister(output, instr.op1, "%rdi");
+            output << "    cmpq $0, %rdi\n";
             output << "    setne %al\n";
-            loadToRegister(output, instr.op2, "%rbx");
-            output << "    cmpq $0, %rbx\n";
-            output << "    setne %bl\n";
-            output << "    orb %al, %bl\n";
-            output << "    movzbq %bl, %rcx\n"; 
-            storeToTemp(output, instr.dest, "%rcx");
+            loadToRegister(output, instr.op2, "%rdx");
+            output << "    cmpq $0, %rdx\n";
+            output << "    setne %cl\n";
+            output << "    orb %al, %cl\n";
+            output << "    movzbq %cl, %rdx\n"; 
+            storeToTemp(output, instr.dest, "%rdx");
         }
+        
         void emitEq(std::ostringstream &output, const ir::IRInstruction &instr) {
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
-            loadToRegister(output, instr.op1, "%rax");
-            loadToRegister(output, instr.op2, "%rbx");
-            output << "    cmpq %rbx, %rax\n";  
-            output << "    sete %cl\n";         
-            output << "    movzbq %cl, %rdx\n"; 
+            loadToRegister(output, instr.op1, "%rsi");
+            loadToRegister(output, instr.op2, "%rdi");
+            output << "    cmpq %rdi, %rsi\n";
+            output << "    sete %cl\n";
+            output << "    movzbq %cl, %rdx\n";
             storeToTemp(output, instr.dest, "%rdx");
         }
 
@@ -486,8 +482,8 @@ output << ".section .data\n";
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
-            loadToRegister(output, instr.op2, "%rbx");
-            output << "    cmpq %rbx, %rax\n";  
+            loadToRegister(output, instr.op2, "%rdi");
+            output << "    cmpq %rdi, %rax\n";  
             output << "    setne %cl\n";         
             output << "    movzbq %cl, %rdx\n"; 
             storeToTemp(output, instr.dest, "%rdx");
@@ -501,8 +497,8 @@ output << ".section .data\n";
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
-            loadToRegister(output, instr.op2, "%rbx");
-            output << "    cmpq %rbx, %rax\n";  
+            loadToRegister(output, instr.op2, "%rdi");
+            output << "    cmpq %rdi, %rax\n";  
             output << "    setl %cl\n";         
             output << "    movzbq %cl, %rdx\n"; 
             storeToTemp(output, instr.dest, "%rdx");
@@ -516,8 +512,8 @@ output << ".section .data\n";
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
-            loadToRegister(output, instr.op2, "%rbx");
-            output << "    cmpq %rbx, %rax\n";  
+            loadToRegister(output, instr.op2, "%rdi");
+            output << "    cmpq %rdi, %rax\n";  
             output << "    setle %cl\n";         
             output << "    movzbq %cl, %rdx\n"; 
             storeToTemp(output, instr.dest, "%rdx");
@@ -531,8 +527,8 @@ output << ".section .data\n";
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
-            loadToRegister(output, instr.op2, "%rbx");
-            output << "    cmpq %rbx, %rax\n";  
+            loadToRegister(output, instr.op2, "%rdi");
+            output << "    cmpq %rdi, %rax\n";  
             output << "    setg %cl\n";         
             output << "    movzbq %cl, %rdx\n"; 
             storeToTemp(output, instr.dest, "%rdx");
@@ -547,8 +543,8 @@ output << ".section .data\n";
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
-            loadToRegister(output, instr.op2, "%rbx");
-            output << "    cmpq %rbx, %rax\n";  
+            loadToRegister(output, instr.op2, "%rdi");
+            output << "    cmpq %rdi, %rax\n";  
             output << "    setge %cl\n";         
             output << "    movzbq %cl, %rdx\n"; 
             storeToTemp(output, instr.dest, "%rdx");
@@ -562,8 +558,8 @@ output << ".section .data\n";
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
-            loadToRegister(output, instr.op2, "%rbx");
-            output << "    andq %rbx, %rax\n";
+            loadToRegister(output, instr.op2, "%rdi");
+            output << "    andq %rdi, %rax\n";
             storeToTemp(output, instr.dest, "%rax");
         }
 
@@ -575,8 +571,8 @@ output << ".section .data\n";
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
-            loadToRegister(output, instr.op2, "%rbx");
-            output << "    orq %rbx, %rax\n";
+            loadToRegister(output, instr.op2, "%rdi");
+            output << "    orq %rdi, %rax\n";
             storeToTemp(output, instr.dest, "%rax");
         }
 
@@ -588,8 +584,8 @@ output << ".section .data\n";
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
-            loadToRegister(output, instr.op2, "%rbx");
-            output << "    xorq %rbx, %rax\n";
+            loadToRegister(output, instr.op2, "%rdi");
+            output << "    xorq %rdi, %rax\n";
             storeToTemp(output, instr.dest, "%rax");
         }
 
@@ -628,9 +624,9 @@ output << ".section .data\n";
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             output << "    cqto\n";          
-            loadToRegister(output, instr.op2, "%rbx");
-            output << "    idivq %rbx\n";
-            storeToTemp(output, instr.dest, "%rdx");
+            loadToRegister(output, instr.op2, "%rdi");
+            output << "    idivq %rdi\n";
+            storeToTemp(output, instr.dest, "%rdi");
         }
 
         std::vector<std::string> cargs;
