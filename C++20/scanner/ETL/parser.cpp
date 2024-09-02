@@ -89,7 +89,7 @@ namespace parse {
     bool Parser::test(const types::KeywordType &kw) {
         scan::TToken &token = scan->operator[](token_index);
         auto op_t = types::lookUp_Keyword(token.getTokenValue());
-        return op_t.has_value() && kw == *op_t;
+        return token.getTokenType() == types::TokenType::TT_ID && op_t.has_value() && kw == *op_t;
     }
 
     void Parser::inc(const uint64_t num) {
@@ -328,7 +328,7 @@ namespace parse {
         return callExpr;
     }
 
-    std::unique_ptr<ast::Assignment> Parser::parseAssignment(bool there) {
+    std::unique_ptr<ast::Assignment> Parser::parseAssignment(bool there, bool chk) {
         if (test(types::TokenType::TT_ID)) {
             auto lhs = parsePrimary();
             if (test(types::OperatorType::OP_ASSIGN)) {
@@ -364,7 +364,8 @@ namespace parse {
                         }
                     }
                 }
-                match(types::OperatorType::OP_SEMICOLON);
+                if(chk == false)
+                    match(types::OperatorType::OP_SEMICOLON);
                 return std::make_unique<ast::Assignment>(std::move(lhs), std::move(rhs), ast::VarType::NUMBER, there);
             }
         }
@@ -460,6 +461,9 @@ namespace parse {
                   if (test(types::KeywordType::KW_IF)) {
                     auto if_statement = parseIfStatement();
                     function->body.push_back(std::move(if_statement));
+                } else if (test(types::KeywordType::KW_FOR)) {
+                    auto for_stmt = parseForStatement();
+                    function->body.push_back(std::move(for_stmt));
                 } else if (test(types::KeywordType::KW_WHILE)) {
                     auto while_stmt = parseWhileStatement();
                     function->body.push_back(std::move(while_stmt));
@@ -534,6 +538,9 @@ namespace parse {
                 } else if (test(types::KeywordType::KW_WHILE)) {
                     auto while_stmt = parseWhileStatement();
                     if_body.push_back(std::move(while_stmt));
+                } else if (test(types::KeywordType::KW_FOR)) {
+                    auto for_stmt = parseForStatement();
+                    if_body.push_back(std::move(for_stmt));
                 } else if (test(types::KeywordType::KW_RETURN)) {
                     inc();
                     auto e = parseExpression();
@@ -577,11 +584,15 @@ namespace parse {
                     else_body.push_back(std::make_unique<ast::Continue>());
                 } else if (test(types::KeywordType::KW_IF)) {
                     auto nested_if = parseIfStatement();
-                    else_body.push_back(std::move(nested_if));
+                  else_body.push_back(std::move(nested_if));
                 } else if (test(types::KeywordType::KW_WHILE)) {
                     auto while_stmt = parseWhileStatement();
                     else_body.push_back(std::move(while_stmt));
-                } else if (test(types::KeywordType::KW_RETURN)) {
+                } else if (test(types::KeywordType::KW_FOR)) {
+                    auto for_stmt = parseForStatement();
+                    else_body.push_back(std::move(for_stmt));
+                }
+                else if (test(types::KeywordType::KW_RETURN)) {
                     inc();
                     auto e = parseExpression();
                     match(types::OperatorType::OP_SEMICOLON);
@@ -632,6 +643,9 @@ namespace parse {
             } else if (test(types::KeywordType::KW_WHILE)) {
                 auto nested_while = parseWhileStatement();
                 body.push_back(std::move(nested_while));
+            } else if (test(types::KeywordType::KW_FOR)) {
+                    auto for_stmt = parseForStatement();
+                    body.push_back(std::move(for_stmt));
             } else if (test(types::KeywordType::KW_IF)) {
                 auto if_statement = parseIfStatement();
                 body.push_back(std::move(if_statement));
@@ -649,7 +663,7 @@ namespace parse {
                 inc(); 
                  if(test(types::OperatorType::OP_ASSIGN)) {
                     dec();
-                    auto stmt = parseAssignment(true);
+                     auto stmt = parseAssignment(true);
                     body.push_back(std::move(stmt));
                 } else {
                     auto call_st = parseCall(token.getTokenValue());
@@ -667,5 +681,81 @@ namespace parse {
         return std::make_unique<ast::WhileStatement>(std::move(condition), std::move(body));
     }
 
+    std::unique_ptr<ast::ForStatement> Parser::parseForStatement() {
+        match(types::KeywordType::KW_FOR);
+        match(types::OperatorType::OP_LPAREN);
 
+        std::unique_ptr<ast::Assignment> init_statement;
+        if (test(types::KeywordType::KW_LET)) {
+            inc();
+            init_statement = parseAssignment();
+        } else if (test(types::TokenType::TT_ID)) {
+            std::ostringstream stream;
+            stream << "Errror requires let for initilization staement\n";
+            throw ParseException(stream.str());
+        } else {
+            // handle the case where there is no initialization
+            init_statement = nullptr;
+        }
+        match(types::OperatorType::OP_SEMICOLON);
+        std::unique_ptr<ast::Expression> condition = parseExpression();
+        match(types::OperatorType::OP_SEMICOLON);
+        std::unique_ptr<ast::Assignment> post;
+        if (test(types::KeywordType::KW_LET) || test(types::TokenType::TT_ID)) {
+            post = parseAssignment(true, true);
+        } else {
+            post = nullptr;
+        }
+        match(types::OperatorType::OP_RPAREN);
+        match(types::OperatorType::OP_LBRACE);
+
+        std::vector<std::unique_ptr<ast::ASTNode>> body;
+        while (!test(types::OperatorType::OP_RBRACE)) {
+            if (test(types::KeywordType::KW_IF)) {
+                auto if_statement = parseIfStatement();
+                body.push_back(std::move(if_statement));
+            } else if (test(types::KeywordType::KW_WHILE)) {
+                auto while_stmt = parseWhileStatement();
+                body.push_back(std::move(while_stmt));
+            } else if (test(types::KeywordType::KW_RETURN)) {
+                inc();
+                auto e = parseExpression();
+                match(types::OperatorType::OP_SEMICOLON);
+                body.push_back(std::make_unique<ast::Return>(std::move(e)));
+            } else if (test(types::KeywordType::KW_LET)) {
+                inc();
+                auto stmt = parseAssignment();
+                body.push_back(std::move(stmt));
+            } else if (test(types::KeywordType::KW_FOR)) {
+                auto for_stmt = parseForStatement();
+                body.push_back(std::move(for_stmt));
+            } else if (test(types::TokenType::TT_ID)) {
+                auto token = scan->operator[](token_index);
+                inc();
+                if (test(types::OperatorType::OP_ASSIGN)) {
+                    dec();
+                    auto stmt = parseAssignment(true);
+                    body.push_back(std::move(stmt));
+                } else {
+                    auto call_st = parseCall(token.getTokenValue());
+                    match(types::OperatorType::OP_SEMICOLON);
+                    body.push_back(std::move(call_st));
+                }
+            } else {
+                std::ostringstream stream;
+                auto pos = scan->operator[](token_index).get_pos();
+                stream << "Parse Error: Unexpected token inside for loop at Line: " << pos.first << " Col: " << pos.second << "\n";
+                throw ParseException(stream.str());
+            }
+        }
+
+        match(types::OperatorType::OP_RBRACE);
+
+        return std::make_unique<ast::ForStatement>(
+            std::move(init_statement),
+            std::move(condition),
+            std::move(post),
+            std::move(body)
+        );
+    }
 }

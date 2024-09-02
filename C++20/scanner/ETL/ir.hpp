@@ -201,6 +201,8 @@ namespace parse {
                 generateBreak(break_s, code);
             } else if (auto cont_s = dynamic_cast<const ast::Continue *>(node)) {
                 generateCont(cont_s, code);
+            } else if(auto for_s = dynamic_cast<const ast::ForStatement *>(node)) {
+                generateFor(for_s, code);
             }
         }
 
@@ -211,7 +213,31 @@ namespace parse {
             }
         }
 
-   
+        void generateFor(const ast::ForStatement *for_s, ir::IRCode &code) {
+            std::string startLabel = "for_start_" + std::to_string(tempVarCounter);
+            std::string endLabel = "for_end_" + std::to_string(tempVarCounter++);
+            std::string postLabel = "for_post_" + std::to_string(tempVarCounter++);
+            loopLabelStack.push({startLabel, endLabel});
+            if (for_s->init_statement) {
+                generate(for_s->init_statement.get(), code);
+            }
+            code.emplace_back(ir::InstructionType::SUB_LABEL, startLabel);
+            if (for_s->condition) {
+                generate(for_s->condition.get(), code);
+                std::string conditionResult = lastComputedValue["result"];
+                code.emplace_back(ir::InstructionType::JUMP, endLabel, conditionResult, "0");
+            }
+            for (const auto &stmt : for_s->body) {
+                generate(stmt.get(), code);
+            }
+            code.emplace_back(ir::InstructionType::SUB_LABEL, postLabel);
+            if (for_s->post) {
+                generate(for_s->post.get(), code);
+            }
+            code.emplace_back(ir::InstructionType::JUMP, startLabel);
+            code.emplace_back(ir::InstructionType::SUB_LABEL, endLabel);
+            loopLabelStack.pop();
+        }
         void generateBreak(const ast::Break *break_s, ir::IRCode &code) {
             if (loopLabelStack.empty()) {
                 throw ir::IRException("Error: 'break' statement used outside of a loop");

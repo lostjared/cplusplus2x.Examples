@@ -178,6 +178,27 @@ namespace ast {
         }
     };
 
+    struct ForStatement : Statement {
+        std::unique_ptr<Expression> condition;
+        std::unique_ptr<Assignment> init_statement, post;
+        std::vector<std::unique_ptr<ASTNode>> body;
+
+         ForStatement(std::unique_ptr<Assignment> init_x,std::unique_ptr<Expression> cond, std::unique_ptr<Assignment> p,
+                    std::vector<std::unique_ptr<ASTNode>> b)
+            : init_statement(std::move(init_x)), condition(std::move(cond)), post(std::move(p)), body(std::move(b)) {}
+
+        std::string text() const override {
+            std::ostringstream oss;
+            oss << "for (" << init_statement->text() << ";" << condition->text() << ";" << post->text() << ") {\n";
+            
+            for (const auto& statement : body) {
+                oss << "    " << statement->text() << "\n";
+            }
+            oss << "}";
+            return oss.str();
+        }
+    };
+
     struct Function : ASTNode {
         std::string name;
         std::vector<std::unique_ptr<ASTNode>> body;
