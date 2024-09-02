@@ -65,7 +65,7 @@ void memclr(void *buffer, long size) {
 long mematl(void *buffer, long index) {
     if(buffer != NULL) {
         long *values = (long *)buffer;
-        return *(values + (index * 8));
+        return *(values + (index));
     }
     return -1;
 }
@@ -82,7 +82,7 @@ long mematb(void *buffer, long index) {
 void memstorel(void *buffer, long index, long value) {
     if(buffer != NULL) {
         long *ptr = (long*)buffer;
-        *(ptr+(index * 8)) = value;
+        *(ptr+(index)) = value;
     }
 }
 void memstoreb(void *buffer, long index, long value) {
