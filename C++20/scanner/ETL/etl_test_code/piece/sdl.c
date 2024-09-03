@@ -1,11 +1,16 @@
 #include"SDL.h"
 #include<stdio.h>
+#include<time.h>
+#include<stdlib.h>
 
 void sdl_init() {
     if(SDL_Init(SDL_INIT_VIDEO) < 0) {
         fprintf(stderr, "Error on initilaztion\n");
         exit(EXIT_FAILURE);
     }
+    srand(time(0));
+
+    
 }
 
 SDL_Window *window;
@@ -53,6 +58,10 @@ long sdl_keydown(long key) {
     return keys[key];
 }
 
+long sdl_getticks() {
+    return (long) SDL_GetTicks64();
+}
+
 long sdl_pump() {
     while(SDL_PollEvent(&e)) {
             switch(e.type) {
@@ -76,8 +85,8 @@ void sdl_flip() {
 }
 
 void sdl_release()  {
-    SDL_DestroyRenderer(ren);
     SDL_DestroyTexture(tex);
+    SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(window);
 }
 

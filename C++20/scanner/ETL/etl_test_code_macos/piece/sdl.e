@@ -11,5 +11,6 @@ define sdl_fillrect(x, y, w, h);
 define sdl_flip();
 define sdl_clear();
 define sdl_keydown(key);
+define sdl_getticks();
 
 #endif
