@@ -1,0 +1,313 @@
+gcc `sdl2-config --cflags` sdl.c -o sdl.o -c
+etl program piece.e sdl.o -- `sdl2-config --libs`
+ETL: Scanned 687 tokens.
+ETL: parsing ...  [complete]
+ETL: IR code: {
+	DEFINE scan_integer
+	DEFINE len
+	DEF_PARAM_STRING value
+	DEFINE str
+	DEF_PARAM value
+	DEFINE exit
+	DEF_PARAM code
+	DEFINE puts
+	DEF_PARAM_STRING output
+	DEFINE srand
+	DEF_PARAM seed
+	DEFINE rand
+	DEFINE time
+	DEF_PARAM value
+	DEFINE strlen
+	DEF_PARAM_STRING value
+	DEFINE strcmp
+	DEF_PARAM_STRING value1
+	DEF_PARAM_STRING value2
+	DEFINE at
+	DEF_PARAM_STRING value
+	DEF_PARAM index
+	DEFINE malloc
+	DEF_PARAM bytes
+	DEFINE calloc
+	DEF_PARAM bytes
+	DEF_PARAM size
+	DEFINE free
+	DEF_PARAM_POINTER memory
+	DEFINE mematl
+	DEF_PARAM_POINTER memory
+	DEF_PARAM index
+	DEFINE mematb
+	DEF_PARAM_POINTER memory
+	DEF_PARAM index
+	DEFINE memclr
+	DEF_PARAM_POINTER memory
+	DEF_PARAM size
+	DEFINE memstorel
+	DEF_PARAM_POINTER memory
+	DEF_PARAM index
+	DEF_PARAM value
+	DEFINE memstoreb
+	DEF_PARAM_POINTER memory
+	DEF_PARAM index
+	DEF_PARAM value
+	DEFINE sdl_init
+	DEFINE sdl_quit
+	DEFINE sdl_pump
+	DEFINE sdl_release
+	DEFINE sdl_create
+	DEF_PARAM_STRING name
+	DEF_PARAM width
+	DEF_PARAM height
+	DEFINE sdl_setcolor
+	DEF_PARAM r
+	DEF_PARAM g
+	DEF_PARAM b
+	DEF_PARAM a
+	DEFINE sdl_fillrect
+	DEF_PARAM x
+	DEF_PARAM y
+	DEF_PARAM w
+	DEF_PARAM h
+	DEFINE sdl_flip
+	DEFINE sdl_clear
+	DEFINE sdl_keydown
+	DEF_PARAM key
+	LABEL draw_grid
+	PARAM_POINTER grid
+	PARAM mode
+	LOAD_CONST t0 0
+	LOAD_CONST t1 0
+	LOAD_CONST t2 0
+	LOAD_CONST t3 255
+	CALL t4 sdl_setcolor t0 t1 t2 t3
+	LOAD_CONST t5 0
+	LOAD_CONST t6 0
+	LOAD_CONST t7 1440
+	LOAD_CONST t8 1080
+	CALL t9 sdl_fillrect t5 t6 t7 t8
+	LOAD_CONST grid_w 8
+	LOAD_CONST grid_h 17
+	LOAD_CONST t10 32
+	LOAD_CONST t11 4
+	MUL t12 t10 t11
+	ASSIGN block_size_w t12
+	LOAD_CONST t13 16
+	LOAD_CONST t14 4
+	MUL t15 t13 t14
+	ASSIGN block_size_h t15
+	LOAD_CONST x 0
+	SUB_LABEL for_start_16
+	LOAD_VAR t18 x
+	LOAD_VAR t19 grid_w
+	LT t20 t18 t19
+	JUMP for_end_16 t20 0
+	LOAD_CONST y 0
+	SUB_LABEL for_start_21
+	LOAD_VAR t23 y
+	LOAD_VAR t24 grid_h
+	LT t25 t23 t24
+	JUMP for_end_21 t25 0
+	LOAD_VAR t26 x
+	MUL t27 t26 block_size_w
+	ASSIGN grid_x t27
+	LOAD_VAR t28 y
+	MUL t29 t28 block_size_h
+	ASSIGN grid_y t29
+	LOAD_VAR t30 grid
+	LOAD_VAR t31 x
+	LOAD_VAR t32 grid_w
+	MUL t33 t31 t32
+	LOAD_VAR t34 y
+	ADD t35 t33 t34
+	CALL t36 mematb t30 t35
+	ASSIGN color t36
+	LOAD_VAR t37 mode
+	LOAD_CONST t38 1
+	EQ t39 t37 t38
+	JUMP sublabel_else_40 t39 0
+	SUB_LABEL sublabel_if_40
+	LOAD_CONST t41 0
+	EQ t42 color t41
+	JUMP sublabel_else_43 t42 0
+	SUB_LABEL sublabel_if_43
+	LOAD_CONST t44 0
+	LOAD_CONST t45 0
+	LOAD_CONST t46 0
+	LOAD_CONST t47 255
+	CALL t48 sdl_setcolor t44 t45 t46 t47
+	JUMP sublabel_end_43
+	SUB_LABEL sublabel_else_43
+	SUB_LABEL sublabel_end_43
+	LOAD_CONST t49 1
+	EQ t50 color t49
+	JUMP sublabel_else_51 t50 0
+	SUB_LABEL sublabel_if_51
+	LOAD_CONST t52 255
+	LOAD_CONST t53 0
+	LOAD_CONST t54 0
+	LOAD_CONST t55 255
+	CALL t56 sdl_setcolor t52 t53 t54 t55
+	JUMP sublabel_end_51
+	SUB_LABEL sublabel_else_51
+	SUB_LABEL sublabel_end_51
+	LOAD_CONST t57 2
+	EQ t58 color t57
+	JUMP sublabel_else_59 t58 0
+	SUB_LABEL sublabel_if_59
+	LOAD_CONST t60 0
+	LOAD_CONST t61 255
+	LOAD_CONST t62 0
+	LOAD_CONST t63 255
+	CALL t64 sdl_setcolor t60 t61 t62 t63
+	JUMP sublabel_end_59
+	SUB_LABEL sublabel_else_59
+	SUB_LABEL sublabel_end_59
+	LOAD_CONST t65 3
+	EQ t66 color t65
+	JUMP sublabel_else_67 t66 0
+	SUB_LABEL sublabel_if_67
+	LOAD_CONST t68 0
+	LOAD_CONST t69 0
+	LOAD_CONST t70 255
+	LOAD_CONST t71 255
+	CALL t72 sdl_setcolor t68 t69 t70 t71
+	JUMP sublabel_end_67
+	SUB_LABEL sublabel_else_67
+	SUB_LABEL sublabel_end_67
+	LOAD_CONST t73 4
+	EQ t74 color t73
+	JUMP sublabel_else_75 t74 0
+	SUB_LABEL sublabel_if_75
+	LOAD_CONST t76 255
+	LOAD_CONST t77 0
+	LOAD_CONST t78 255
+	LOAD_CONST t79 25
+	CALL t80 sdl_setcolor t76 t77 t78 t79
+	JUMP sublabel_end_75
+	SUB_LABEL sublabel_else_75
+	SUB_LABEL sublabel_end_75
+	JUMP sublabel_end_40
+	SUB_LABEL sublabel_else_40
+	CALL t81 rand
+	LOAD_CONST t82 255
+	MOD t83 t81 t82
+	CALL t84 rand
+	LOAD_CONST t85 255
+	MOD t86 t84 t85
+	CALL t87 rand
+	LOAD_CONST t88 255
+	MOD t89 t87 t88
+	CALL t90 rand
+	LOAD_CONST t91 255
+	MOD t92 t90 t91
+	CALL t93 sdl_setcolor t83 t86 t89 t92
+	SUB_LABEL sublabel_end_40
+	CALL t94 sdl_fillrect grid_x grid_y block_size_w block_size_h
+	SUB_LABEL for_post_22
+	LOAD_VAR t95 y
+	LOAD_CONST t96 1
+	ADD t97 t95 t96
+	SET y t97
+	JUMP for_start_21
+	SUB_LABEL for_end_21
+	SUB_LABEL for_post_17
+	LOAD_VAR t98 x
+	LOAD_CONST t99 1
+	ADD t100 t98 t99
+	SET x t100
+	JUMP for_start_16
+	SUB_LABEL for_end_16
+	LOAD_CONST t101 0
+	RETURN t101
+	LABEL allocate_grid
+	PARAM w
+	PARAM h
+	LOAD_VAR t102 w
+	LOAD_VAR t103 h
+	MUL t104 t102 t103
+	CALL t105 malloc t104
+	ASSIGN grid t105
+	LOAD_VAR t106 w
+	LOAD_VAR t107 h
+	MUL t108 t106 t107
+	CALL t109 memclr grid t108
+	LOAD_CONST x 0
+	SUB_LABEL for_start_110
+	LOAD_VAR t112 w
+	LT t113 x t112
+	JUMP for_end_110 t113 0
+	LOAD_CONST y 0
+	SUB_LABEL for_start_114
+	LOAD_VAR t116 h
+	LT t117 y t116
+	JUMP for_end_114 t117 0
+	LOAD_VAR t118 w
+	MUL t119 x t118
+	ADD t120 t119 y
+	LOAD_CONST t121 1
+	CALL t122 rand
+	LOAD_CONST t123 4
+	MOD t124 t122 t123
+	ADD t125 t121 t124
+	CALL t126 memstoreb grid t120 t125
+	SUB_LABEL for_post_115
+	LOAD_CONST t127 1
+	ADD t128 y t127
+	SET y t128
+	JUMP for_start_114
+	SUB_LABEL for_end_114
+	SUB_LABEL for_post_111
+	LOAD_CONST t129 1
+	ADD t130 x t129
+	SET x t130
+	JUMP for_start_110
+	SUB_LABEL for_end_110
+	RETURN grid
+	LABEL init
+	CALL t131 sdl_init
+	LOAD_CONST t132 "MasterPiece"
+	LOAD_CONST t133 1440
+	LOAD_CONST t134 1080
+	CALL t135 sdl_create t132 t133 t134
+	LOAD_CONST t136 8
+	LOAD_CONST t137 17
+	CALL t138 allocate_grid t136 t137
+	ASSIGN grid t138
+	LOAD_CONST mode 1
+	SUB_LABEL while_start_139
+	CALL t140 sdl_pump
+	JUMP while_end_139 t140 0
+	CALL t141 sdl_clear
+	LOAD_VAR t142 mode
+	CALL t143 draw_grid grid t142
+	CALL t144 sdl_flip
+	LOAD_CONST t145 40
+	CALL t146 sdl_keydown t145
+	JUMP sublabel_else_147 t146 0
+	SUB_LABEL sublabel_if_147
+	SET_CONST mode 1
+	JUMP sublabel_end_147
+	SUB_LABEL sublabel_else_147
+	LOAD_CONST t148 44
+	CALL t149 sdl_keydown t148
+	JUMP sublabel_else_150 t149 0
+	SUB_LABEL sublabel_if_150
+	SET_CONST mode 0
+	LOAD_CONST t151 "MODE: %d\n"
+	LOAD_VAR t152 mode
+	CALL t153 printf t151 t152
+	JUMP sublabel_end_150
+	SUB_LABEL sublabel_else_150
+	SUB_LABEL sublabel_end_150
+	SUB_LABEL sublabel_end_147
+	JUMP while_start_139
+	SUB_LABEL while_end_139
+	CALL t154 free grid
+	CALL t155 sdl_release
+	CALL t156 sdl_quit
+	LOAD_CONST t157 0
+	RETURN t157
+}
+ETL: compiled [piece.s]
+Assembled piece.s to piece.o
+Linked [piece.o sdl.o] with flags [-L/usr/local/lib -lSDL2]
+Executable: [program]

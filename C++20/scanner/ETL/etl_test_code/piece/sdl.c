@@ -48,6 +48,11 @@ void sdl_create(char *name, long width, long height) {
     }
 }
 
+long sdl_keydown(long key) {
+    const Uint8 *keys = SDL_GetKeyboardState(0);
+    return keys[key];
+}
+
 long sdl_pump() {
     while(SDL_PollEvent(&e)) {
             switch(e.type) {

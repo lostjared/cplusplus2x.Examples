@@ -10,5 +10,6 @@ define sdl_setcolor(r, g, b, a);
 define sdl_fillrect(x, y, w, h);
 define sdl_flip();
 define sdl_clear();
+define sdl_keydown(key);
 
 #endif
