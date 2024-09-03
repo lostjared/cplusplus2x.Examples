@@ -21,7 +21,7 @@ proc set_block_color(color) {
     if(color == 4) {
         sdl_setcolor(255,0,255,25);
         return 0;
-    }
+    } 
     return 0;
 }
 
@@ -101,7 +101,11 @@ proc set_block_in_grid(@grid, @block) {
 }
 
 proc move_block_down(@grid, @block) {
-    if(mematb(block, 8) < 15) {
+    let bx = mematb(block, 7);
+    let by = mematb(block, 8)+1;
+    let pos = bx * 16 + by;
+    let test_block = mematb(grid, pos);
+    if(mematb(block, 8) < 15 && test_block == 0) {
         memstoreb(block, 2, mematb(block, 2) + 1);
         memstoreb(block, 5, mematb(block, 5) + 1);
         memstoreb(block, 8, mematb(block, 8) + 1);
@@ -111,7 +115,6 @@ proc move_block_down(@grid, @block) {
        set_block_in_grid(grid, block);
        setup_block(block); 
     }
-
     return 0;
 }
 
@@ -123,19 +126,36 @@ proc init() {
     let block = allocate_block();
     setup_block(block);
     let prev_time = sdl_getticks();
+    let update_time = sdl_getticks();
     while (sdl_pump()) {
         sdl_clear(); // clear screen
         draw_grid(grid, block);
         sdl_flip(); // flip
+        let ctime = sdl_getticks();
+        if((ctime - update_time)  >= 750) {
+            move_block_down(grid,  block);
+            update_time = ctime;
+        }
         let current_time = sdl_getticks();
         if ((current_time - prev_time) >= 100) {
+            
             prev_time = current_time; 
-            if (sdl_keydown(79) && mematb(block, 1) < (1440 / (32 * 4) - 1))
+            let bx = mematb(block, 7)+1;
+            let by = mematb(block, 8);
+            let pos = bx * 16 + by;
+            let test_block = mematb(grid, pos);
+    
+        
+            if (sdl_keydown(79) && test_block == 0 && mematb(block, 1) < (1440 / (32 * 4) - 1))
                     memstoreb(block, 1, mematb(block, 1) + 1);
                     memstoreb(block, 4, mematb(block, 4) + 1);
                     memstoreb(block, 7, mematb(block, 7) + 1);
             } else {
-                if (sdl_keydown(80) && mematb(block, 1) > 0) {
+                bx = mematb(block, 7)-1;
+                by = mematb(block, 8);
+                pos = bx * 16 + by;
+                test_block = mematb(grid, pos);
+                if (sdl_keydown(80) && test_block == 0 && mematb(block, 1) > 0) {
                     memstoreb(block, 1, mematb(block, 1) - 1);
                     memstoreb(block, 4, mematb(block, 4) - 1);
                     memstoreb(block, 7, mematb(block, 7) - 1);
