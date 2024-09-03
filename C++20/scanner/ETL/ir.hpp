@@ -320,6 +320,7 @@ namespace parse {
                     else
                         code.emplace_back(ir::InstructionType::SET_CONST, lhs->name, rhsLiteral->value);
 
+
                 } else {
                     generate(assign->right.get(), code);
                     std::string rhs = lastComputedValue["result"];

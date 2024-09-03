@@ -96,13 +96,16 @@ namespace codegen {
 
         void collectLiteralsAndConstants(const ir::IRCode &code) {
         
+           static int counter = 1;
+
            for (const auto &instr : code) {
 
                 if(instr.type == ir::InstructionType::LABEL) {
                     curFunction = instr.dest;
+                    continue;
                 }
 
-                if (instr.type == ir::InstructionType::LOAD_CONST) {
+                if (instr.type == ir::InstructionType::LOAD_CONST || instr.type == ir::InstructionType::SET_CONST) {
                     if (instr.op1[0] == '\"') {
                         std::string label =  instr.dest;
                         stringLiterals[curFunction][instr.op1] = label;
@@ -399,12 +402,13 @@ output << ".section .data\n";
             auto loc = table.lookup(instr.dest);
             if (instr.op1[0] == '\"') {
                 std::string label = stringLiterals[curFunction][instr.op1];
-                output << "    leaq " << label << "(%rip), %rdx\n";
                 variableInfo[curFunction][instr.dest].type = VariableType::STRING_CONST;
                 if(loc.has_value()) {
                     loc.value()->vtype = ast::VarType::STRING;
                     loc.value()->value = instr.op1;
                 }
+                output << "    movq " << getOperand(label) << ", %rcx\n";
+                output << "    movq %rcx, " << getOperand(instr.dest) << "\n";
             } else {
                 std::string label = numericConstants[curFunction][instr.op1];
                 variableInfo[curFunction][instr.dest].type = VariableType::NUMERIC_CONST;
@@ -412,9 +416,10 @@ output << ".section .data\n";
                     loc.value()->vtype = ast::VarType::NUMBER;
                     loc.value()->value = instr.op1;
                 }
+                output << "    movq $" << instr.op1 << ", %rcx # here\n";
+                output << "    movq %rcx, " << getOperand(instr.dest) << "\n";
             } 
-            output << "    movq $" << instr.op1 << ", %rcx # here\n";
-            output << "    movq %rcx, " << getOperand(instr.dest) << "\n";
+           
         }
 
         void emitSubLabel(std::ostringstream &output, const ir::IRInstruction &instr) {
