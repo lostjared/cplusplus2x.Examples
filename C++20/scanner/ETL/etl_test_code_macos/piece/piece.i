@@ -149,7 +149,7 @@ proc move_blocks(@grid) {
             if(color2 == 0 && color1 != 0) {
                 memstoreb(grid, x * 16 + y, 0);
                 memstoreb(grid, x * 16 + (y+1), color1);
-                continue;
+                return 0;
             }
         }
     }
