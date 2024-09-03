@@ -42,7 +42,6 @@ proc draw_grid(@grid, @block) {
     let block_size_h = 16 * 4;
     let offset_left = 20;
     let offset_top = 30;
-    
     for(let x = 0; x < 11; x = x + 1) {
         for(let y = 0; y < 16; y = y + 1) {
             let grid_x = (x*block_size_w)+offset_left;
@@ -55,6 +54,61 @@ proc draw_grid(@grid, @block) {
     set_block_at(block,0);
     set_block_at(block,3);
     set_block_at(block,6);
+    return 0;
+}
+
+proc check_blocks(@grid) {
+
+    let bx = 0;
+    let by = 0;
+
+    for(let x = 0; x < 11; x = x + 1) {
+        for(let y = 0; y < 14; y = y + 1) {
+            bx = x;
+            by = y;
+            let color1 = mematb(grid, bx * 16 + by);
+            let color2 = mematb(grid, bx * 16 + (by+1));
+            let color3 = mematb(grid, bx * 16 + (by+2));
+             if(color1 != 0 && color2 != 0 && color3 != 0 && color1 == color2 && color1 == color3) {
+                memstoreb(grid, bx * 16 + by, 0);
+                memstoreb(grid, bx * 16 + (by+1), 0);
+                memstoreb(grid, bx * 16 + (by+2), 0);
+                return 0;
+            }
+        }
+    }
+
+    for(let y1 = 0;  y1 < 16; y1 = y1 + 1) {
+        for(let x1 = 0; x1 < 9; x1 = x1 + 1) {    
+            bx = x1;
+            by = y1;
+            let color1x = mematb(grid, bx * 16 + by);
+            let color2x = mematb(grid, (bx+1) * 16 + (by));
+            let color3x = mematb(grid, (bx+2) * 16 + (by));
+            if(color1x != 0 && color2x != 0 && color3x != 0 && color1x == color2x && color1x == color3x) {
+                memstoreb(grid, bx * 16 + by, 0);
+                memstoreb(grid, (bx+1) * 16 + by, 0);
+                memstoreb(grid, (bx+2) * 16 + by, 0);
+                return 0;
+            }
+        }
+    }
+    return 0;
+}
+
+proc move_blocks(@grid) {
+    for(let x = 0; x < 11; x = x + 1) {
+        for(let y = 0; y < 15; y = y + 1) {
+            let color1 = mematb(grid, x * 16 + y);
+            let color2 = mematb(grid, x * 16 + (y+1));
+
+            if(color2 == 0 && color1 != 0) {
+                memstoreb(grid, x * 16 + y, 0);
+                memstoreb(grid, x * 16 + (y+1), color1);
+                continue;
+            }
+        }
+    }
     return 0;
 }
 
@@ -118,6 +172,19 @@ proc move_block_down(@grid, @block) {
     return 0;
 }
 
+proc swap_colors(@block) {
+
+    let c1 = mematb(block, 0);
+    let c2 = mematb(block, 3);
+    let c3 = mematb(block, 6);
+
+    memstoreb(block, 0, c3);
+    memstoreb(block, 3, c1);
+    memstoreb(block, 6, c2);
+
+    return 0;
+}
+
 proc init() {
     sdl_init();
     sdl_create("MasterPiece", 1440, 1080);
@@ -130,6 +197,8 @@ proc init() {
     while (sdl_pump()) {
         sdl_clear(); // clear screen
         draw_grid(grid, block);
+        check_blocks(grid);
+        move_blocks(grid);
         sdl_flip(); // flip
         let ctime = sdl_getticks();
         if((ctime - update_time)  >= 750) {
@@ -138,14 +207,11 @@ proc init() {
         }
         let current_time = sdl_getticks();
         if ((current_time - prev_time) >= 100) {
-            
             prev_time = current_time; 
             let bx = mematb(block, 7)+1;
             let by = mematb(block, 8);
             let pos = bx * 16 + by;
             let test_block = mematb(grid, pos);
-    
-        
             if (sdl_keydown(79) && test_block == 0 && mematb(block, 1) < (1440 / (32 * 4) - 1))
                     memstoreb(block, 1, mematb(block, 1) + 1);
                     memstoreb(block, 4, mematb(block, 4) + 1);
@@ -162,6 +228,10 @@ proc init() {
                 } else {
                     if(sdl_keydown(81)) {
                          move_block_down(grid, block);
+                    } else {
+                        if(sdl_keydown(82)) {
+                            swap_colors(block);
+                        }
                     }
                 }
             }

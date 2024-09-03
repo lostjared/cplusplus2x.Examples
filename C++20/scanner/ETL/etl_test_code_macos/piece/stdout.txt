@@ -1,6 +1,6 @@
 gcc `sdl2-config --cflags` sdl.c -o sdl.o -c
 etl program piece.e sdl.o -- `sdl2-config --libs`
-ETL: Scanned 687 tokens.
+ETL: Scanned 1336 tokens.
 ETL: parsing ...  [complete]
 ETL: IR code: {
 	DEFINE scan_integer
@@ -71,241 +71,484 @@ ETL: IR code: {
 	DEFINE sdl_clear
 	DEFINE sdl_keydown
 	DEF_PARAM key
-	LABEL draw_grid
-	PARAM_POINTER grid
-	PARAM mode
-	LOAD_CONST t0 0
+	DEFINE sdl_getticks
+	LABEL set_block_color
+	PARAM color
+	LOAD_VAR t0 color
 	LOAD_CONST t1 0
-	LOAD_CONST t2 0
-	LOAD_CONST t3 255
-	CALL t4 sdl_setcolor t0 t1 t2 t3
+	EQ t2 t0 t1
+	JUMP sublabel_else_3 t2 0
+	SUB_LABEL sublabel_if_3
+	LOAD_CONST t4 0
 	LOAD_CONST t5 0
 	LOAD_CONST t6 0
-	LOAD_CONST t7 1440
-	LOAD_CONST t8 1080
-	CALL t9 sdl_fillrect t5 t6 t7 t8
-	LOAD_CONST grid_w 8
-	LOAD_CONST grid_h 17
-	LOAD_CONST t10 32
-	LOAD_CONST t11 4
-	MUL t12 t10 t11
-	ASSIGN block_size_w t12
-	LOAD_CONST t13 16
-	LOAD_CONST t14 4
-	MUL t15 t13 t14
-	ASSIGN block_size_h t15
-	LOAD_CONST x 0
-	SUB_LABEL for_start_16
-	LOAD_VAR t18 x
-	LOAD_VAR t19 grid_w
-	LT t20 t18 t19
-	JUMP for_end_16 t20 0
-	LOAD_CONST y 0
-	SUB_LABEL for_start_21
-	LOAD_VAR t23 y
-	LOAD_VAR t24 grid_h
-	LT t25 t23 t24
-	JUMP for_end_21 t25 0
-	LOAD_VAR t26 x
-	MUL t27 t26 block_size_w
-	ASSIGN grid_x t27
-	LOAD_VAR t28 y
-	MUL t29 t28 block_size_h
-	ASSIGN grid_y t29
-	LOAD_VAR t30 grid
-	LOAD_VAR t31 x
-	LOAD_VAR t32 grid_w
-	MUL t33 t31 t32
-	LOAD_VAR t34 y
-	ADD t35 t33 t34
-	CALL t36 mematb t30 t35
-	ASSIGN color t36
-	LOAD_VAR t37 mode
-	LOAD_CONST t38 1
-	EQ t39 t37 t38
-	JUMP sublabel_else_40 t39 0
-	SUB_LABEL sublabel_if_40
-	LOAD_CONST t41 0
-	EQ t42 color t41
+	LOAD_CONST t7 255
+	CALL t8 sdl_setcolor t4 t5 t6 t7
+	LOAD_CONST t9 0
+	RETURN t9
+	JUMP sublabel_end_3
+	SUB_LABEL sublabel_else_3
+	SUB_LABEL sublabel_end_3
+	LOAD_VAR t10 color
+	LOAD_CONST t11 1
+	EQ t12 t10 t11
+	JUMP sublabel_else_13 t12 0
+	SUB_LABEL sublabel_if_13
+	LOAD_CONST t14 255
+	LOAD_CONST t15 0
+	LOAD_CONST t16 0
+	LOAD_CONST t17 255
+	CALL t18 sdl_setcolor t14 t15 t16 t17
+	LOAD_CONST t19 0
+	RETURN t19
+	JUMP sublabel_end_13
+	SUB_LABEL sublabel_else_13
+	SUB_LABEL sublabel_end_13
+	LOAD_VAR t20 color
+	LOAD_CONST t21 2
+	EQ t22 t20 t21
+	JUMP sublabel_else_23 t22 0
+	SUB_LABEL sublabel_if_23
+	LOAD_CONST t24 0
+	LOAD_CONST t25 255
+	LOAD_CONST t26 0
+	LOAD_CONST t27 255
+	CALL t28 sdl_setcolor t24 t25 t26 t27
+	LOAD_CONST t29 0
+	RETURN t29
+	JUMP sublabel_end_23
+	SUB_LABEL sublabel_else_23
+	SUB_LABEL sublabel_end_23
+	LOAD_VAR t30 color
+	LOAD_CONST t31 3
+	EQ t32 t30 t31
+	JUMP sublabel_else_33 t32 0
+	SUB_LABEL sublabel_if_33
+	LOAD_CONST t34 0
+	LOAD_CONST t35 0
+	LOAD_CONST t36 255
+	LOAD_CONST t37 255
+	CALL t38 sdl_setcolor t34 t35 t36 t37
+	LOAD_CONST t39 0
+	RETURN t39
+	JUMP sublabel_end_33
+	SUB_LABEL sublabel_else_33
+	SUB_LABEL sublabel_end_33
+	LOAD_VAR t40 color
+	LOAD_CONST t41 4
+	EQ t42 t40 t41
 	JUMP sublabel_else_43 t42 0
 	SUB_LABEL sublabel_if_43
-	LOAD_CONST t44 0
+	LOAD_CONST t44 255
 	LOAD_CONST t45 0
-	LOAD_CONST t46 0
-	LOAD_CONST t47 255
+	LOAD_CONST t46 255
+	LOAD_CONST t47 25
 	CALL t48 sdl_setcolor t44 t45 t46 t47
+	LOAD_CONST t49 0
+	RETURN t49
 	JUMP sublabel_end_43
 	SUB_LABEL sublabel_else_43
 	SUB_LABEL sublabel_end_43
-	LOAD_CONST t49 1
-	EQ t50 color t49
-	JUMP sublabel_else_51 t50 0
-	SUB_LABEL sublabel_if_51
-	LOAD_CONST t52 255
-	LOAD_CONST t53 0
-	LOAD_CONST t54 0
-	LOAD_CONST t55 255
-	CALL t56 sdl_setcolor t52 t53 t54 t55
-	JUMP sublabel_end_51
-	SUB_LABEL sublabel_else_51
-	SUB_LABEL sublabel_end_51
-	LOAD_CONST t57 2
-	EQ t58 color t57
-	JUMP sublabel_else_59 t58 0
-	SUB_LABEL sublabel_if_59
-	LOAD_CONST t60 0
-	LOAD_CONST t61 255
-	LOAD_CONST t62 0
-	LOAD_CONST t63 255
-	CALL t64 sdl_setcolor t60 t61 t62 t63
-	JUMP sublabel_end_59
-	SUB_LABEL sublabel_else_59
-	SUB_LABEL sublabel_end_59
-	LOAD_CONST t65 3
-	EQ t66 color t65
-	JUMP sublabel_else_67 t66 0
-	SUB_LABEL sublabel_if_67
-	LOAD_CONST t68 0
-	LOAD_CONST t69 0
-	LOAD_CONST t70 255
-	LOAD_CONST t71 255
-	CALL t72 sdl_setcolor t68 t69 t70 t71
-	JUMP sublabel_end_67
-	SUB_LABEL sublabel_else_67
-	SUB_LABEL sublabel_end_67
-	LOAD_CONST t73 4
-	EQ t74 color t73
-	JUMP sublabel_else_75 t74 0
-	SUB_LABEL sublabel_if_75
-	LOAD_CONST t76 255
+	LOAD_CONST t50 0
+	RETURN t50
+	LABEL set_block_at
+	PARAM_POINTER block
+	PARAM x
+	PARAM y
+	PARAM index
+	PARAM x2
+	PARAM y2
+	LOAD_VAR t51 block
+	LOAD_VAR t52 x2
+	CALL t53 mematb t51 t52
+	ASSIGN bx t53
+	LOAD_VAR t54 block
+	LOAD_VAR t55 y2
+	CALL t56 mematb t54 t55
+	ASSIGN by t56
+	LOAD_CONST t57 1
+	CALL t58 set_block_color t57
+	LOAD_VAR t59 x
+	MUL t60 t59 bx
+	LOAD_CONST t61 20
+	ADD t62 t60 t61
+	LOAD_VAR t63 y
+	MUL t64 t63 by
+	LOAD_CONST t65 30
+	ADD t66 t64 t65
+	LOAD_CONST t67 32
+	LOAD_CONST t68 4
+	MUL t69 t67 t68
+	LOAD_CONST t70 16
+	LOAD_CONST t71 4
+	MUL t72 t70 t71
+	CALL t73 sdl_fillrect t62 t66 t69 t72
+	LOAD_CONST t74 0
+	RETURN t74
+	LABEL draw_grid
+	PARAM_POINTER grid
+	PARAM_POINTER block
+	LOAD_CONST t75 0
+	LOAD_CONST t76 0
 	LOAD_CONST t77 0
 	LOAD_CONST t78 255
-	LOAD_CONST t79 25
-	CALL t80 sdl_setcolor t76 t77 t78 t79
-	JUMP sublabel_end_75
-	SUB_LABEL sublabel_else_75
-	SUB_LABEL sublabel_end_75
-	JUMP sublabel_end_40
-	SUB_LABEL sublabel_else_40
-	CALL t81 rand
-	LOAD_CONST t82 255
-	MOD t83 t81 t82
-	CALL t84 rand
-	LOAD_CONST t85 255
-	MOD t86 t84 t85
-	CALL t87 rand
-	LOAD_CONST t88 255
-	MOD t89 t87 t88
-	CALL t90 rand
-	LOAD_CONST t91 255
-	MOD t92 t90 t91
-	CALL t93 sdl_setcolor t83 t86 t89 t92
-	SUB_LABEL sublabel_end_40
-	CALL t94 sdl_fillrect grid_x grid_y block_size_w block_size_h
-	SUB_LABEL for_post_22
-	LOAD_VAR t95 y
-	LOAD_CONST t96 1
-	ADD t97 t95 t96
-	SET y t97
-	JUMP for_start_21
-	SUB_LABEL for_end_21
-	SUB_LABEL for_post_17
-	LOAD_VAR t98 x
-	LOAD_CONST t99 1
-	ADD t100 t98 t99
-	SET x t100
-	JUMP for_start_16
-	SUB_LABEL for_end_16
-	LOAD_CONST t101 0
-	RETURN t101
+	CALL t79 sdl_setcolor t75 t76 t77 t78
+	LOAD_CONST t80 0
+	LOAD_CONST t81 0
+	LOAD_CONST t82 1440
+	LOAD_CONST t83 1080
+	CALL t84 sdl_fillrect t80 t81 t82 t83
+	LOAD_CONST t85 32
+	LOAD_CONST t86 4
+	MUL t87 t85 t86
+	ASSIGN block_size_w t87
+	LOAD_CONST t88 16
+	LOAD_CONST t89 4
+	MUL t90 t88 t89
+	ASSIGN block_size_h t90
+	LOAD_CONST offset_left 20
+	LOAD_CONST offset_top 30
+	LOAD_CONST x 0
+	SUB_LABEL for_start_91
+	LOAD_VAR t93 x
+	LOAD_CONST t94 11
+	LT t95 t93 t94
+	JUMP for_end_91 t95 0
+	LOAD_CONST y 0
+	SUB_LABEL for_start_96
+	LOAD_VAR t98 y
+	LOAD_CONST t99 16
+	LT t100 t98 t99
+	JUMP for_end_96 t100 0
+	LOAD_VAR t101 x
+	MUL t102 t101 block_size_w
+	LOAD_VAR t103 offset_left
+	ADD t104 t102 t103
+	ASSIGN grid_x t104
+	LOAD_VAR t105 y
+	MUL t106 t105 block_size_h
+	LOAD_VAR t107 offset_top
+	ADD t108 t106 t107
+	ASSIGN grid_y t108
+	LOAD_VAR t109 grid
+	LOAD_VAR t110 x
+	LOAD_CONST t111 16
+	MUL t112 t110 t111
+	LOAD_VAR t113 y
+	ADD t114 t112 t113
+	CALL t115 mematb t109 t114
+	ASSIGN color t115
+	CALL t116 set_block_color color
+	CALL t117 sdl_fillrect grid_x grid_y block_size_w block_size_h
+	SUB_LABEL for_post_97
+	LOAD_VAR t118 y
+	LOAD_CONST t119 1
+	ADD t120 t118 t119
+	SET y t120
+	JUMP for_start_96
+	SUB_LABEL for_end_96
+	SUB_LABEL for_post_92
+	LOAD_VAR t121 x
+	LOAD_CONST t122 1
+	ADD t123 t121 t122
+	SET x t123
+	JUMP for_start_91
+	SUB_LABEL for_end_91
+	ASSIGN gx block_size_w
+	ASSIGN gy block_size_h
+	LOAD_VAR t124 block
+	LOAD_CONST t125 0
+	LOAD_CONST t126 1
+	LOAD_CONST t127 2
+	CALL t128 set_block_at t124 gx gy t125 t126 t127
+	LOAD_VAR t129 block
+	LOAD_CONST t130 3
+	LOAD_CONST t131 4
+	LOAD_CONST t132 5
+	CALL t133 set_block_at t129 gx gy t130 t131 t132
+	LOAD_VAR t134 block
+	LOAD_CONST t135 6
+	LOAD_CONST t136 7
+	LOAD_CONST t137 8
+	CALL t138 set_block_at t134 gx gy t135 t136 t137
+	LOAD_CONST t139 0
+	RETURN t139
 	LABEL allocate_grid
 	PARAM w
 	PARAM h
-	LOAD_VAR t102 w
-	LOAD_VAR t103 h
-	MUL t104 t102 t103
-	CALL t105 malloc t104
-	ASSIGN grid t105
-	LOAD_VAR t106 w
-	LOAD_VAR t107 h
-	MUL t108 t106 t107
-	CALL t109 memclr grid t108
-	LOAD_CONST x 0
-	SUB_LABEL for_start_110
-	LOAD_VAR t112 w
-	LT t113 x t112
-	JUMP for_end_110 t113 0
-	LOAD_CONST y 0
-	SUB_LABEL for_start_114
-	LOAD_VAR t116 h
-	LT t117 y t116
-	JUMP for_end_114 t117 0
-	LOAD_VAR t118 w
-	MUL t119 x t118
-	ADD t120 t119 y
-	LOAD_CONST t121 1
-	CALL t122 rand
-	LOAD_CONST t123 4
-	MOD t124 t122 t123
-	ADD t125 t121 t124
-	CALL t126 memstoreb grid t120 t125
-	SUB_LABEL for_post_115
-	LOAD_CONST t127 1
-	ADD t128 y t127
-	SET y t128
-	JUMP for_start_114
-	SUB_LABEL for_end_114
-	SUB_LABEL for_post_111
-	LOAD_CONST t129 1
-	ADD t130 x t129
-	SET x t130
-	JUMP for_start_110
-	SUB_LABEL for_end_110
+	LOAD_VAR t140 w
+	LOAD_VAR t141 h
+	MUL t142 t140 t141
+	CALL t143 malloc t142
+	ASSIGN grid t143
+	LOAD_VAR t144 w
+	LOAD_VAR t145 h
+	MUL t146 t144 t145
+	CALL t147 memclr grid t146
 	RETURN grid
+	LABEL allocate_block
+	LOAD_CONST t148 11
+	CALL t149 malloc t148
+	ASSIGN block t149
+	LOAD_CONST t150 10
+	CALL t151 memclr block t150
+	RETURN block
+	LABEL setup_block
+	PARAM_POINTER block
+	LOAD_CONST t152 0
+	CALL t153 rand
+	LOAD_CONST t154 3
+	MOD t155 t153 t154
+	LOAD_CONST t156 1
+	ADD t157 t155 t156
+	CALL t158 memstoreb block t152 t157
+	LOAD_CONST t159 1
+	LOAD_CONST t160 11
+	LOAD_CONST t161 2
+	DIV t162 t160 t161
+	LOAD_CONST t163 1
+	SUB t164 t162 t163
+	CALL t165 memstoreb block t159 t164
+	LOAD_CONST t166 2
+	LOAD_CONST t167 0
+	CALL t168 memstoreb block t166 t167
+	LOAD_CONST t169 3
+	CALL t170 rand
+	LOAD_CONST t171 3
+	MOD t172 t170 t171
+	LOAD_CONST t173 1
+	ADD t174 t172 t173
+	CALL t175 memstoreb block t169 t174
+	LOAD_CONST t176 4
+	LOAD_CONST t177 11
+	LOAD_CONST t178 2
+	DIV t179 t177 t178
+	LOAD_CONST t180 1
+	SUB t181 t179 t180
+	CALL t182 memstoreb block t176 t181
+	LOAD_CONST t183 5
+	LOAD_CONST t184 1
+	CALL t185 memstoreb block t183 t184
+	LOAD_CONST t186 6
+	CALL t187 rand
+	LOAD_CONST t188 3
+	MOD t189 t187 t188
+	LOAD_CONST t190 1
+	ADD t191 t189 t190
+	CALL t192 memstoreb block t186 t191
+	LOAD_CONST t193 7
+	LOAD_CONST t194 11
+	LOAD_CONST t195 2
+	DIV t196 t194 t195
+	LOAD_CONST t197 1
+	SUB t198 t196 t197
+	CALL t199 memstoreb block t193 t198
+	LOAD_CONST t200 8
+	LOAD_CONST t201 2
+	CALL t202 memstoreb block t200 t201
+	LOAD_CONST t203 0
+	RETURN t203
+	LABEL set_block_in_grid
+	PARAM_POINTER grid
+	PARAM_POINTER block
+	LOAD_CONST t204 0
+	CALL t205 mematb block t204
+	ASSIGN val t205
+	LOAD_CONST t206 1
+	CALL t207 mematb block t206
+	ASSIGN bx t207
+	LOAD_CONST t208 2
+	CALL t209 mematb block t208
+	ASSIGN by t209
+	LOAD_CONST t210 16
+	MUL t211 bx t210
+	ADD t212 t211 by
+	CALL t213 memstoreb grid t212 val
+	LOAD_CONST t214 "f irst: %d\n"
+	CALL t215 printf t214 by
+	LOAD_CONST t216 3
+	CALL t217 mematb block t216
+	SET val t217
+	LOAD_CONST t218 4
+	CALL t219 mematb block t218
+	SET bx t219
+	LOAD_CONST t220 5
+	CALL t221 mematb block t220
+	SET by t221
+	LOAD_CONST t222 "second: %d\n"
+	CALL t223 printf t222 by
+	LOAD_CONST t224 16
+	MUL t225 bx t224
+	ADD t226 t225 by
+	CALL t227 memstoreb grid t226 val
+	LOAD_CONST t228 6
+	CALL t229 mematb block t228
+	SET val t229
+	LOAD_CONST t230 7
+	CALL t231 mematb block t230
+	SET bx t231
+	LOAD_CONST t232 8
+	CALL t233 mematb block t232
+	SET by t233
+	LOAD_CONST t234 "third: %d\n"
+	CALL t235 printf t234 by
+	LOAD_CONST t236 16
+	MUL t237 bx t236
+	ADD t238 t237 by
+	CALL t239 memstoreb grid t238 val
+	LOAD_CONST t240 0
+	RETURN t240
+	LABEL move_block_down
+	PARAM_POINTER grid
+	PARAM_POINTER block
+	LOAD_CONST t241 8
+	CALL t242 mematb block t241
+	LOAD_CONST t243 15
+	LT t244 t242 t243
+	JUMP sublabel_else_245 t244 0
+	SUB_LABEL sublabel_if_245
+	LOAD_CONST t246 2
+	LOAD_CONST t247 2
+	CALL t248 mematb block t247
+	LOAD_CONST t249 1
+	ADD t250 t248 t249
+	CALL t251 memstoreb block t246 t250
+	LOAD_CONST t252 5
+	LOAD_CONST t253 5
+	CALL t254 mematb block t253
+	LOAD_CONST t255 1
+	ADD t256 t254 t255
+	CALL t257 memstoreb block t252 t256
+	LOAD_CONST t258 8
+	LOAD_CONST t259 8
+	CALL t260 mematb block t259
+	LOAD_CONST t261 1
+	ADD t262 t260 t261
+	CALL t263 memstoreb block t258 t262
+	JUMP sublabel_end_245
+	SUB_LABEL sublabel_else_245
+	CALL t264 set_block_in_grid grid block
+	CALL t265 setup_block block
+	SUB_LABEL sublabel_end_245
+	LOAD_CONST t266 0
+	RETURN t266
 	LABEL init
-	CALL t131 sdl_init
-	LOAD_CONST t132 "MasterPiece"
-	LOAD_CONST t133 1440
-	LOAD_CONST t134 1080
-	CALL t135 sdl_create t132 t133 t134
-	LOAD_CONST t136 8
-	LOAD_CONST t137 17
-	CALL t138 allocate_grid t136 t137
-	ASSIGN grid t138
-	LOAD_CONST mode 1
-	SUB_LABEL while_start_139
-	CALL t140 sdl_pump
-	JUMP while_end_139 t140 0
-	CALL t141 sdl_clear
-	LOAD_VAR t142 mode
-	CALL t143 draw_grid grid t142
-	CALL t144 sdl_flip
-	LOAD_CONST t145 40
-	CALL t146 sdl_keydown t145
-	JUMP sublabel_else_147 t146 0
-	SUB_LABEL sublabel_if_147
-	SET_CONST mode 1
-	JUMP sublabel_end_147
-	SUB_LABEL sublabel_else_147
-	LOAD_CONST t148 44
-	CALL t149 sdl_keydown t148
-	JUMP sublabel_else_150 t149 0
-	SUB_LABEL sublabel_if_150
-	SET_CONST mode 0
-	LOAD_CONST t151 "MODE: %d\n"
-	LOAD_VAR t152 mode
-	CALL t153 printf t151 t152
-	JUMP sublabel_end_150
-	SUB_LABEL sublabel_else_150
-	SUB_LABEL sublabel_end_150
-	SUB_LABEL sublabel_end_147
-	JUMP while_start_139
-	SUB_LABEL while_end_139
-	CALL t154 free grid
-	CALL t155 sdl_release
-	CALL t156 sdl_quit
-	LOAD_CONST t157 0
-	RETURN t157
+	CALL t267 sdl_init
+	LOAD_CONST t268 "MasterPiece"
+	LOAD_CONST t269 1440
+	LOAD_CONST t270 1080
+	CALL t271 sdl_create t268 t269 t270
+	LOAD_CONST t272 0
+	CALL t273 time t272
+	CALL t274 srand t273
+	LOAD_CONST t275 11
+	LOAD_CONST t276 16
+	CALL t277 allocate_grid t275 t276
+	ASSIGN grid t277
+	CALL t278 allocate_block
+	ASSIGN block t278
+	CALL t279 setup_block block
+	CALL t280 sdl_getticks
+	ASSIGN prev_time t280
+	SUB_LABEL while_start_281
+	CALL t282 sdl_pump
+	JUMP while_end_281 t282 0
+	CALL t283 sdl_clear
+	CALL t284 draw_grid grid block
+	CALL t285 sdl_flip
+	CALL t286 sdl_getticks
+	ASSIGN current_time t286
+	SUB t287 current_time prev_time
+	LOAD_CONST t288 100
+	GE t289 t287 t288
+	JUMP sublabel_else_290 t289 0
+	SUB_LABEL sublabel_if_290
+	SET prev_time current_time
+	LOAD_CONST t291 79
+	CALL t292 sdl_keydown t291
+	LOAD_CONST t293 1
+	CALL t294 mematb block t293
+	LOAD_CONST t295 1440
+	LOAD_CONST t296 32
+	LOAD_CONST t297 4
+	MUL t298 t296 t297
+	DIV t299 t295 t298
+	LOAD_CONST t300 1
+	SUB t301 t299 t300
+	LT t302 t294 t301
+	LOGICAL_AND t303 t292 t302
+	JUMP sublabel_else_304 t303 0
+	SUB_LABEL sublabel_if_304
+	LOAD_CONST t305 1
+	LOAD_CONST t306 1
+	CALL t307 mematb block t306
+	LOAD_CONST t308 1
+	ADD t309 t307 t308
+	CALL t310 memstoreb block t305 t309
+	LOAD_CONST t311 4
+	LOAD_CONST t312 4
+	CALL t313 mematb block t312
+	LOAD_CONST t314 1
+	ADD t315 t313 t314
+	CALL t316 memstoreb block t311 t315
+	LOAD_CONST t317 7
+	LOAD_CONST t318 7
+	CALL t319 mematb block t318
+	LOAD_CONST t320 1
+	ADD t321 t319 t320
+	CALL t322 memstoreb block t317 t321
+	JUMP sublabel_end_304
+	SUB_LABEL sublabel_else_304
+	LOAD_CONST t323 80
+	CALL t324 sdl_keydown t323
+	LOAD_CONST t325 1
+	CALL t326 mematb block t325
+	LOAD_CONST t327 0
+	GT t328 t326 t327
+	LOGICAL_AND t329 t324 t328
+	JUMP sublabel_else_330 t329 0
+	SUB_LABEL sublabel_if_330
+	LOAD_CONST t331 1
+	LOAD_CONST t332 1
+	CALL t333 mematb block t332
+	LOAD_CONST t334 1
+	SUB t335 t333 t334
+	CALL t336 memstoreb block t331 t335
+	LOAD_CONST t337 4
+	LOAD_CONST t338 4
+	CALL t339 mematb block t338
+	LOAD_CONST t340 1
+	SUB t341 t339 t340
+	CALL t342 memstoreb block t337 t341
+	LOAD_CONST t343 7
+	LOAD_CONST t344 7
+	CALL t345 mematb block t344
+	LOAD_CONST t346 1
+	SUB t347 t345 t346
+	CALL t348 memstoreb block t343 t347
+	JUMP sublabel_end_330
+	SUB_LABEL sublabel_else_330
+	LOAD_CONST t349 81
+	CALL t350 sdl_keydown t349
+	JUMP sublabel_else_351 t350 0
+	SUB_LABEL sublabel_if_351
+	CALL t352 move_block_down grid block
+	JUMP sublabel_end_351
+	SUB_LABEL sublabel_else_351
+	SUB_LABEL sublabel_end_351
+	SUB_LABEL sublabel_end_330
+	SUB_LABEL sublabel_end_304
+	JUMP sublabel_end_290
+	SUB_LABEL sublabel_else_290
+	SUB_LABEL sublabel_end_290
+	JUMP while_start_281
+	SUB_LABEL while_end_281
+	CALL t353 free grid
+	CALL t354 free block
+	CALL t355 sdl_release
+	CALL t356 sdl_quit
+	LOAD_CONST t357 0
+	RETURN t357
 }
 ETL: compiled [piece.s]
 Assembled piece.s to piece.o
