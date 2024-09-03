@@ -1,13 +1,14 @@
+# 0 "piece.e"
+# 0 "<built-in>"
+# 0 "<command-line>"
+# 1 "/usr/include/stdc-predef.h" 1 3 4
+# 0 "<command-line>" 2
 # 1 "piece.e"
-# 1 "<built-in>" 1
-# 1 "<built-in>" 3
-# 370 "<built-in>" 3
-# 1 "<command line>" 1
-# 1 "<built-in>" 2
-# 1 "piece.e" 2
-# 1 "/usr/local/include/libetl/etl.e" 1
+# 1 "/usr/local/include/libetl/etl.e" 1 3
 
 
+
+# 3 "/usr/local/include/libetl/etl.e" 3
 define scan_integer();
 define len($value);
 define $str(value);
@@ -28,10 +29,12 @@ define memclr(@memory, size);
 define memstorel(@memory, index, value);
 define memstoreb(@memory, index, value);
 # 2 "piece.e" 2
-# 1 "./sdl.e" 1
+# 1 "sdl.e" 1
 
 
 
+
+# 4 "sdl.e"
 define sdl_init();
 define sdl_quit();
 define sdl_pump();

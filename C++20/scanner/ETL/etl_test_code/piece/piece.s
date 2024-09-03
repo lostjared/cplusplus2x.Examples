@@ -1,29 +1,18 @@
-.section __TEXT,__cstring
+.section .data
 s: .asciz "test"
 t137: .asciz "MasterPiece"
-.section __TEXT,__text
-.globl _start
-_start:
-    xor %rbp, %rbp
-    movq %rsp, %rdi
-    andq $-16, %rsp
-    subq $8, %rsp 
-    call _main
-    movq %rax, %rdi
-    movl $0, %edi
-    call _exit
-
-.globl _main
-_main:
+.section .text
+.globl main
+main:
     pushq %rbp
     movq %rsp, %rbp
     subq $16, %rsp
-    call _init
+    call init
     movq $0, %rax
     leave
     ret
-.globl _draw_grid
-_draw_grid:
+.globl draw_grid
+draw_grid:
     pushq %rbp
     movq %rsp, %rbp
     subq $928, %rsp
@@ -43,7 +32,7 @@ _draw_grid:
     movq -40(%rbp), %rdx # t2 # t2
     movq -48(%rbp), %rcx # t3 # t3
     movq $0, %rax
-    call _sdl_setcolor
+    call sdl_setcolor
     movq %rax, -56(%rbp)
     movq $0, %rax
     movq %rax, -64(%rbp)
@@ -58,7 +47,7 @@ _draw_grid:
     movq -80(%rbp), %rdx # t7 # t7
     movq -88(%rbp), %rcx # t8 # t8
     movq $0, %rax
-    call _sdl_fillrect
+    call sdl_fillrect
     movq %rax, -96(%rbp)
     movq $32, %rax
     movq %rax, -104(%rbp)
@@ -152,7 +141,7 @@ for_start_24:
     movq -360(%rbp), %rdi # t36 # t36
     movq -392(%rbp), %rsi # t40 # t40
     movq $0, %rax
-    call _mematb
+    call mematb
     movq %rax, -400(%rbp)
     movq %rax, -408(%rbp)
     movq -16(%rbp), %rax # mode # mode
@@ -194,7 +183,7 @@ sublabel_if_48:
     movq -472(%rbp), %rdx # t51 # t51
     movq -480(%rbp), %rcx # t52 # t52
     movq $0, %rax
-    call _sdl_setcolor
+    call sdl_setcolor
     movq %rax, -488(%rbp)
     jmp sublabel_end_48
 sublabel_else_48: 
@@ -224,7 +213,7 @@ sublabel_if_56:
     movq -528(%rbp), %rdx # t59 # t59
     movq -536(%rbp), %rcx # t60 # t60
     movq $0, %rax
-    call _sdl_setcolor
+    call sdl_setcolor
     movq %rax, -544(%rbp)
     jmp sublabel_end_56
 sublabel_else_56: 
@@ -254,7 +243,7 @@ sublabel_if_64:
     movq -584(%rbp), %rdx # t67 # t67
     movq -592(%rbp), %rcx # t68 # t68
     movq $0, %rax
-    call _sdl_setcolor
+    call sdl_setcolor
     movq %rax, -600(%rbp)
     jmp sublabel_end_64
 sublabel_else_64: 
@@ -284,7 +273,7 @@ sublabel_if_72:
     movq -640(%rbp), %rdx # t75 # t75
     movq -648(%rbp), %rcx # t76 # t76
     movq $0, %rax
-    call _sdl_setcolor
+    call sdl_setcolor
     movq %rax, -656(%rbp)
     jmp sublabel_end_72
 sublabel_else_72: 
@@ -314,7 +303,7 @@ sublabel_if_80:
     movq -696(%rbp), %rdx # t83 # t83
     movq -704(%rbp), %rcx # t84 # t84
     movq $0, %rax
-    call _sdl_setcolor
+    call sdl_setcolor
     movq %rax, -712(%rbp)
     jmp sublabel_end_80
 sublabel_else_80: 
@@ -322,7 +311,7 @@ sublabel_end_80:
     jmp sublabel_end_45
 sublabel_else_45: 
     movq $0, %rax
-    call _rand
+    call rand
     movq %rax, -720(%rbp)
     movq $255, %rax
     movq %rax, -728(%rbp)
@@ -332,7 +321,7 @@ sublabel_else_45:
     idivq %rdi
     movq %rdx, -736(%rbp)
     movq $0, %rax
-    call _rand
+    call rand
     movq %rax, -744(%rbp)
     movq $255, %rax
     movq %rax, -752(%rbp)
@@ -342,7 +331,7 @@ sublabel_else_45:
     idivq %rdi
     movq %rdx, -760(%rbp)
     movq $0, %rax
-    call _rand
+    call rand
     movq %rax, -768(%rbp)
     movq $255, %rax
     movq %rax, -776(%rbp)
@@ -352,7 +341,7 @@ sublabel_else_45:
     idivq %rdi
     movq %rdx, -784(%rbp)
     movq $0, %rax
-    call _rand
+    call rand
     movq %rax, -792(%rbp)
     movq $255, %rax
     movq %rax, -800(%rbp)
@@ -366,7 +355,7 @@ sublabel_else_45:
     movq -784(%rbp), %rdx # t94 # t94
     movq -808(%rbp), %rcx # t97 # t97
     movq $0, %rax
-    call _sdl_setcolor
+    call sdl_setcolor
     movq %rax, -816(%rbp)
 sublabel_end_45: 
     movq -312(%rbp), %rdi # grid_x # grid_x
@@ -374,7 +363,7 @@ sublabel_end_45:
     movq -128(%rbp), %rdx # block_size_w # block_size_w
     movq -160(%rbp), %rcx # block_size_h # block_size_h
     movq $0, %rax
-    call _sdl_fillrect
+    call sdl_fillrect
     movq %rax, -824(%rbp)
 for_post_25: 
     movq -256(%rbp), %rax # y # y
@@ -404,8 +393,8 @@ for_end_20:
     movq %rax, -880(%rbp)
     leave
     ret
-.globl _allocate_grid
-_allocate_grid:
+.globl allocate_grid
+allocate_grid:
     pushq %rbp
     movq %rsp, %rbp
     subq $288, %rsp
@@ -421,7 +410,7 @@ _allocate_grid:
     movq %rax, -40(%rbp)
     movq -40(%rbp), %rdi # t109 # t109
     movq $0, %rax
-    call _malloc
+    call malloc
     movq %rax, -48(%rbp)
     movq %rax, -56(%rbp)
     movq -8(%rbp), %rax # w # w
@@ -434,7 +423,7 @@ _allocate_grid:
     movq -56(%rbp), %rdi # grid # grid
     movq -80(%rbp), %rsi # t113 # t113
     movq $0, %rax
-    call _memclr
+    call memclr
     movq %rax, -88(%rbp)
     movq $0, %rax
     movq %rax, -96(%rbp)
@@ -474,7 +463,7 @@ for_start_119:
     movq $1, %rax
     movq %rax, -168(%rbp)
     movq $0, %rax
-    call _rand
+    call rand
     movq %rax, -176(%rbp)
     movq $4, %rax
     movq %rax, -184(%rbp)
@@ -490,7 +479,7 @@ for_start_119:
     movq -160(%rbp), %rsi # t125 # t125
     movq -200(%rbp), %rdx # t130 # t130
     movq $0, %rax
-    call _memstoreb
+    call memstoreb
     movq %rax, -208(%rbp)
 for_post_120: 
     movq $1, %rax
@@ -515,14 +504,14 @@ for_end_115:
     movq -56(%rbp), %rax # grid # grid
     leave
     ret
-.globl _init
-_init:
+.globl init
+init:
     pushq %rbp
     movq %rsp, %rbp
     subq $320, %rsp
     movq $0, %rcx
     movq $0, %rax
-    call _sdl_init
+    call sdl_init
     movq %rax, -8(%rbp)
     leaq t137(%rip), %rax
     movq %rax, -16(%rbp)
@@ -534,7 +523,7 @@ _init:
     movq -24(%rbp), %rsi # t138 # t138
     movq -32(%rbp), %rdx # t139 # t139
     movq $0, %rax
-    call _sdl_create
+    call sdl_create
     movq %rax, -40(%rbp)
     movq $1440, %rax
     movq %rax, -48(%rbp)
@@ -565,29 +554,29 @@ _init:
     movq -80(%rbp), %rdi # t145 # t145
     movq -120(%rbp), %rsi # t150 # t150
     movq $0, %rax
-    call _allocate_grid
+    call allocate_grid
     movq %rax, -128(%rbp)
     movq %rax, -136(%rbp)
     movq $1, %rax
     movq %rax, -144(%rbp)
 while_start_152: 
     movq $0, %rax
-    call _sdl_pump
+    call sdl_pump
     movq %rax, -152(%rbp)
     cmpq $0, %rax
     je while_end_152
     movq $0, %rax
-    call _sdl_clear
+    call sdl_clear
     movq %rax, -160(%rbp)
     movq -144(%rbp), %rax # mode # mode
     movq %rax, -168(%rbp)
     movq -136(%rbp), %rdi # grid # grid
     movq -168(%rbp), %rsi # t155 # t155
     movq $0, %rax
-    call _draw_grid
+    call draw_grid
     movq %rax, -176(%rbp)
     movq $0, %rax
-    call _sdl_flip
+    call sdl_flip
     movq %rax, -184(%rbp)
     leaq s(%rip), %rax
     movq %rax, -192(%rbp)
@@ -595,7 +584,7 @@ while_start_152:
     movq %rax, -200(%rbp)
     movq -200(%rbp), %rdi # t158 # t158
     movq $0, %rax
-    call _sdl_keydown
+    call sdl_keydown
     movq %rax, -208(%rbp)
     cmpq $0, %rax
     je sublabel_else_160
@@ -608,7 +597,7 @@ sublabel_else_160:
     movq %rax, -216(%rbp)
     movq -216(%rbp), %rdi # t161 # t161
     movq $0, %rax
-    call _sdl_keydown
+    call sdl_keydown
     movq %rax, -224(%rbp)
     cmpq $0, %rax
     je sublabel_else_163
@@ -623,16 +612,17 @@ sublabel_end_160:
 while_end_152: 
     movq -136(%rbp), %rdi # grid # grid
     movq $0, %rax
-    call _free
+    call free
     movq %rax, -232(%rbp)
     movq $0, %rax
-    call _sdl_release
+    call sdl_release
     movq %rax, -240(%rbp)
     movq $0, %rax
-    call _sdl_quit
+    call sdl_quit
     movq %rax, -248(%rbp)
     movq $0, %rax
     movq %rax, -256(%rbp)
     leave
     ret
+.section .note.GNU-stack,"",@progbits
 
