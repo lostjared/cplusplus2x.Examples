@@ -9,8 +9,6 @@ void sdl_init() {
         exit(EXIT_FAILURE);
     }
     srand(time(0));
-
-    
 }
 
 SDL_Window *window;
