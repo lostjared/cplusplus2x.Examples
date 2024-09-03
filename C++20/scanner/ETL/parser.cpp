@@ -584,6 +584,11 @@ namespace parse {
         std::vector<std::unique_ptr<ast::ASTNode>> else_body;
         if (test(types::KeywordType::KW_ELSE)) {
             inc();
+            if(test(types::KeywordType::KW_IF)) {
+                std::ostringstream stream;
+                stream << "Error else if not supported yet.\n";
+                throw ParseException(stream.str());
+            }
             match(types::OperatorType::OP_LBRACE);
             while (!test(types::OperatorType::OP_RBRACE)) {
                 if (test(types::KeywordType::KW_BREAK)) {
