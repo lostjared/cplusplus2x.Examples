@@ -393,9 +393,10 @@ output << ".section .data\n";
                     ownedMemory[curFunction].erase(val);
                     ownedMemory[curFunction].insert(instr.dest);
                 }
+                output << "# load " << instr.op1 << " to " << instr.dest << "\n";
+                output << "    movq "<< getOperand(instr.op1) << ", %rcx\n";
+                output << "    movq " << "%rcx, " << getOperand(instr.dest)<< "\n";
             }
-            loadToRegister(output, instr.op1, "%rdx");
-            storeToTemp(output, instr.dest, "%rdx");
         }
 
         void emitSetConst(std::ostringstream &output, const ir::IRInstruction &instr) {
