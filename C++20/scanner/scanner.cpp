@@ -282,7 +282,13 @@ namespace scan {
 
     
 
-    TToken &Scanner::operator[](size_t index) { return tokens[index]; }
+    TToken &Scanner::operator[](size_t index) {         
+        if(index < size()) return tokens[index];
+        std::ostringstream stream;
+        stream << "Token index: index out of bounds, Scanner Exception: " << index << "\n"; 
+        throw ScanExcept(stream.str());
+
+    }
     size_t Scanner::size() const { return tokens.size(); }
 }
 
