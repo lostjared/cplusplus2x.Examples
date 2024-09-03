@@ -79,16 +79,17 @@ long mematb(void *buffer, long index) {
     return -1;
 }
 
+
 void memstorel(void *buffer, long index, long value) {
     if(buffer != NULL) {
         long *ptr = (long*)buffer;
-        *(ptr+(index)) = value;
+        ptr[index] = value;
     }
 }
 void memstoreb(void *buffer, long index, long value) {
     if(buffer != NULL) {
         char *ptr = (char*)buffer;
-        *(ptr+index) = (char)value;
+        ptr[index] = (char) value;
     }
 }
 
