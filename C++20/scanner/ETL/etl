@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$#" -lt 2 ]; then
-  echo "Usage: $0 output_executable file1.e [file2.e ... | file3.o ...] [-- linker_flags]"
+  echo "Usage: $0 output_executable file1.e [file2.e ... | file3.o ...] [-- linker_flags] [-d]"
   exit 1
 fi
 
@@ -10,9 +10,13 @@ shift
 
 temp_o_files=()
 linker_flags=()
+debug_flag=""
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
+    -d)
+      debug_flag="-d"
+      ;;
     --)
       shift
       linker_flags=("$@")
@@ -26,7 +30,7 @@ while [[ "$#" -gt 0 ]]; do
         exit 1
       fi
 
-      ETL_C -i "${base_name}.i" -o "${base_name}.s"
+      ETL_C $debug_flag -i "${base_name}.i" -o "${base_name}.s"
       if [ $? -ne 0 ]; then
         echo "ETL_C conversion failed for ${base_name}.i"
         exit 1
