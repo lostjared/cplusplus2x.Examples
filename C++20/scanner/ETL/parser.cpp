@@ -672,7 +672,7 @@ namespace parse {
                 body.push_back(std::make_unique<ast::Return>(std::move(e)));
             } else if (test(types::KeywordType::KW_LET)) {
                 inc();
-                auto stmt = parseAssignment();
+                auto stmt = parseAssignment(false);
                 body.push_back(std::move(stmt));
             } else if (test(types::TokenType::TT_ID)) {
                 auto token = scan->operator[](token_index);
@@ -704,7 +704,7 @@ namespace parse {
         std::unique_ptr<ast::Assignment> init_statement;
         if (test(types::KeywordType::KW_LET)) {
             inc();
-            init_statement = parseAssignment();
+            init_statement = parseAssignment(false);
         } else if (test(types::TokenType::TT_ID)) {
             init_statement = parseAssignment(true);
         } else {
