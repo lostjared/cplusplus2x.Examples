@@ -10,7 +10,7 @@ std::string htmlPage_Header = R"(
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Token Table</title>
+    <title>Debug Info</title>
     <style>
         table {
             width: 50%;
@@ -27,27 +27,40 @@ std::string htmlPage_Header = R"(
             background-color: #000000;
             color: #f2f2f2;
         }
+        .centert {
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-<table>
 )";
 
 std::string htmlPage_Footer = R"(
-</table>
 </body>
 </html>
 )";
 
-void outputDebugInfo(std::ostream &file, const ir::IRCode &code) {
+void outputDebugInfo(std::ostream &file, symbol::SymbolTable &table, const ir::IRCode &code) {
     file << htmlPage_Header << "\n";
+    file << "<div class=\"centert\"><h1>Instruction Table</h1></div>\n";
+    file << "<table>\n";
     file << "<tr><th>Index</th><th>Instruction</th>\n";
     uint64_t index = 0;
-    for(const auto &i : code) {
+      for(const auto &i : code) {
         file << "<tr><td>" << index << "</td><td>" << i.toString() << "</td></tr>\n";
         index++;
     }
-    //file << "</table>\n";
-    //file <  "<table"
+    file << "</table>\n";
+    file << "<div class=\"centert\"><h1>Symbol Table</h1></div>\n";
+    file <<  "<table>\n";
+    file << "<tr><th>Function</th><th>Symbol</th><th>Type</th></tr>\n";
+    std::string curFunction;
+    for(const auto  &t: table.getTable()) {
+        curFunction = t.first;
+        for(const auto &s : t.second) {
+            file << "<tr><td>" << curFunction << "</td><td>" << s.first << "</td><td>" << ast::VarString.at(static_cast<int>(s.second.vtype)) << "</td></tr>\n";
+        }
+    }
+    file << "</table>\n";
     file << htmlPage_Footer << "\n";
 }

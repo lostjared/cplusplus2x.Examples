@@ -107,6 +107,9 @@ namespace symbol {
             }
         }
 
+        auto getTable() {
+            return symbols;
+        }
     private:
         std::unordered_map<std::string, std::unordered_map<std::string, Symbol>> symbols;
         std::unordered_map<std::string, Function> func;

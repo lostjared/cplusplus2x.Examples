@@ -7,7 +7,7 @@
 #include"ir_opt.hpp"
 #include"codegen.hpp"
 
-extern void outputDebugInfo(std::ostream &file, const ir::IRCode &code);
+extern void outputDebugInfo(std::ostream &file, symbol::SymbolTable &table, const ir::IRCode &code);
 
 void test_parse(const std::string &filename, const std::string &out_file, bool debug_info) {
     std::fstream file;
@@ -66,7 +66,7 @@ void test_parse(const std::string &filename, const std::string &out_file, bool d
                                 std::cerr << "Error could not open debug output file debug.html\n";
                                 exit(EXIT_FAILURE);
                             }
-                            outputDebugInfo(file, irContext.instructions);
+                            outputDebugInfo(file, irContext.table, irContext.instructions);
                             file.close();
                         }
                         codegen::CodeEmitter emitter(irContext.table, irContext.functionLocalVarCount);
