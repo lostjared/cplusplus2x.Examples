@@ -559,9 +559,8 @@ namespace parse {
                     match(types::OperatorType::OP_SEMICOLON);
                     if_body.push_back(std::make_unique<ast::Return>(std::move(e)));
             } else if (test(types::KeywordType::KW_LET)) {
-                
                 inc();
-                auto stmt = parseAssignment();
+                auto stmt = parseAssignment(false);
                 if_body.push_back(std::move(stmt));
             } else if (test(types::TokenType::TT_ID)) {
                 auto token = scan->operator[](token_index);
@@ -707,9 +706,7 @@ namespace parse {
             inc();
             init_statement = parseAssignment();
         } else if (test(types::TokenType::TT_ID)) {
-            std::ostringstream stream;
-            stream << "Errror requires let for initilization staement\n";
-            throw ParseException(stream.str());
+            init_statement = parseAssignment(true);
         } else {
             // handle the case where there is no initialization
             init_statement = nullptr;
@@ -741,7 +738,7 @@ namespace parse {
                 body.push_back(std::make_unique<ast::Return>(std::move(e)));
             } else if (test(types::KeywordType::KW_LET)) {
                 inc();
-                auto stmt = parseAssignment();
+                auto stmt = parseAssignment(false);
                 body.push_back(std::move(stmt));
             } else if (test(types::KeywordType::KW_FOR)) {
                 auto for_stmt = parseForStatement();
