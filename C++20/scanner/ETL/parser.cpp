@@ -118,7 +118,7 @@ namespace parse {
         } catch (scan::ScanExcept &e) {
             std::cerr << "ETL: Fatal: " << e.why() << "\n";
         } catch (ParseException &p) {
-            std::cerr << "ETL: Parse Error: " << p.why() << "\n";
+            throw p;
         }
         return false;
     }

@@ -45,57 +45,64 @@ void test_parse(const std::string &filename, const std::string &out_file, bool d
             }
         } else break;
     }
-    if(stream.str().length()>0) {
-        parse::Parser parser(new scan::Scanner(scan::TString(code.str())));
-        if(parser.parse()) {
-            auto rootAST = parser.getAST();  
-            if (rootAST) {
-                try {
-                        parse::IRGenerator irGen;
-                        auto irContext = irGen.generateIR(rootAST);  
-                        ir::IROptimizer opt;
-                        irContext.instructions = std::move(opt.optimize(irContext.instructions));
-                        std::cout << "ETL: IR code: {\n";
-                        for (const auto &instr : irContext.instructions) {
-                            std::cout << "\t" << instr.toString() << "\n";
-                        }
-                        if(debug_info == true) {
-                            std::fstream file;
-                            file.open("debug.html", std::ios::out);
-                            if(!file.is_open()) {
-                                std::cerr << "Error could not open debug output file debug.html\n";
-                                exit(EXIT_FAILURE);
-                            }
-                            outputDebugInfo(file, irContext.table, irContext.instructions);
-                            file.close();
-                        }
-                        codegen::CodeEmitter emitter(irContext.table, irContext.functionLocalVarCount);
-                        std::string text = emitter.emit(irContext.instructions);
-                        std::fstream ofile;
-                        ofile.open(out_file, std::ios::out);
-                        ofile << text << "\n";
-                        ofile.close();
-                        
-                        std::cout << "}\n";
-                        if(debug_info == true)
-                            std::cout << "ETL: outputted debug info [debug.html]\n";
+    try {
 
-                        std::cout << "ETL: compiled [" << out_file << "]\n";
-                        exit(EXIT_SUCCESS);
-                    } catch(ir::IRException &e) {
-                    std::cerr << "ETL: IR Exception: " << e.why() << "\n";
-                    exit(EXIT_FAILURE);
-                } catch(...) {
-                    std::cerr << "ETL: Unknown Exception\n";
-                    exit(EXIT_FAILURE);
+        if(stream.str().length()>0) {
+            parse::Parser parser(new scan::Scanner(scan::TString(code.str())));
+            if(parser.parse()) {
+                auto rootAST = parser.getAST();  
+                if (rootAST) {
+                            parse::IRGenerator irGen;
+                            auto irContext = irGen.generateIR(rootAST);  
+                            ir::IROptimizer opt;
+                            irContext.instructions = std::move(opt.optimize(irContext.instructions));
+                            std::cout << "ETL: IR code: {\n";
+                            for (const auto &instr : irContext.instructions) {
+                                std::cout << "\t" << instr.toString() << "\n";
+                            }
+                            if(debug_info == true) {
+                                std::fstream file;
+                                file.open("debug.html", std::ios::out);
+                                if(!file.is_open()) {
+                                    std::cerr << "Error could not open debug output file debug.html\n";
+                                    exit(EXIT_FAILURE);
+                                }
+                                outputDebugInfo(file, irContext.table, irContext.instructions);
+                                file.close();
+                            }
+                            codegen::CodeEmitter emitter(irContext.table, irContext.functionLocalVarCount);
+                            std::string text = emitter.emit(irContext.instructions);
+                            std::fstream ofile;
+                            ofile.open(out_file, std::ios::out);
+                            ofile << text << "\n";
+                            ofile.close();
+                            
+                            std::cout << "}\n";
+                            if(debug_info == true)
+                                std::cout << "ETL: outputted debug info [debug.html]\n";
+
+                            std::cout << "ETL: compiled [" << out_file << "]\n";
+                            exit(EXIT_SUCCESS);
+                            
                 }
+            } else {
+                std::cerr << "ETL: Parsing failed...\n";
+                exit(EXIT_FAILURE);
             }
         } else {
-            std::cerr << "ETL: Parsing failed...\n";
+            std::cerr << "ETL: Zero bytes to read..\n";
             exit(EXIT_FAILURE);
         }
-    } else {
-        std::cerr << "ETL: Zero bytes to read..\n";
-        exit(EXIT_FAILURE);
+    }
+    catch(ir::IRException &e) {
+            std::cerr << "ETL: IR Exception: " << e.why() << "\n";
+            exit(EXIT_FAILURE);
+    }
+    catch(parse::ParseException &e) {
+        std::cerr << "ETL: Parse Exception: " << e.why() << "\n";
+    }
+    catch(...) {
+            std::cerr << "ETL: Unknown Exception\n";
+            exit(EXIT_FAILURE);
     }
 }
