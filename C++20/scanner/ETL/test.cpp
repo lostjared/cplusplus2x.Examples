@@ -7,7 +7,9 @@
 #include"ir_opt.hpp"
 #include"codegen.hpp"
 
-void test_parse(const std::string &filename, const std::string &out_file) {
+extern void outputDebugInfo(std::ostream &file, const ir::IRCode &code);
+
+void test_parse(const std::string &filename, const std::string &out_file, bool debug_info) {
     std::fstream file;
     file.open(filename, std::ios::in);
     if(!file.is_open()) {
@@ -57,6 +59,16 @@ void test_parse(const std::string &filename, const std::string &out_file) {
                         for (const auto &instr : irContext.instructions) {
                             std::cout << "\t" << instr.toString() << "\n";
                         }
+                        if(debug_info == true) {
+                            std::fstream file;
+                            file.open("debug.html", std::ios::out);
+                            if(!file.is_open()) {
+                                std::cerr << "Error could not open debug output file debug.html\n";
+                                exit(EXIT_FAILURE);
+                            }
+                            outputDebugInfo(file, irContext.instructions);
+                            file.close();
+                        }
                         codegen::CodeEmitter emitter(irContext.table, irContext.functionLocalVarCount);
                         std::string text = emitter.emit(irContext.instructions);
                         std::fstream ofile;
@@ -65,6 +77,9 @@ void test_parse(const std::string &filename, const std::string &out_file) {
                         ofile.close();
                         
                         std::cout << "}\n";
+                        if(debug_info == true)
+                            std::cout << "ETL: outputted debug info [debug.html]\n";
+
                         std::cout << "ETL: compiled [" << out_file << "]\n";
                         exit(EXIT_SUCCESS);
                     } catch(ir::IRException &e) {

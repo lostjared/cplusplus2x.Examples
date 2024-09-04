@@ -3,7 +3,7 @@
 #include"argz.hpp"
 #include"version_info.hpp"
 
-extern void test_parse(const std::string &, const std::string &);
+extern void test_parse(const std::string &, const std::string &, bool debug_info);
 
 void print_about() {
     std::cout << "ETL: ETL v" << etl_version << "\n";
@@ -13,10 +13,12 @@ void print_about() {
 
 int main(int argc, char **argv)  {
     Argz<std::string> argz(argc, argv);
-    argz.addOptionSingleValue('i', "input text file").addOptionSingleValue('o', "output file").addOptionSingle('h', "help").addOptionSingle('v', "help");
+    argz.addOptionSingleValue('i', "input text file").addOptionSingleValue('o', "output file").addOptionSingle('h', "help").addOptionSingle('v', "help").addOptionSingle('d', "Output HTML debug info");;
     std::string in_file, out_file;
     int value = 0;
     Argument<std::string> arg;
+    bool debug_info = false;
+
     try {
         while((value = argz.proc(arg)) != -1) {
             switch(value) {
@@ -32,6 +34,9 @@ int main(int argc, char **argv)  {
                 case 'o':
                     out_file = arg.arg_value;
                     break;
+                case 'd':
+                    debug_info = true;
+                    break;
             }
         }
     } catch(const ArgException<std::string> &e) {
@@ -43,6 +48,6 @@ int main(int argc, char **argv)  {
         argz.help(std::cerr);
         exit(EXIT_FAILURE);
     }
-    test_parse(in_file, out_file);
+    test_parse(in_file, out_file, debug_info);
     return 0;
 }

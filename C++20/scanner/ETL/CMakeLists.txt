@@ -22,6 +22,7 @@ add_executable(ETL_C
     ${CMAKE_SOURCE_DIR}/parser.cpp 
     ${CMAKE_SOURCE_DIR}/test.cpp 
     ${CMAKE_SOURCE_DIR}/ir.cpp
+    ${CMAKE_SOURCE_DIR}/debug.cpp
 )
 
 target_include_directories(ETL_C PRIVATE ${scan_cxx_INCLUDE_DIRS})
