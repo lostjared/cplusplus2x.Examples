@@ -1,6 +1,7 @@
 #include "dimension.hpp"
 #include "window.hpp"
 #include "SDL_rect.h"
+#include<algorithm>
 
 namespace mx {
 
@@ -16,6 +17,8 @@ namespace mx {
         menu->menuOpen = false;
         animationComplete = false;
         yPos = 0;
+        prev_dim = 0;
+        cur_dim = 0;
     }
 
     SystemBar::~SystemBar() {
@@ -25,58 +28,106 @@ namespace mx {
         dimensions = dim;
     }
 
-    void SystemBar::drawDimensions(mxApp &app) {
-        if (dimensions != nullptr && animationComplete == true) {
-            for (size_t i = 0; i < dimensions->size(); ++i) {
-                DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](i).get());
-                if (dim != nullptr) {
-                    const std::string &name = dim->name;
-                    SDL_Color white = {255, 255, 255, 255};
-                    SDL_Surface* textSurface = TTF_RenderText_Solid(font, name.c_str(), white);
-                    if (textSurface == nullptr) {
-                        continue;
-                    }
+    void SystemBar::activateDimension(int dim) {
+        auto it = std::find(activeDimensionsStack.begin(), activeDimensionsStack.end(), dim);
+        if (it != activeDimensionsStack.end()) {
+            activeDimensionsStack.erase(it);
+        }
+        activeDimensionsStack.push_back(dim);  
+    }
 
-                    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(app.ren, textSurface);
-                    int text_width = textSurface->w;
-                    int text_height = textSurface->h;
-                    SDL_FreeSurface(textSurface);
-                    if (textTexture == nullptr) {
-                        continue;
-                    }
+    void SystemBar::deactivateDimension(int dim) {
+        auto it = std::find(activeDimensionsStack.begin(), activeDimensionsStack.end(), dim);
+        if (it != activeDimensionsStack.end()) {
+            activeDimensionsStack.erase(it);
+        }
+    }
+void SystemBar::drawDimensions(mxApp &app) {
+    if (dimensions != nullptr && animationComplete == true) {
+        int activeIndex = 0;  // For calculating button position
+        
+        // Loop through active dimensions based on the stack
+        for (size_t j = 0; j < activeDimensionsStack.size(); ++j) {
+            int i = activeDimensionsStack[j];  // Get the dimension index from the stack
+            DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](i).get());
+            
+            if (dim != nullptr && dim->isActive()) {  // Only draw if the dimension is active
+                const std::string &name = dim->name;
+                SDL_Color white = {255, 255, 255, 255};
+                SDL_Surface* textSurface = TTF_RenderText_Solid(font, name.c_str(), white);
+                if (textSurface == nullptr) {
+                    continue;
+                }
 
-                    int button_width = 150;  
-                    int button_height = text_height + 20;  
+                SDL_Texture* textTexture = SDL_CreateTextureFromSurface(app.ren, textSurface);
+                int text_width = textSurface->w;
+                int text_height = textSurface->h;
+                SDL_FreeSurface(textSurface);
+                if (textTexture == nullptr) {
+                    continue;
+                }
 
-                    
-                    int bar_height = 50;  
-                    int button_y = (bar_height - button_height) / 2 + app.height - bar_height;
+                int button_width = 150;  // Button dimensions
+                int button_height = text_height + 20;
+                int bar_height = 50;
+                int button_y = (bar_height - button_height) / 2 + app.height - bar_height;  // Button Y position
+                
+                // Button X position calculated based on the activeIndex (stack order)
+                int button_x = 10 + activeIndex * (button_width + 10);  
+                activeIndex++;  // Move to next position
 
-                    int button_x = 10 + i * (button_width + 10);
-                    if (static_cast<int>(i) == cur_dim) {
-                        SDL_SetRenderDrawColor(app.ren, 0, 0, 255, 255);  
-                    } else {
-                        SDL_SetRenderDrawColor(app.ren,150, 150, 150, 255);  
-                    }
-                    
-                    SDL_Rect buttonRect = { button_x, button_y, button_width, button_height };
-                    SDL_RenderFillRect(app.ren, &buttonRect);
+                // Render the button
+                if (static_cast<int>(i) == cur_dim) {
+                    SDL_SetRenderDrawColor(app.ren, 0, 0, 255, 255);  // Blue for current dimension
+                } else {
+                    SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255);  // Gray for others
+                }
 
-                    SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
-                    SDL_RenderDrawRect(app.ren, &buttonRect);
+                SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
+                SDL_RenderFillRect(app.ren, &buttonRect);
 
-                    SDL_Rect textRect = { button_x + 10, 
-                                        button_y + (button_height - text_height) / 2, 
-                                        text_width, text_height };
+                SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
+                SDL_RenderDrawRect(app.ren, &buttonRect);
 
-                    SDL_RenderCopy(app.ren, textTexture, nullptr, &textRect);
-                    SDL_DestroyTexture(textTexture);
+                // Render button text
+                SDL_Rect textRect = {button_x + 10, button_y + (button_height - text_height) / 2, text_width, text_height};
+                SDL_RenderCopy(app.ren, textTexture, nullptr, &textRect);
+                SDL_DestroyTexture(textTexture);
+
+                // Draw the close "X" button
+                int square_size = 20;
+                int square_x = button_x + button_width - square_size - 5;
+                int square_y = button_y + (button_height - square_size) / 2;
+
+                SDL_SetRenderDrawColor(app.ren, 200, 200, 200, 255);
+                SDL_Rect closeButtonRect = {square_x, square_y, square_size, square_size};
+                if (dim->hoveringX) {
+                    SDL_SetRenderDrawColor(app.ren, 0xBD, 0, 0, 255);  // Blue when hovered
+                }
+                SDL_RenderFillRect(app.ren, &closeButtonRect);
+
+                SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
+                SDL_RenderDrawRect(app.ren, &closeButtonRect);
+
+                // Render the "X" text
+                SDL_Color black = {0, 0, 0, 255};
+                SDL_Surface* xSurface = TTF_RenderText_Solid(font, "X", black);
+                if (xSurface != nullptr) {
+                    SDL_Texture* xTexture = SDL_CreateTextureFromSurface(app.ren, xSurface);
+                    int x_width = xSurface->w;
+                    int x_height = xSurface->h;
+                    SDL_FreeSurface(xSurface);
+
+                    SDL_Rect xRect = {square_x + (square_size - x_width) / 2, square_y + (square_size - x_height) / 2, x_width, x_height};
+                    SDL_RenderCopy(app.ren, xTexture, nullptr, &xRect);
+                    SDL_DestroyTexture(xTexture);
                 }
             }
         }
     }
-
+}
     void SystemBar::setCurrentDimension(int dim) {
+        prev_dim = cur_dim;
         cur_dim = dim;
     }
     int  SystemBar::getCurrentDimesnion() const {
@@ -151,10 +202,42 @@ namespace mx {
         }
     }
 
+    bool SystemBar::empty() const {
+        return activeDimensionsStack.empty();
+    }
+
     bool SystemBar::event(mxApp &app, SDL_Event &e) {
+        int mouseX = e.motion.x;
+        int mouseY = e.motion.y;
+
+        if (e.type == SDL_MOUSEMOTION) {  // Track mouse motion for hovering
+            int barHeight = 50;
+            int button_height = 30;  // Assuming the height of the buttons
+            int button_y = app.height - barHeight;
+            int button_width = 150;
+            int square_size = 20;  // Size of the close button square
+            int activeIndex = 0;  // Track the position of active dimensions' buttons
+
+            if (dimensions != nullptr) {
+                    for (size_t j = 0; j < activeDimensionsStack.size(); ++j) {
+                        int i = activeDimensionsStack[j];
+                        DimensionContainer *con = dynamic_cast<DimensionContainer *>(dimensions->operator[](i).get());
+                        if (con->isActive()) {
+                            int button_x = 10 + activeIndex * (button_width + 10);
+                            activeIndex++;
+                            SDL_Rect closeButtonRect = {button_x + button_width - square_size - 5, button_y + (button_height - square_size) / 2, square_size, square_size};
+                            SDL_Point cur_point { mouseX, mouseY };
+                        if (SDL_PointInRect(&cur_point, &closeButtonRect)) {
+                            con->hoveringX = true; 
+                        } else {
+                            con->hoveringX = false;
+                        }
+                    }
+                }
+            }
+        }
+
         if (e.type == SDL_MOUSEMOTION) {
-            int mouseX = e.motion.x;
-            int mouseY = e.motion.y;
             int barHeight = 50;
             int startButtonSize = 100;
             int windowWidth = app.width;
@@ -201,19 +284,54 @@ namespace mx {
                 int button_width = 150;
                 int button_height = 30; 
                 int button_y = app.height - barHeight;
-
-                for (size_t i = 0; i < dimensions->size(); ++i) {
-                    int button_x = 10 + i * (button_width + 10);
-
-                    SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
-
-                    
-                    if (mouseX >= buttonRect.x && mouseX <= (buttonRect.x + buttonRect.w) &&
-                        mouseY >= buttonRect.y && mouseY <= (buttonRect.y + buttonRect.h)) {
-                        setCurrentDimension(i);  
-                        return true;
+                int activeIndex = 0;
+                for (size_t j = 0; j < activeDimensionsStack.size(); ++j) {
+                    int i = activeDimensionsStack[j];
+                    DimensionContainer *con = dynamic_cast<DimensionContainer *>(dimensions->operator[](i).get());
+                    if(con->isActive()) {
+                        int button_x = 10 + activeIndex * (button_width + 10);
+                        activeIndex++;
+                        int square_size = 20;
+                        SDL_Rect closeButtonRect = {button_x + button_width - square_size - 5, button_y + (button_height - square_size) / 2, square_size, square_size};
+                        SDL_Point cur_point = { mouseX, mouseY };
+                        if (SDL_PointInRect(&cur_point, &closeButtonRect)) {
+                            con->setActive(false);  
+                            deactivateDimension(i);
+                            setCurrentDimension(prev_dim);
+                            return true;
+                        } else {
+                            SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
+                            if (mouseX >= buttonRect.x && mouseX <= (buttonRect.x + buttonRect.w) &&
+                                mouseY >= buttonRect.y && mouseY <= (buttonRect.y + buttonRect.h)) {
+                                setCurrentDimension(i);  
+                                return true;
+                            } 
+                        }
                     }
                 }
+            }
+            int action = menu->itemClicked(app, mouseX, mouseY);
+            if(action != -1) {
+                performAction(action);
+                menu->menuOpen = false;
+                menu->animating = true;
+                menu->targetY = app.height;
+            } else if (menu->menuOpen) {
+                int menuX = app.width - (app.width / 6) - 20;
+                int menuY = menu->currentY;
+                int menuWidth = app.width / 6;
+                int menuHeight = app.height / 2;
+
+                SDL_Rect menuRect = {menuX, menuY, menuWidth, menuHeight};
+
+                if (mouseX >= menuRect.x && mouseX <= (menuRect.x + menuRect.w) &&
+                    mouseY >= menuRect.y && mouseY <= (menuRect.y + menuRect.h)) {
+                    return false;
+                }
+                menu->menuOpen = false;
+                menu->animating = true;
+                menu->targetY = app.height; 
+                return true;
             }
         }
 
@@ -224,6 +342,41 @@ namespace mx {
 
         return false;
     }
+
+    void SystemBar::performAction(int action) {
+        switch (action) {
+            case 1: {
+                    DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](0).get());
+                    dim->setActive(true);
+                    setCurrentDimension(0);
+                    activateDimension(0);
+                }
+                break;
+            case 2:
+                std::cout << "Documents clicked\n";
+                break;
+            case 3:
+                std::cout << "Settings clicked\n";
+                break;
+            case 4:
+                std::cout << "Find clicked\n";
+                break;
+            case 5: {
+                DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](1).get());
+                dim->setActive(true);
+                setCurrentDimension(1);
+                activateDimension(1);
+            }
+                break;
+            case 6:
+                std::cout << "Run clicked\n";
+                break;
+            default:
+                std::cout << "No valid action\n";
+                break;
+        }
+    }
+
     MenuBar::MenuBar(mxApp &app) {
         menuOpen = false;
         currentY = app.height;  
@@ -281,7 +434,7 @@ namespace mx {
         SDL_Color black = {0, 0, 0, 255};
         SDL_Color white = {255, 255, 255, 255};
 
-        const char* items[] = {"Programs", "Documents", "Settings", "Find", "Help", "Run"};
+        const char* items[] = {"Welcome", "Documents", "Settings", "Find", "About", "Run"};
         int numItems = sizeof(items) / sizeof(items[0]);
         int itemHeight = 30;
         SDL_Rect itemRect;
@@ -320,35 +473,39 @@ namespace mx {
         SDL_SetRenderTarget(app.ren, nullptr);
  
     }   
+    int MenuBar::itemClicked(mxApp &app, int x, int y) {
+        int menuX = app.width - (app.width / 6) - 20; 
+        int menuY = currentY;
+        int itemHeight = 30;  
+        int menuWidth = app.width / 6;  
+
+        SDL_Rect menuItem1 = {menuX, menuY + 10, menuWidth, itemHeight};  
+        SDL_Rect menuItem2 = {menuX, menuY + 10 + (itemHeight + 5), menuWidth, itemHeight};  
+        SDL_Rect menuItem3 = {menuX, menuY + 10 + 2 * (itemHeight + 5), menuWidth, itemHeight};  
+        SDL_Rect menuItem4 = {menuX, menuY + 10 + 3 * (itemHeight + 5), menuWidth, itemHeight};  
+        SDL_Rect menuItem5 = {menuX, menuY + 10 + 4 * (itemHeight + 5), menuWidth, itemHeight};  
+        SDL_Rect menuItem6 = {menuX, menuY + 10 + 5 * (itemHeight + 5), menuWidth, itemHeight};  
+
+        SDL_Point cursor_pos = {x, y};
+
+        if (SDL_PointInRect(&cursor_pos, &menuItem1)) {
+            return 1;  // Action for "Programs"
+        } else if (SDL_PointInRect(&cursor_pos, &menuItem2)) {
+            return 2;  // Action for "Documents"
+        } else if (SDL_PointInRect(&cursor_pos, &menuItem3)) {
+            return 3;  // Action for "Settings"
+        } else if (SDL_PointInRect(&cursor_pos, &menuItem4)) {
+            return 4;  // Action for "Find"
+        } else if (SDL_PointInRect(&cursor_pos, &menuItem5)) {
+            return 5;  // Action for "Help"
+        } else if (SDL_PointInRect(&cursor_pos, &menuItem6)) {
+            return 6;  // Action for "Run"
+        }
+
+        return -1;  // No item clicked
+    }
     
     bool MenuBar::event(mxApp &app, SDL_Event &e) {
-        if (!menuOpen && !animating) {
-            return false;
-        }
-
-        if (e.type == SDL_MOUSEBUTTONDOWN) {
-            int mouseX = e.button.x;
-            int mouseY = e.button.y;
-            int menuX = app.width / 4;
-            int menuY = app.height / 4;
-
-            SDL_Rect menuItem1 = {menuX + 20, menuY + 20, 200, 40};
-            SDL_Rect menuItem2 = {menuX + 20, menuY + 80, 200, 40};
-            SDL_Rect menuItem3 = {menuX + 20, menuY + 140, 200, 40};
-
-            SDL_Point cursor_pos = {mouseX, mouseY};
-
-            if (SDL_PointInRect(&cursor_pos, &menuItem1)) {
-                std::cout << "Menu Item 1 clicked\n";
-                return true;
-            } else if (SDL_PointInRect(&cursor_pos, &menuItem2)) {
-                std::cout << "Menu Item 2 clicked\n";
-                return true;
-            } else if (SDL_PointInRect(&cursor_pos, &menuItem3)) {
-                std::cout << "Menu Item 3 clicked\n";
-                return true;
-            }
-        }
         return false;
     }
 
@@ -376,7 +533,7 @@ namespace mx {
         return false;
     }
 
-    DimensionContainer::DimensionContainer(mxApp &app) : wallpaper{nullptr} {
+    DimensionContainer::DimensionContainer(mxApp &app) : wallpaper{nullptr} , active{false} {
     
     }
 
@@ -392,8 +549,18 @@ namespace mx {
         name = name_;
         wallpaper = wallpaperx;
     }
+    
+    void DimensionContainer::setActive(bool a) {
+        active = a;
+    }
+
+    bool DimensionContainer::isActive() const {
+        return active;
+    }
 
     void DimensionContainer::draw(mxApp &app) {
+
+        if(active == false) return;
 
         if(wallpaper != nullptr) {
             SDL_SetRenderTarget(app.ren, app.tex);
@@ -406,6 +573,9 @@ namespace mx {
     }
 
     bool DimensionContainer::event(mxApp &app, SDL_Event &e) {
+
+        if(active == false) return false;
+
         for(auto &i : objects) {
             if(i->event(app, e) == true)
                 return true;
@@ -414,19 +584,22 @@ namespace mx {
     }
 
     Dimension::Dimension(mxApp &app) {
+        wallpaper = loadTexture(app, "images/desktop.bmp");
         objects.push_back(std::make_unique<SystemBar>(app));
         system_bar = dynamic_cast<SystemBar *>(objects[0].get());
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
 
         welcome = dynamic_cast<DimensionContainer *>(dimensions[0].get());
         welcome->init("Welcome", loadTexture(app, "images/wallpaper.bmp"));
+        welcome->setActive(true);
         
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         about = dynamic_cast<DimensionContainer *>(dimensions[1].get());
         about->init("About", loadTexture(app, "images/about.bmp"));
-        
+        about->setActive(false);
         system_bar->setDimensions(&dimensions);
         setCurrentDimension(0);
+        system_bar->activateDimension(0);
 
     }
 
@@ -440,16 +613,26 @@ namespace mx {
         
 
     Dimension::~Dimension() {
+        if(wallpaper != nullptr) {
+            SDL_DestroyTexture(wallpaper);
+        }
         std::cout << "MasterX: Releasing Dimensions\n";
+    }
+
+    void Dimension::drawDash(mxApp &app) {
+        SDL_SetRenderTarget(app.ren, app.tex);
+        SDL_RenderCopy(app.ren, wallpaper, nullptr, nullptr);
     }
 
     void Dimension::draw(mxApp &app) {
         
         int cur = getCurrentDimension();
         if(cur >= 0 && cur < static_cast<int>(dimensions.size())) {
-            dimensions[cur]->draw(app);
+            if(system_bar->empty()) 
+                drawDash(app);
+            else
+                dimensions[cur]->draw(app);
         }
-        
         for (auto &i : objects) {
             i->draw(app);
         }
