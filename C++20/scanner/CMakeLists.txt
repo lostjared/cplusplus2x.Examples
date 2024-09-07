@@ -71,3 +71,15 @@ target_link_libraries(scanner_html cxx_scan)
 
 # Install the executable to cxx_scan/bin
 install(TARGETS scanner_html DESTINATION bin)
+
+
+# Add uninstall target
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    @ONLY
+)
+
+add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+)
