@@ -38,7 +38,12 @@ namespace mx {
         SDL_SetRenderDrawColor(app.ren, 192, 192, 192, 255);
         SDL_Rect barRect = {0, yPos, windowWidth, barHeight};
         SDL_RenderFillRect(app.ren, &barRect);
-
+        SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);  
+        SDL_RenderDrawLine(app.ren, barRect.x, barRect.y, barRect.x + barRect.w - 1, barRect.y);  
+        SDL_RenderDrawLine(app.ren, barRect.x, barRect.y, barRect.x, barRect.y + barRect.h - 1);  
+        SDL_SetRenderDrawColor(app.ren, 128, 128, 128, 255);  
+        SDL_RenderDrawLine(app.ren, barRect.x, barRect.y + barRect.h - 1, barRect.x + barRect.w - 1, barRect.y + barRect.h - 1); 
+        SDL_RenderDrawLine(app.ren, barRect.x + barRect.w - 1, barRect.y, barRect.x + barRect.w - 1, barRect.y + barRect.h - 1); 
         SDL_Color buttonColor = {169, 169, 169, 255};
         SDL_Color textColor = {255, 255, 255};
 
