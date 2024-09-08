@@ -1,5 +1,6 @@
 #include "dimension.hpp"
 #include "terminal.hpp"
+#include "mx_controls.hpp"
 #include "window.hpp"
 #include "SDL_rect.h"
 #include<algorithm>
@@ -546,95 +547,7 @@ int  SystemBar::getCurrentDimension() const {
     }
 
 
-    Label::Label(mxApp &app)
-        : font_(nullptr), name_(""), text_(""), x(0), y(0), size_(0), wx(0), wy(0), w(0), h(0) {
-    }
-
-    Label::~Label() {
-    }
-
-    void Label::setWindowPos(int xx, int yy) {
-        wx = xx;
-        wy = yy;
-    }
-
-    void Label::draw(mxApp &app) {
-        if(font_ != nullptr && text_.length() > 0) {
-            if(mode == false || under_ == false) {
-                TTF_SetFontStyle(font_, TTF_STYLE_NORMAL);
-            } else if(under_ == true) {
-                cursor_shown = true;
-                TTF_SetFontStyle(font_, TTF_STYLE_UNDERLINE);
-            }
-            SDL_Surface *surf = TTF_RenderText_Solid(font_, text_.c_str(), color_);
-            if(surf == nullptr) {
-                std::cerr << "MasterX System: Error creating surface.\n";
-                exit(EXIT_FAILURE);
-            }
-            int sw = surf->w;
-            int sh = surf->h;
-            w = sw;
-            h = sh;
-            SDL_Texture *t = SDL_CreateTextureFromSurface(app.ren, surf);
-            if(t == nullptr) {
-                std::cerr << "MasterX System: Error creating texture.\n";
-                exit(EXIT_FAILURE);
-            }
-            SDL_FreeSurface(surf);
-            SDL_SetRenderTarget(app.ren, app.tex);
-            SDL_Rect point = {x+wx,y+wy+25,sw,sh};
-            SDL_RenderCopy(app.ren, t, nullptr, &point);
-        }
-    }
-
-    void Label::linkMode(bool m) {
-        mode = m;
-    }
-
-    void Label::create(const std::string &text, SDL_Color col, int xx, int yy) {
-        setText(text, col);
-        setGeometry(xx, yy);
-    }
-
-    bool Label::event(mxApp &app, SDL_Event &e) {
-
-        if(e.type == SDL_MOUSEMOTION) {
-            int mx = e.motion.x;
-            int my = e.motion.y;
-            SDL_Rect rc = {x+wx, y+wy+25, w, h };
-            SDL_Point cp = { mx, my };
-            if(SDL_PointInRect(&cp, &rc)) {
-                cursor_shown = true;
-                under_ = true;
-                return true;
-            } else {
-                under_ = false;
-            }
-        }
-
-
-        return false;
-    }
-
-    void Label::loadFont(const std::string &name, int sizex) {
-        name_ = name;
-        size_ = sizex;
-        font_ = TTF_OpenFont(getPath(name).c_str(), size_);
-        if(font_ == nullptr) {
-            std::cerr << "Error opening font: " << getPath(name) << "\n";
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    void Label::setText(const std::string &text, SDL_Color col) {
-        text_ = text;
-        color_ = col;
-    }
-
-    void Label::setGeometry(int xx, int yy) {
-        x = xx;
-        y = yy;
-    }
+ 
 
     Window::Window(mxApp &app) : x{0}, y{0}, w{320}, h{240}, title{"windwow"}, shown{false}, minimizeHovered(SDL_FALSE), closeHovered(SDL_FALSE) {
    
@@ -921,6 +834,11 @@ int  SystemBar::getCurrentDimension() const {
         about->init("About", loadTexture(app, "images/about.bmp"));
         about->setActive(false);
         about->setVisible(false);
+        about->objects.push_back(std::make_unique<Window>(app));
+        about_window = dynamic_cast<Window *>(about->objects[0].get());
+
+        about_window->create("About", 45, 45, 800, 600);
+        about_window->show(true);
 
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         term = dynamic_cast<DimensionContainer *>(dimensions[2].get());

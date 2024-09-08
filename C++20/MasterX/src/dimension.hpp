@@ -8,6 +8,8 @@
 #include<iostream>
 namespace mx {
 
+    extern bool cursor_shown;
+
      class MenuBar : public Screen {
     public:
         MenuBar(mxApp &app);
@@ -63,31 +65,6 @@ namespace mx {
         virtual void setWindowPos(int x, int y) = 0;  
     };
 
-
-    class Label : public Control {
-    public:
-        Label(mxApp &app);
-        virtual ~Label();
-        virtual void draw(mxApp &app) override;
-        virtual void setWindowPos(int xx, int yy) override;
-        virtual bool event(mxApp &app, SDL_Event &e) override;
-        void create(const std::string &text, SDL_Color col, int x, int y);
-        void loadFont(const std::string &name, int size);
-        void setText(const std::string  &text, SDL_Color color);
-        void setGeometry(int xx, int yy);
-        void linkMode(bool m);
-    private:
-        TTF_Font *font_;
-        std::string name_;
-        std::string text_;
-        int x,y,size_;
-        SDL_Color color_;
-        int wx, wy;
-        int w, h;
-        bool mode = false;
-        bool under_ = false;
-    };
-
     class Window : public Screen {
     public:
         Window(mxApp &app);
@@ -139,6 +116,8 @@ namespace mx {
     };
     
     class Terminal;
+    class Label;
+    class Button;
 
     class Dimension : public Screen {
     public:
@@ -158,6 +137,8 @@ namespace mx {
         DimensionContainer *term;
         SystemBar *system_bar;
         Window *welcome_window;
+        Window *about_window;
+        Button *about_window_ok;
         Label *welcome_label;
         int current_dim;
         SDL_Texture *hand_cursor, *reg_cursor;

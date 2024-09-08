@@ -12,7 +12,7 @@ find_package(SDL2_ttf REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS} ${SDL2_TTF_INCLUDE_DIRS})
 
 # Add executable
-add_executable(MasterX src/main.cpp src/window.cpp src/splash.cpp src/dimension.cpp src/terminal.cpp) 
+add_executable(MasterX src/main.cpp src/window.cpp src/splash.cpp src/dimension.cpp src/terminal.cpp src/mx_controls.cpp) 
 
 # Link SDL2 and SDL2_ttf
 target_link_libraries(MasterX ${SDL2_LIBRARIES} SDL2_ttf)
