@@ -35,7 +35,7 @@ namespace mx {
         virtual bool event(mxApp &app, SDL_Event &e) override;
         void setDimensions(std::vector<std::unique_ptr<Screen>> *dim);
         void setCurrentDimension(int dim);
-        int  getCurrentDimesnion() const;
+        int  getCurrentDimension() const;
         void activateDimension(int dim);
         void deactivateDimension(int dim);
         bool empty() const;
@@ -119,10 +119,17 @@ namespace mx {
         bool isActive() const;
         void setVisible(bool v);
         bool hoveringX = false;
+        void startTransition(SDL_Texture *);
+        void updateTransition();
+        SDL_Texture *wallpaper, *nextWallpaper;
     private:
-        SDL_Texture *wallpaper;
         bool active = false;
         bool visible = false;
+        bool transitioning = false;
+        int currentDimension = 0;
+        int nextDimension = -1;
+        int transitionAlpha = 255;
+        int transitionSpeed = 3;
     };
 
     class Dimension : public Screen {

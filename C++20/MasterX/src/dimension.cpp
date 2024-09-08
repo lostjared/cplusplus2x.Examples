@@ -125,13 +125,23 @@ void SystemBar::drawDimensions(mxApp &app) {
         }
     }
 }
-    void SystemBar::setCurrentDimension(int dim) {
-        if(dim != cur_dim) {
-            prev_dim = cur_dim;
-            cur_dim = dim;
+void SystemBar::setCurrentDimension(int dim) {
+    if(dim != cur_dim) {
+        DimensionContainer *old, *setv;
+        old = dynamic_cast<DimensionContainer *>(dimensions->operator[](cur_dim).get());
+        setv = dynamic_cast<DimensionContainer *>(dimensions->operator[](dim).get());
+        prev_dim = cur_dim;
+        cur_dim = dim;
+        if (setv) {
+            setv->setActive(true);  
+            setv->setVisible(true);
+            std::cout << "MasterX System: Switching from: " << old->name << " to " << setv->name << "\n";
+            setv->startTransition(old ? old->wallpaper : nullptr);  
         }
-    }
-    int  SystemBar::getCurrentDimesnion() const {
+    }    
+}
+
+int  SystemBar::getCurrentDimension() const {
         return cur_dim;
     }
 
@@ -306,7 +316,7 @@ void SystemBar::drawDimensions(mxApp &app) {
                             SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
                             if (mouseX >= buttonRect.x && mouseX <= (buttonRect.x + buttonRect.w) &&
                                 mouseY >= buttonRect.y && mouseY <= (buttonRect.y + buttonRect.h)) {
-                                if(getCurrentDimesnion() != i) {
+                                if(getCurrentDimension() != i) {
                                     setCurrentDimension(i);  
                                     return true;
                                 }
@@ -740,10 +750,7 @@ void SystemBar::drawDimensions(mxApp &app) {
         minimized = m;
     }
 
-    DimensionContainer::DimensionContainer(mxApp &app) : wallpaper{nullptr} , active{false} {
-    
-    }
-
+    DimensionContainer::DimensionContainer(mxApp &app) : wallpaper{nullptr} , active{false} {}
 
     DimensionContainer::~DimensionContainer() {
         std::cout << "MasterX: Releasing DImension: " << name << "\n";
@@ -766,18 +773,48 @@ void SystemBar::drawDimensions(mxApp &app) {
     }
 
     void DimensionContainer::draw(mxApp &app) {
+        if (!active) return;
 
-        if(active == false) return;
+        SDL_SetRenderDrawBlendMode(app.ren, SDL_BLENDMODE_BLEND);
 
-        if(wallpaper != nullptr) {
-            SDL_SetRenderTarget(app.ren, app.tex);
-            SDL_RenderCopy(app.ren, wallpaper, nullptr, nullptr);
+        if (wallpaper != nullptr) {
+            if (transitioning && nextWallpaper != nullptr) {
+                SDL_SetTextureBlendMode(wallpaper, SDL_BLENDMODE_BLEND);
+                SDL_SetTextureBlendMode(nextWallpaper, SDL_BLENDMODE_BLEND);
+                SDL_SetTextureAlphaMod(wallpaper, 255 - transitionAlpha);
+                SDL_SetTextureAlphaMod(nextWallpaper, transitionAlpha);
+                SDL_RenderCopy(app.ren, wallpaper, nullptr, nullptr);
+                SDL_RenderCopy(app.ren, nextWallpaper, nullptr, nullptr);
+                transitionAlpha -= 5;
+                if (transitionAlpha <= 0) {
+                    transitioning = false;
+                    SDL_SetTextureBlendMode(wallpaper, SDL_BLENDMODE_NONE);
+                }
+            } else {
+                SDL_SetTextureBlendMode(wallpaper, SDL_BLENDMODE_NONE);
+                SDL_RenderCopy(app.ren, wallpaper, nullptr, nullptr);
+            }
         }
 
-        if(visible == false) return;
-
-        for(auto &i : objects) {
-            i->draw(app);
+        if (visible) {
+            for (auto &i : objects) {
+                i->draw(app);
+            }
+        }
+    }
+    
+    void DimensionContainer::startTransition(SDL_Texture* nextWp) {
+        if (!transitioning) {
+            nextWallpaper = nextWp;
+            transitionAlpha = 255;
+            transitioning = true;
+        }
+    }
+    void DimensionContainer::updateTransition() {
+        transitionAlpha -= transitionSpeed;  
+        if (transitionAlpha <= 0) {
+            transitionAlpha = 255;
+            transitioning = false;
         }
     }
 
@@ -801,23 +838,18 @@ void SystemBar::drawDimensions(mxApp &app) {
         objects.push_back(std::make_unique<SystemBar>(app));
         system_bar = dynamic_cast<SystemBar *>(objects[0].get());
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
-
         welcome = dynamic_cast<DimensionContainer *>(dimensions[0].get());
         welcome->init("Welcome", loadTexture(app, "images/wallpaper.bmp"));
         welcome->setActive(true);
         welcome->setVisible(false);
-
         welcome->objects.push_back(std::make_unique<Window>(app));
-
         welcome_window = dynamic_cast<Window *>(welcome->objects[0].get());
         welcome_window->create("Welcome", 45, 25, 640, 480);
         welcome_window->children.push_back(std::make_unique<Label>(app));
         welcome_window->show(true);
-
         welcome_label = dynamic_cast<Label *>(welcome_window->children[0].get());
         welcome_label->create("Hello World!", {0,0,255}, 25, 25);
         welcome_label->loadFont("fonts/arial.ttf", 14);
-
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         about = dynamic_cast<DimensionContainer *>(dimensions[1].get());
         about->init("About", loadTexture(app, "images/about.bmp"));
@@ -826,7 +858,6 @@ void SystemBar::drawDimensions(mxApp &app) {
         system_bar->setDimensions(&dimensions);
         setCurrentDimension(0);
         system_bar->activateDimension(0);
-
     }
 
     void Dimension::setCurrentDimension(int dim) {
@@ -834,7 +865,7 @@ void SystemBar::drawDimensions(mxApp &app) {
     }
         
     int  Dimension::getCurrentDimension() const {
-        return system_bar->getCurrentDimesnion();
+        return system_bar->getCurrentDimension();
     }
         
 

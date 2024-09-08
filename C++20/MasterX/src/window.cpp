@@ -42,6 +42,21 @@ namespace mx {
         return true;
     }
 
+    SDL_Texture* mxApp::convertToStreamingTexture(SDL_Texture* originalTexture) {
+        int width, height;
+        Uint32 format;
+        SDL_QueryTexture(originalTexture, &format, nullptr, &width, &height);
+        SDL_Texture* streamingTexture = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_STREAMING, width, height);
+        if (!streamingTexture) {
+            std::cerr << "Error creating streaming texture: " << SDL_GetError() << "\n";
+            return nullptr;
+        }
+        SDL_SetRenderTarget(ren, streamingTexture);
+        SDL_RenderCopy(ren, originalTexture, nullptr, nullptr);
+        SDL_SetRenderTarget(ren, nullptr);
+        return streamingTexture;
+    }
+
     void mxApp::release() {
         if(init_ == true) {
             std::cout << "MasterX: Releasing System Objects\n";
