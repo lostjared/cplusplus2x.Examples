@@ -5,6 +5,8 @@
 #include"dimension.hpp"
 #include<vector>
 #include<memory>
+#include"argz.hpp"
+
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
@@ -77,26 +79,60 @@ SDL_Texture *loadTexture(mx::mxApp &app, const std::string &name) {
     return tex;
 }
 
+void quit() {
+    std::cout << "MasterX System: Exiting...\n";
+    SDL_ShowCursor(SDL_TRUE);
+    TTF_Quit();
+    SDL_Quit();
+}
+
 int main(int argc, char **argv) {
+
+
+    Argz<std::string> argz(argc, argv);
+    argz.addOptionSingleValue('p', "path to assets").addOptionSingle('v', "info").addOptionSingle('h', "info");
+    std::string path;
+    int value = 0;
+    Argument<std::string> arg;
+    try {
+        while((value = argz.proc(arg)) != -1) {
+            switch(value) {
+                case 'h':
+                case 'v':
+                    argz.help(std::cout);
+                    exit(EXIT_SUCCESS);
+                    break;
+                case 'p':
+                    path = arg.arg_value;
+                    break;
+            }
+        }
+    } catch(const ArgException<std::string> &e) {
+        std::cerr << "Syntax Error: " << e.text() << "\n";
+    }
+
+    if(path.length()>0) {
+        std::cout << "MasterX System: path set to: " << path << "\n";
+        cur_path = path;
+    }
 
     mx::mxApp app;  
     p_app = &app;
-
-    if(argc == 2) {
-        cur_path = argv[1];
-    }
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;
     }
 
-    
     if(TTF_Init() < 0) {
         std::cerr << "Error initializing SDL_ttf: " << TTF_GetError() << "\n";
         return 1;
     }
-  
+
+    atexit(quit);
+
+    SDL_ShowCursor(SDL_FALSE);
+
     std::vector<std::unique_ptr<mx::Screen>> screen_obj;
     screens = &screen_obj;
     if(!app.init("MasterX", 1280, 720)) {
@@ -111,9 +147,6 @@ int main(int argc, char **argv) {
 #else
     emscripten_set_main_loop(eventProc, 0, 1);
 #endif
-
-    TTF_Quit();
-    SDL_Quit();
     return 0;
 
  

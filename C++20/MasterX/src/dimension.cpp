@@ -5,6 +5,8 @@
 
 namespace mx {
 
+    bool cursor_shown = false;
+
     SystemBar::SystemBar(mxApp &app) {
         dimensions = nullptr;
         font = TTF_OpenFont(getPath("fonts/arial.ttf").c_str(), 14);
@@ -46,6 +48,7 @@ void SystemBar::drawDimensions(mxApp &app) {
     if (dimensions != nullptr && animationComplete == true) {
         int activeIndex = 0;  
         
+        bool tcursor = false;
         
         for (size_t j = 0; j < activeDimensionsStack.size(); ++j) {
             int i = activeDimensionsStack[j]; 
@@ -102,7 +105,8 @@ void SystemBar::drawDimensions(mxApp &app) {
                 SDL_Rect closeButtonRect = {square_x, square_y, square_size, square_size};
                 if (dim->hoveringX) {
                     SDL_SetRenderDrawColor(app.ren, 0xBD, 0, 0, 255);  
-                }
+                    tcursor = true;
+                } 
                 SDL_RenderFillRect(app.ren, &closeButtonRect);
 
                 SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
@@ -123,6 +127,9 @@ void SystemBar::drawDimensions(mxApp &app) {
                 }
             }
         }
+        if(tcursor == true) {
+            cursor_shown = true;
+        } 
     }
 }
 void SystemBar::setCurrentDimension(int dim) {
@@ -177,7 +184,8 @@ int  SystemBar::getCurrentDimension() const {
         if (isHovering) {
             buttonColor = {0, 0, 139, 255};
             textColor = {255, 255, 255};
-        }
+            cursor_shown = true;
+        } 
 
         SDL_SetRenderDrawColor(app.ren, buttonColor.r, buttonColor.g, buttonColor.b, buttonColor.a);
         SDL_Rect startButton = {windowWidth - startButtonSize, yPos, startButtonSize, barHeight};
@@ -454,6 +462,8 @@ int  SystemBar::getCurrentDimension() const {
         int itemHeight = 30;
         SDL_Rect itemRect;
 
+        bool tcursor = false;
+
         for (int i = 0; i < numItems; i++) {
             itemRect = {menuX + 10, currentY + 10 + i * (itemHeight + 5), menuWidth - 20, itemHeight};
 
@@ -465,9 +475,11 @@ int  SystemBar::getCurrentDimension() const {
             if (isHovering) {
                 SDL_SetRenderDrawColor(app.ren, hoverColor.r, hoverColor.g, hoverColor.b, hoverColor.a);
                 SDL_RenderFillRect(app.ren, &itemRect);
+                tcursor = true;
             } else {
                 SDL_SetRenderDrawColor(app.ren, 192, 192, 192, 255);
                 SDL_RenderFillRect(app.ren, &itemRect);
+                
             }
 
             SDL_SetRenderDrawColor(app.ren, 128, 128, 128, 255);
@@ -483,6 +495,10 @@ int  SystemBar::getCurrentDimension() const {
             SDL_Rect textRect = {itemRect.x + (itemRect.w - textWidth) / 2, itemRect.y + (itemRect.h - textHeight) / 2, textWidth, textHeight};
             SDL_RenderCopy(app.ren, textTexture, nullptr, &textRect);
             SDL_DestroyTexture(textTexture);
+        }
+
+        if(tcursor == true) {
+            cursor_shown = true;
         }
 
         SDL_SetRenderTarget(app.ren, nullptr);
@@ -639,11 +655,13 @@ int  SystemBar::getCurrentDimension() const {
         SDL_RenderDrawLine(app.ren, minimizeButton.x, minimizeButton.y + buttonSize, minimizeButton.x + buttonSize, minimizeButton.y + buttonSize);
         if (minimizeHovered) {
             SDL_SetRenderDrawColor(app.ren, 255, 0, 0, 255);  
+            cursor_shown = true;
         } else {
             SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255); 
         }
         SDL_RenderFillRect(app.ren, &minimizeButton);
         if (closeHovered) {
+            cursor_shown = true;
             SDL_SetRenderDrawColor(app.ren, 255, 0, 0, 255);  
         } else {
             SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255);  
@@ -858,6 +876,30 @@ int  SystemBar::getCurrentDimension() const {
         system_bar->setDimensions(&dimensions);
         setCurrentDimension(0);
         system_bar->activateDimension(0);
+        SDL_Surface *hand_cursor_surf = SDL_LoadBMP(getPath("images/hand.bmp").c_str());
+        if(hand_cursor_surf == nullptr) {
+            std::cerr << "MasterX: Error loading cursor..\n";
+            exit(EXIT_FAILURE);
+        }
+        SDL_SetColorKey(hand_cursor_surf, SDL_TRUE, SDL_MapRGB(hand_cursor_surf->format, 0, 0, 0));
+        hand_cursor = SDL_CreateTextureFromSurface(app.ren, hand_cursor_surf);
+        SDL_FreeSurface(hand_cursor_surf);
+        if(hand_cursor == nullptr) {
+            std::cerr << "MasterX System: Error creating texture from surface...\n";
+            exit(EXIT_FAILURE);
+        }
+        SDL_Surface *cursor_surf = SDL_LoadBMP(getPath("images/cursor.bmp").c_str());
+        if(cursor_surf == nullptr) {
+            std::cerr << "MasterX: Error loading cursor..\n";
+            exit(EXIT_FAILURE);
+        }
+        SDL_SetColorKey(cursor_surf, SDL_TRUE, SDL_MapRGB(cursor_surf->format, 0, 0, 0));
+        reg_cursor = SDL_CreateTextureFromSurface(app.ren, cursor_surf);
+        SDL_FreeSurface(cursor_surf);
+        if(reg_cursor == nullptr) {
+            std::cerr << "MasterX System: Error creating texture from surface...\n";
+            exit(EXIT_FAILURE);
+        }
     }
 
     void Dimension::setCurrentDimension(int dim) {
@@ -873,6 +915,12 @@ int  SystemBar::getCurrentDimension() const {
         if(wallpaper != nullptr) {
             SDL_DestroyTexture(wallpaper);
         }
+        if(hand_cursor != nullptr) {
+            SDL_DestroyTexture(hand_cursor);
+        }
+        if(reg_cursor != nullptr) {
+            SDL_DestroyTexture(reg_cursor);
+        }
         std::cout << "MasterX: Releasing Dimensions\n";
     }
 
@@ -883,6 +931,7 @@ int  SystemBar::getCurrentDimension() const {
 
     void Dimension::draw(mxApp &app) {
         
+        cursor_shown = false;
         int cur = getCurrentDimension();
         if(cur >= 0 && cur < static_cast<int>(dimensions.size())) {
             if(system_bar->empty()) 
@@ -892,6 +941,13 @@ int  SystemBar::getCurrentDimension() const {
         }
         for (auto &i : objects) {
             i->draw(app);
+        }
+        SDL_SetRenderTarget(app.ren, app.tex);
+        SDL_Rect rc = { cursor_x, cursor_y, 32, 32 };
+        if(cursor_shown) { 
+            SDL_RenderCopy(app.ren, hand_cursor, nullptr, &rc);
+        } else {
+            SDL_RenderCopy(app.ren, reg_cursor, nullptr, &rc);
         }
         SDL_SetRenderTarget(app.ren, nullptr);
     }
@@ -904,6 +960,10 @@ int  SystemBar::getCurrentDimension() const {
         int cur = getCurrentDimension();
         if(cur >= 0 && cur < static_cast<int>(dimensions.size())) {
             dimensions[cur]->event(app, e);
+        }
+        if(e.type == SDL_MOUSEMOTION) {
+            cursor_x = e.motion.x;
+            cursor_y = e.motion.y;
         }
         return false;
     }
