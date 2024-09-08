@@ -31,6 +31,13 @@ namespace mx {
         init_ = true;
         width = w;
         height = h;
+
+        font = TTF_OpenFont(getPath("fonts/arial.ttf").c_str(), 14);
+        if(!font) {
+            std::cerr << "MasterX System: font: " << getPath("fonts/arial.ttf") << " Could not be loaded.\n";
+            exit(EXIT_FAILURE);
+        }
+
         std::cout << "MasterX: Initalized System Objects\n";
         return true;
     }

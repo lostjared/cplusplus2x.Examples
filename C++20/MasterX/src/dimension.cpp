@@ -44,14 +44,14 @@ namespace mx {
     }
 void SystemBar::drawDimensions(mxApp &app) {
     if (dimensions != nullptr && animationComplete == true) {
-        int activeIndex = 0;  // For calculating button position
+        int activeIndex = 0;  
         
-        // Loop through active dimensions based on the stack
+        
         for (size_t j = 0; j < activeDimensionsStack.size(); ++j) {
-            int i = activeDimensionsStack[j];  // Get the dimension index from the stack
+            int i = activeDimensionsStack[j]; 
             DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](i).get());
             
-            if (dim != nullptr && dim->isActive()) {  // Only draw if the dimension is active
+            if (dim != nullptr && dim->isActive()) { 
                 const std::string &name = dim->name;
                 SDL_Color white = {255, 255, 255, 255};
                 SDL_Surface* textSurface = TTF_RenderText_Solid(font, name.c_str(), white);
@@ -67,20 +67,20 @@ void SystemBar::drawDimensions(mxApp &app) {
                     continue;
                 }
 
-                int button_width = 150;  // Button dimensions
+                int button_width = 150; 
                 int button_height = text_height + 20;
                 int bar_height = 50;
-                int button_y = (bar_height - button_height) / 2 + app.height - bar_height;  // Button Y position
+                int button_y = (bar_height - button_height) / 2 + app.height - bar_height; 
                 
-                // Button X position calculated based on the activeIndex (stack order)
+                
                 int button_x = 10 + activeIndex * (button_width + 10);  
-                activeIndex++;  // Move to next position
+                activeIndex++;  
 
-                // Render the button
+                
                 if (static_cast<int>(i) == cur_dim) {
-                    SDL_SetRenderDrawColor(app.ren, 0, 0, 255, 255);  // Blue for current dimension
+                    SDL_SetRenderDrawColor(app.ren, 0, 0, 255, 255);  
                 } else {
-                    SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255);  // Gray for others
+                    SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255); 
                 }
 
                 SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
@@ -89,12 +89,11 @@ void SystemBar::drawDimensions(mxApp &app) {
                 SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
                 SDL_RenderDrawRect(app.ren, &buttonRect);
 
-                // Render button text
+                
                 SDL_Rect textRect = {button_x + 10, button_y + (button_height - text_height) / 2, text_width, text_height};
                 SDL_RenderCopy(app.ren, textTexture, nullptr, &textRect);
                 SDL_DestroyTexture(textTexture);
 
-                // Draw the close "X" button
                 int square_size = 20;
                 int square_x = button_x + button_width - square_size - 5;
                 int square_y = button_y + (button_height - square_size) / 2;
@@ -102,14 +101,14 @@ void SystemBar::drawDimensions(mxApp &app) {
                 SDL_SetRenderDrawColor(app.ren, 200, 200, 200, 255);
                 SDL_Rect closeButtonRect = {square_x, square_y, square_size, square_size};
                 if (dim->hoveringX) {
-                    SDL_SetRenderDrawColor(app.ren, 0xBD, 0, 0, 255);  // Blue when hovered
+                    SDL_SetRenderDrawColor(app.ren, 0xBD, 0, 0, 255);  
                 }
                 SDL_RenderFillRect(app.ren, &closeButtonRect);
 
                 SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
                 SDL_RenderDrawRect(app.ren, &closeButtonRect);
 
-                // Render the "X" text
+                
                 SDL_Color black = {0, 0, 0, 255};
                 SDL_Surface* xSurface = TTF_RenderText_Solid(font, "X", black);
                 if (xSurface != nullptr) {
@@ -127,8 +126,10 @@ void SystemBar::drawDimensions(mxApp &app) {
     }
 }
     void SystemBar::setCurrentDimension(int dim) {
-        prev_dim = cur_dim;
-        cur_dim = dim;
+        if(dim != cur_dim) {
+            prev_dim = cur_dim;
+            cur_dim = dim;
+        }
     }
     int  SystemBar::getCurrentDimesnion() const {
         return cur_dim;
@@ -145,6 +146,8 @@ void SystemBar::drawDimensions(mxApp &app) {
             if (yPos >= targetYPos) {
                 yPos = targetYPos;
                 animationComplete = true;
+                DimensionContainer *con = dynamic_cast<DimensionContainer *>(dimensions->operator[](cur_dim).get());
+                con->setVisible(true);
             }
         }
 
@@ -209,14 +212,14 @@ void SystemBar::drawDimensions(mxApp &app) {
     bool SystemBar::event(mxApp &app, SDL_Event &e) {
         int mouseX = e.motion.x;
         int mouseY = e.motion.y;
-
-        if (e.type == SDL_MOUSEMOTION) {  // Track mouse motion for hovering
+        
+        if (e.type == SDL_MOUSEMOTION) {  
             int barHeight = 50;
-            int button_height = 30;  // Assuming the height of the buttons
+            int button_height = 30;  
             int button_y = app.height - barHeight;
             int button_width = 150;
-            int square_size = 20;  // Size of the close button square
-            int activeIndex = 0;  // Track the position of active dimensions' buttons
+            int square_size = 20;  
+            int activeIndex = 0;  
 
             if (dimensions != nullptr) {
                     for (size_t j = 0; j < activeDimensionsStack.size(); ++j) {
@@ -303,8 +306,10 @@ void SystemBar::drawDimensions(mxApp &app) {
                             SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
                             if (mouseX >= buttonRect.x && mouseX <= (buttonRect.x + buttonRect.w) &&
                                 mouseY >= buttonRect.y && mouseY <= (buttonRect.y + buttonRect.h)) {
-                                setCurrentDimension(i);  
-                                return true;
+                                if(getCurrentDimesnion() != i) {
+                                    setCurrentDimension(i);  
+                                    return true;
+                                }
                             } 
                         }
                     }
@@ -509,14 +514,82 @@ void SystemBar::drawDimensions(mxApp &app) {
         return false;
     }
 
-    Window::Window(mxApp &app) : x{0}, y{0}, w{320}, h{240}, title{"windwow"}, shown{false} {
+
+    Label::Label(mxApp &app)
+        : font_(nullptr), name_(""), text_(""), x(0), y(0), size_(0), wx(0), wy(0) {
+    }
+
+    Label::~Label() {
+    }
+
+    void Label::setWindowPos(int xx, int yy) {
+        wx = xx;
+        wy = yy;
+    }
+
+    void Label::draw(mxApp &app) {
+
+        if(font_ != nullptr && text_.length() > 0) {
+            SDL_Surface *surf = TTF_RenderText_Solid(font_, text_.c_str(), color_);
+            if(surf == nullptr) {
+                std::cerr << "MasterX System: Error creating surface.\n";
+                exit(EXIT_FAILURE);
+            }
+
+
+            int sw = surf->w;
+            int sh = surf->h;
+
+            SDL_Texture *t = SDL_CreateTextureFromSurface(app.ren, surf);
+            if(t == nullptr) {
+                std::cerr << "MasterX System: Error creating texture.\n";
+                exit(EXIT_FAILURE);
+            }
+
+            SDL_FreeSurface(surf);
+            SDL_SetRenderTarget(app.ren, app.tex);
+            SDL_Rect point = {x+wx,y+wy+25,sw,sh};
+            SDL_RenderCopy(app.ren, t, nullptr, &point);
+        }
+
+    }
+
+    void Label::create(const std::string &text, SDL_Color col, int xx, int yy) {
+        setText(text, col);
+        setGeometry(xx, yy);
+    }
+
+    bool Label::event(mxApp &app, SDL_Event &e) {
+        return false;
+    }
+
+    void Label::loadFont(const std::string &name, int sizex) {
+        name_ = name;
+        size_ = sizex;
+        font_ = TTF_OpenFont(getPath(name).c_str(), size_);
+        if(font_ == nullptr) {
+            std::cerr << "Error opening font: " << getPath(name) << "\n";
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    void Label::setText(const std::string &text, SDL_Color col) {
+        text_ = text;
+        color_ = col;
+    }
+
+    void Label::setGeometry(int xx, int yy) {
+        x = xx;
+        y = yy;
+    }
+
+    Window::Window(mxApp &app) : x{0}, y{0}, w{320}, h{240}, title{"windwow"}, shown{false}, minimizeHovered(SDL_FALSE), closeHovered(SDL_FALSE) {
    
     }
 
     Window::~Window() {
         std::cout << "MasterX: Releasing Window: " << title << "\n";
     }
-
 
     void Window::create(const std::string &n, const int xx, const int yy, const int ww, const int hh) {
         title = n;
@@ -526,11 +599,145 @@ void SystemBar::drawDimensions(mxApp &app) {
         h = hh;
     }
 
+
     void Window::draw(mxApp &app) {
+
+        if(shown == false)
+            return;
+
+        SDL_Rect rc = {x, y, w, h};
+        SDL_SetRenderDrawColor(app.ren, 205, 205, 205, 255);
+        SDL_RenderFillRect(app.ren, &rc);
+
+        int titleBarHeight = 30;
+        for (int i = 0; i < titleBarHeight; ++i) {
+            int gradientColor = 128 - (128 * i / titleBarHeight);
+            SDL_SetRenderDrawColor(app.ren, 0, 0, gradientColor, 255);
+            SDL_RenderDrawLine(app.ren, x, y + i, x + w, y + i);
+        }
+
+        int buttonSize = 20;
+        int buttonPadding = 5;
+
+        minimizeButton = {x + w - 2 * (buttonSize + buttonPadding), y + 5, buttonSize, buttonSize};
+        closeButton = {x + w - (buttonSize + buttonPadding), y + 5, buttonSize, buttonSize};
+
+        SDL_RenderDrawLine(app.ren, minimizeButton.x, minimizeButton.y, minimizeButton.x + buttonSize, minimizeButton.y);
+        SDL_RenderDrawLine(app.ren, minimizeButton.x, minimizeButton.y, minimizeButton.x, minimizeButton.y + buttonSize);
+        SDL_SetRenderDrawColor(app.ren, 128, 128, 128, 255);
+        SDL_RenderDrawLine(app.ren, minimizeButton.x + buttonSize, minimizeButton.y, minimizeButton.x + buttonSize, minimizeButton.y + buttonSize);
+        SDL_RenderDrawLine(app.ren, minimizeButton.x, minimizeButton.y + buttonSize, minimizeButton.x + buttonSize, minimizeButton.y + buttonSize);
+        if (minimizeHovered) {
+            SDL_SetRenderDrawColor(app.ren, 255, 0, 0, 255);  
+        } else {
+            SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255); 
+        }
+        SDL_RenderFillRect(app.ren, &minimizeButton);
+        if (closeHovered) {
+            SDL_SetRenderDrawColor(app.ren, 255, 0, 0, 255);  
+        } else {
+            SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255);  
+        }
+        SDL_RenderFillRect(app.ren, &closeButton);
+        SDL_RenderDrawLine(app.ren, closeButton.x, closeButton.y, closeButton.x + buttonSize, closeButton.y);
+        SDL_RenderDrawLine(app.ren, closeButton.x, closeButton.y, closeButton.x, closeButton.y + buttonSize);
+        SDL_SetRenderDrawColor(app.ren, 128, 128, 128, 255);
+        SDL_RenderDrawLine(app.ren, closeButton.x + buttonSize, closeButton.y, closeButton.x + buttonSize, closeButton.y + buttonSize);
+        SDL_RenderDrawLine(app.ren, closeButton.x, closeButton.y + buttonSize, closeButton.x + buttonSize, closeButton.y + buttonSize);
+        SDL_Surface* closeSurface = TTF_RenderText_Solid(app.font, "X", {255, 255, 255});
+        SDL_Texture* closeTexture = SDL_CreateTextureFromSurface(app.ren, closeSurface);
+        int closeTextW = 0, closeTextH = 0;
+        SDL_QueryTexture(closeTexture, nullptr, nullptr, &closeTextW, &closeTextH);
+        SDL_Rect closeTextRect = {closeButton.x + (buttonSize - closeTextW) / 2, closeButton.y + (buttonSize - closeTextH) / 2, closeTextW, closeTextH};
+        SDL_RenderCopy(app.ren, closeTexture, nullptr, &closeTextRect);
+        SDL_DestroyTexture(closeTexture);
+        SDL_FreeSurface(closeSurface);
+
+        SDL_Surface* minimizeSurface = TTF_RenderText_Solid(app.font, "_", {255, 255, 255});
+        SDL_Texture* minimizeTexture = SDL_CreateTextureFromSurface(app.ren, minimizeSurface);
+        int minimizeTextW = 0, minimizeTextH = 0;
+        SDL_QueryTexture(minimizeTexture, nullptr, nullptr, &minimizeTextW, &minimizeTextH);
+        SDL_Rect minimizeTextRect = {minimizeButton.x + (buttonSize - minimizeTextW) / 2, minimizeButton.y + (buttonSize - minimizeTextH) / 2, minimizeTextW, minimizeTextH};
+        SDL_RenderCopy(app.ren, minimizeTexture, nullptr, &minimizeTextRect);
+        SDL_DestroyTexture(minimizeTexture);
+        SDL_FreeSurface(minimizeSurface);
+
+        SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
+        SDL_RenderDrawLine(app.ren, x, y + titleBarHeight, x + w - 1, y + titleBarHeight);
+        SDL_RenderDrawLine(app.ren, x, y, x + w - 1, y);
+        SDL_RenderDrawLine(app.ren, x, y, x, y + h - 1);
+
+        SDL_SetRenderDrawColor(app.ren, 128, 128, 128, 255);
+        SDL_RenderDrawLine(app.ren, x + w - 1, y, x + w - 1, y + h - 1);
+        SDL_RenderDrawLine(app.ren, x, y + h - 1, x + w - 1, y + h - 1);
+
+        SDL_SetRenderDrawColor(app.ren, 192, 192, 192, 255);
+        SDL_RenderDrawLine(app.ren, x + 1, y + titleBarHeight + 1, x + w - 2, y + titleBarHeight + 1);
+        SDL_RenderDrawLine(app.ren, x + 1, y + titleBarHeight + 1, x + 1, y + h - 2);
+
+        SDL_SetRenderDrawColor(app.ren, 64, 64, 64, 255);
+        SDL_RenderDrawLine(app.ren, x + w - 2, y + titleBarHeight + 1, x + w - 2, y + h - 2);
+        SDL_RenderDrawLine(app.ren, x + 1, y + h - 2, x + w - 2, y + h - 2);
+
+        SDL_Surface* surface = TTF_RenderText_Solid(app.font, title.c_str(), {255, 255, 255});
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(app.ren, surface);
+        int textW = 0, textH = 0;
+        SDL_QueryTexture(texture, nullptr, nullptr, &textW, &textH);
+        SDL_Rect textRect = {x + 5, y + 5, textW, textH};
+        SDL_RenderCopy(app.ren, texture, nullptr, &textRect);
+        SDL_DestroyTexture(texture);
+        SDL_FreeSurface(surface);
+
+        for (auto &c : children) {
+            c->setWindowPos(x, y);
+            c->draw(app);
+        }
+    }
+
+    void Window::show(bool b) {
+        shown = b;
     }
 
     bool Window::event(mxApp &app, SDL_Event &e) {
+
+        if(shown == false) return false;
+
+        if (e.type == SDL_MOUSEMOTION) {
+            SDL_Point mousePoint = {e.motion.x, e.motion.y};
+            minimizeHovered = SDL_PointInRect(&mousePoint, &minimizeButton);
+            closeHovered = SDL_PointInRect(&mousePoint, &closeButton);
+            if (dragging) {
+                 x = e.motion.x - dragOffsetX;
+                y = e.motion.y - dragOffsetY;
+            }
+        } else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
+            SDL_Point mousePoint = {e.button.x, e.button.y};
+            SDL_Rect titleBarRect = {x, y, w, 30};
+            if (SDL_PointInRect(&mousePoint, &titleBarRect) &&
+                !SDL_PointInRect(&mousePoint, &minimizeButton) &&
+                !SDL_PointInRect(&mousePoint, &closeButton)) {
+                dragging = true;
+                dragOffsetX = e.button.x - x;
+                dragOffsetY = e.button.y - y;
+            }
+            if (SDL_PointInRect(&mousePoint, &closeButton)) {
+                show(false);  
+            }
+            if (SDL_PointInRect(&mousePoint, &minimizeButton)) {
+                minimize(true);  
+            }
+        } else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
+            dragging = false;
+        }
+        for(auto &c : children) {
+            if(c->event(app, e))
+                return true;
+        }
         return false;
+    }
+
+    void Window::minimize(bool m) {
+        minimized = m;
     }
 
     DimensionContainer::DimensionContainer(mxApp &app) : wallpaper{nullptr} , active{false} {
@@ -567,6 +774,8 @@ void SystemBar::drawDimensions(mxApp &app) {
             SDL_RenderCopy(app.ren, wallpaper, nullptr, nullptr);
         }
 
+        if(visible == false) return;
+
         for(auto &i : objects) {
             i->draw(app);
         }
@@ -574,13 +783,17 @@ void SystemBar::drawDimensions(mxApp &app) {
 
     bool DimensionContainer::event(mxApp &app, SDL_Event &e) {
 
-        if(active == false) return false;
+        if(active == false || visible == false) return false;
 
         for(auto &i : objects) {
             if(i->event(app, e) == true)
                 return true;
         }
         return false;
+    }
+
+    void DimensionContainer::setVisible(bool v) {
+        visible = v;
     }
 
     Dimension::Dimension(mxApp &app) {
@@ -592,11 +805,24 @@ void SystemBar::drawDimensions(mxApp &app) {
         welcome = dynamic_cast<DimensionContainer *>(dimensions[0].get());
         welcome->init("Welcome", loadTexture(app, "images/wallpaper.bmp"));
         welcome->setActive(true);
-        
+        welcome->setVisible(false);
+
+        welcome->objects.push_back(std::make_unique<Window>(app));
+
+        welcome_window = dynamic_cast<Window *>(welcome->objects[0].get());
+        welcome_window->create("Welcome", 45, 25, 640, 480);
+        welcome_window->children.push_back(std::make_unique<Label>(app));
+        welcome_window->show(true);
+
+        welcome_label = dynamic_cast<Label *>(welcome_window->children[0].get());
+        welcome_label->create("Hello World!", {0,0,255}, 25, 25);
+        welcome_label->loadFont("fonts/arial.ttf", 14);
+
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         about = dynamic_cast<DimensionContainer *>(dimensions[1].get());
         about->init("About", loadTexture(app, "images/about.bmp"));
         about->setActive(false);
+        about->setVisible(false);
         system_bar->setDimensions(&dimensions);
         setCurrentDimension(0);
         system_bar->activateDimension(0);
@@ -644,7 +870,10 @@ void SystemBar::drawDimensions(mxApp &app) {
             if(i->event(app, e))
                 return true;
         }
+        int cur = getCurrentDimension();
+        if(cur >= 0 && cur < static_cast<int>(dimensions.size())) {
+            dimensions[cur]->event(app, e);
+        }
         return false;
     }
-
 }

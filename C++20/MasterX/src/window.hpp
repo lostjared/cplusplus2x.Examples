@@ -22,6 +22,7 @@ namespace mx {
         bool init(const std::string &name, int w, int h);
         void release();
         int width = 0, height = 0;
+        TTF_Font *font;
     };
 
     class Screen {

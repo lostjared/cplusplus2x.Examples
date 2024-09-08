@@ -57,6 +57,33 @@ namespace mx {
         std::vector<int> activeDimensionsStack;
     };
 
+    class Control : public Screen {
+    public:
+        virtual ~Control() = default;
+        virtual void setWindowPos(int x, int y) = 0;  
+    };
+
+
+    class Label : public Control {
+    public:
+        Label(mxApp &app);
+        virtual ~Label();
+        virtual void draw(mxApp &app) override;
+        virtual void setWindowPos(int xx, int yy) override;
+        virtual bool event(mxApp &app, SDL_Event &e) override;
+        void create(const std::string &text, SDL_Color col, int x, int y);
+        void loadFont(const std::string &name, int size);
+        void setText(const std::string  &text, SDL_Color color);
+        void setGeometry(int xx, int yy);
+    private:
+        TTF_Font *font_;
+        std::string name_;
+        std::string text_;
+        int x,y,size_;
+        SDL_Color color_;
+        int wx, wy;
+    };
+
     class Window : public Screen {
     public:
         Window(mxApp &app);
@@ -64,11 +91,19 @@ namespace mx {
         virtual void draw(mxApp &app) override;
         virtual bool event(mxApp &app, SDL_Event &e) override;
         void create(const std::string &name, const int x, const int y, const int w, const int h);
+        void show(bool b);
+        void minimize(bool m);
     private:
         int x,y,w,h;
         std::string title = "Window";
         bool shown = false;
-        std::vector<std::unique_ptr<Screen>> children;
+        bool minimized = false;
+        bool dragging = false;
+        int dragOffsetX = 0, dragOffsetY = 0;
+    public:
+        std::vector<std::unique_ptr<Control>> children;
+        SDL_Rect minimizeButton, closeButton;
+        SDL_bool minimizeHovered, closeHovered;
     };
 
     class DimensionContainer : public Screen {
@@ -82,11 +117,12 @@ namespace mx {
         std::vector<std::unique_ptr<Screen>> objects;
         void setActive(bool a);
         bool isActive() const;
-
+        void setVisible(bool v);
         bool hoveringX = false;
     private:
         SDL_Texture *wallpaper;
         bool active = false;
+        bool visible = false;
     };
 
     class Dimension : public Screen {
@@ -105,6 +141,8 @@ namespace mx {
         DimensionContainer *welcome;
         DimensionContainer *about;
         SystemBar *system_bar;
+        Window *welcome_window;
+        Label *welcome_label;
         int current_dim;
     };
 
