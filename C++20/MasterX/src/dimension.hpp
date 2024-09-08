@@ -97,6 +97,7 @@ namespace mx {
         void create(const std::string &name, const int x, const int y, const int w, const int h);
         void show(bool b);
         void minimize(bool m);
+        void getRect(SDL_Rect &rc);
     private:
         int x,y,w,h;
         std::string title = "Window";

@@ -23,6 +23,7 @@ namespace mx {
         void release();
         int width = 0, height = 0;
         TTF_Font *font;
+        SDL_Texture *icon;
         SDL_Texture* convertToStreamingTexture(SDL_Texture* originalTexture);
     };
 

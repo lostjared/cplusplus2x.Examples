@@ -661,11 +661,14 @@ int  SystemBar::getCurrentDimension() const {
         SDL_Rect rc = {x, y, w, h};
         SDL_SetRenderDrawColor(app.ren, 205, 205, 205, 255);
         SDL_RenderFillRect(app.ren, &rc);
-
+        SDL_Color lightBlue = {173, 216, 230}; 
+        SDL_Color darkBlue = {0, 0, 139};     
         int titleBarHeight = 30;
         for (int i = 0; i < titleBarHeight; ++i) {
-            int gradientColor = 128 - (128 * i / titleBarHeight);
-            SDL_SetRenderDrawColor(app.ren, 0, 0, gradientColor, 255);
+            int red = lightBlue.r + (darkBlue.r - lightBlue.r) * i / titleBarHeight;
+            int green = lightBlue.g + (darkBlue.g - lightBlue.g) * i / titleBarHeight;
+            int blue = lightBlue.b + (darkBlue.b - lightBlue.b) * i / titleBarHeight;
+            SDL_SetRenderDrawColor(app.ren, red, green, blue, 255);
             SDL_RenderDrawLine(app.ren, x, y + i, x + w, y + i);
         }
 
@@ -738,10 +741,19 @@ int  SystemBar::getCurrentDimension() const {
         SDL_Texture* texture = SDL_CreateTextureFromSurface(app.ren, surface);
         int textW = 0, textH = 0;
         SDL_QueryTexture(texture, nullptr, nullptr, &textW, &textH);
-        SDL_Rect textRect = {x + 5, y + 5, textW, textH};
+        SDL_Rect textRect = {x + 25, y + 5, textW, textH};
         SDL_RenderCopy(app.ren, texture, nullptr, &textRect);
         SDL_DestroyTexture(texture);
         SDL_FreeSurface(surface);
+        int iconWidth = 16;
+        int iconHeight = 16;
+        int iconX = x + 5;  
+        int iconY = y + (titleBarHeight - iconHeight) / 2;  
+        SDL_Rect iconRect = { iconX, iconY, iconWidth, iconHeight };
+        SDL_RenderCopy(app.ren, app.icon, nullptr, &iconRect);
+
+
+
 
         for (auto &c : children) {
             c->setWindowPos(x, y);
@@ -751,6 +763,13 @@ int  SystemBar::getCurrentDimension() const {
 
     void Window::show(bool b) {
         shown = b;
+    }
+
+    void Window::getRect(SDL_Rect &rc) {
+        rc.x = x;
+        rc.y = y;
+        rc.w = w;
+        rc.h = h;
     }
 
     bool Window::event(mxApp &app, SDL_Event &e) {
