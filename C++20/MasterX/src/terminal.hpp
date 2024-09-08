@@ -10,6 +10,16 @@ namespace mx {
         Terminal(mxApp  &app);
         void draw(mxApp  &app);
         bool event(mxApp &app, SDL_Event  &e);
+      private:
+        std::string inputText;
+        std::vector<std::string> outputLines;
+        void renderText(mxApp &app, const std::string &text, int x, int y);
+        void renderTextWrapped(mxApp &app, const std::string &text, int x, int &y, int maxWidth);
+        void processCommand(mxApp &app, const std::string &cmd);
+        void handleScrolling(int);
+        std::vector<std::string> splitText(const std::string &text);
+        int scrollOffset = 0; 
+        int maxVisibleLines = 10; 
     };
 
 
