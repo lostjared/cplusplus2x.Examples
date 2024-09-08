@@ -75,6 +75,7 @@ namespace mx {
         void loadFont(const std::string &name, int size);
         void setText(const std::string  &text, SDL_Color color);
         void setGeometry(int xx, int yy);
+        void linkMode(bool m);
     private:
         TTF_Font *font_;
         std::string name_;
@@ -82,6 +83,9 @@ namespace mx {
         int x,y,size_;
         SDL_Color color_;
         int wx, wy;
+        int w, h;
+        bool mode = false;
+        bool under_ = false;
     };
 
     class Window : public Screen {
@@ -106,6 +110,7 @@ namespace mx {
         SDL_bool minimizeHovered, closeHovered;
     };
 
+  
     class DimensionContainer : public Screen {
     public:
         std::string name = "Default";
@@ -131,6 +136,8 @@ namespace mx {
         int transitionAlpha = 255;
         int transitionSpeed = 3;
     };
+    
+    class Terminal;
 
     class Dimension : public Screen {
     public:
@@ -147,12 +154,14 @@ namespace mx {
         std::vector<std::unique_ptr<Screen>> dimensions;
         DimensionContainer *welcome;
         DimensionContainer *about;
+        DimensionContainer *term;
         SystemBar *system_bar;
         Window *welcome_window;
         Label *welcome_label;
         int current_dim;
         SDL_Texture *hand_cursor, *reg_cursor;
         int cursor_x = 0, cursor_y = 0;
+        Terminal *termx;
     };
 
 }

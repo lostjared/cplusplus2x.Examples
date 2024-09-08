@@ -1,4 +1,5 @@
 #include "dimension.hpp"
+#include "terminal.hpp"
 #include "window.hpp"
 #include "SDL_rect.h"
 #include<algorithm>
@@ -375,8 +376,12 @@ int  SystemBar::getCurrentDimension() const {
                     activateDimension(0);
                 }
                 break;
-            case 2:
-                std::cout << "Documents clicked\n";
+            case 2: {
+                    DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](2).get());
+                    dim->setActive(true);
+                    setCurrentDimension(2);
+                    activateDimension(2);
+            }
                 break;
             case 3:
                 std::cout << "Settings clicked\n";
@@ -457,7 +462,7 @@ int  SystemBar::getCurrentDimension() const {
         SDL_Color black = {0, 0, 0, 255};
         SDL_Color white = {255, 255, 255, 255};
 
-        const char* items[] = {"Welcome", "Documents", "Settings", "Find", "About", "Run"};
+        const char* items[] = {"Welcome", "Terminal", "Settings", "Find", "About", "Run"};
         int numItems = sizeof(items) / sizeof(items[0]);
         int itemHeight = 30;
         SDL_Rect itemRect;
@@ -542,7 +547,7 @@ int  SystemBar::getCurrentDimension() const {
 
 
     Label::Label(mxApp &app)
-        : font_(nullptr), name_(""), text_(""), x(0), y(0), size_(0), wx(0), wy(0) {
+        : font_(nullptr), name_(""), text_(""), x(0), y(0), size_(0), wx(0), wy(0), w(0), h(0) {
     }
 
     Label::~Label() {
@@ -554,30 +559,36 @@ int  SystemBar::getCurrentDimension() const {
     }
 
     void Label::draw(mxApp &app) {
-
         if(font_ != nullptr && text_.length() > 0) {
+            if(mode == false || under_ == false) {
+                TTF_SetFontStyle(font_, TTF_STYLE_NORMAL);
+            } else if(under_ == true) {
+                cursor_shown = true;
+                TTF_SetFontStyle(font_, TTF_STYLE_UNDERLINE);
+            }
             SDL_Surface *surf = TTF_RenderText_Solid(font_, text_.c_str(), color_);
             if(surf == nullptr) {
                 std::cerr << "MasterX System: Error creating surface.\n";
                 exit(EXIT_FAILURE);
             }
-
-
             int sw = surf->w;
             int sh = surf->h;
-
+            w = sw;
+            h = sh;
             SDL_Texture *t = SDL_CreateTextureFromSurface(app.ren, surf);
             if(t == nullptr) {
                 std::cerr << "MasterX System: Error creating texture.\n";
                 exit(EXIT_FAILURE);
             }
-
             SDL_FreeSurface(surf);
             SDL_SetRenderTarget(app.ren, app.tex);
             SDL_Rect point = {x+wx,y+wy+25,sw,sh};
             SDL_RenderCopy(app.ren, t, nullptr, &point);
         }
+    }
 
+    void Label::linkMode(bool m) {
+        mode = m;
     }
 
     void Label::create(const std::string &text, SDL_Color col, int xx, int yy) {
@@ -586,6 +597,22 @@ int  SystemBar::getCurrentDimension() const {
     }
 
     bool Label::event(mxApp &app, SDL_Event &e) {
+
+        if(e.type == SDL_MOUSEMOTION) {
+            int mx = e.motion.x;
+            int my = e.motion.y;
+            SDL_Rect rc = {x+wx, y+wy+25, w, h };
+            SDL_Point cp = { mx, my };
+            if(SDL_PointInRect(&cp, &rc)) {
+                cursor_shown = true;
+                under_ = true;
+                return true;
+            } else {
+                under_ = false;
+            }
+        }
+
+
         return false;
     }
 
@@ -868,11 +895,26 @@ int  SystemBar::getCurrentDimension() const {
         welcome_label = dynamic_cast<Label *>(welcome_window->children[0].get());
         welcome_label->create("Hello World!", {0,0,255}, 25, 25);
         welcome_label->loadFont("fonts/arial.ttf", 14);
+        welcome_label->linkMode(true);
+
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         about = dynamic_cast<DimensionContainer *>(dimensions[1].get());
         about->init("About", loadTexture(app, "images/about.bmp"));
         about->setActive(false);
         about->setVisible(false);
+
+        dimensions.push_back(std::make_unique<DimensionContainer>(app));
+        term = dynamic_cast<DimensionContainer *>(dimensions[2].get());
+        term->init("Terminal", loadTexture(app, "images/terminal.bmp"));
+        term->setActive(false);
+        term->setVisible(false);
+        system_bar->activateDimension(0);
+        system_bar->activateDimension(0);
+        term->objects.push_back(std::make_unique<Terminal>(app)); 
+        termx = dynamic_cast<Terminal*>(term->objects[0].get());
+        termx->create("mXTerm", 25, 25, 640, 480);
+        termx->show(true);
+
         system_bar->setDimensions(&dimensions);
         setCurrentDimension(0);
         system_bar->activateDimension(0);
@@ -930,7 +972,6 @@ int  SystemBar::getCurrentDimension() const {
     }
 
     void Dimension::draw(mxApp &app) {
-        
         cursor_shown = false;
         int cur = getCurrentDimension();
         if(cur >= 0 && cur < static_cast<int>(dimensions.size())) {

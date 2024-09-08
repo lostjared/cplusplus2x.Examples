@@ -8,7 +8,7 @@ CXXFLAGS = -std=c++20 -O2 -DFOR_WASM -s USE_SDL=2 -s USE_SDL_TTF=2
 OUTPUT = MasterX.html
 
 # Source files
-SOURCES = src/dimension.cpp src/main.cpp src/splash.cpp src/window.cpp
+SOURCES = src/dimension.cpp src/main.cpp src/splash.cpp src/window.cpp src/terminal.cpp
 
 # Preload assets
 PRELOAD = --preload-file assets
