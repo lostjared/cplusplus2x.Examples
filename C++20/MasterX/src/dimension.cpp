@@ -825,7 +825,7 @@ int  SystemBar::getCurrentDimension() const {
         welcome_window->children.push_back(std::make_unique<Label>(app));
         welcome_window->show(true);
         welcome_label = dynamic_cast<Label *>(welcome_window->children[0].get());
-        welcome_label->create("Hello World!", {0,0,255}, 25, 25);
+        welcome_label->create(welcome_window, "Hello World!", {0,0,255}, 25, 25);
         welcome_label->loadFont("fonts/arial.ttf", 14);
         welcome_label->linkMode(true);
 
@@ -839,6 +839,15 @@ int  SystemBar::getCurrentDimension() const {
 
         about_window->create("About", 45, 45, 800, 600);
         about_window->show(true);
+        about_window->children.push_back(std::make_unique<Button>(app));
+        about_window_ok = dynamic_cast<Button *>(about_window->children[0].get());
+
+        about_window_ok->create(about_window, "Ok", 800-110, 600-35, 100, 25);
+        about_window_ok->show(true);
+        about_window_ok->setCallback([](mxApp &app, Window *parent, SDL_Event &e) -> bool {
+            parent->show(false);
+            return false;
+        });
 
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         term = dynamic_cast<DimensionContainer *>(dimensions[2].get());

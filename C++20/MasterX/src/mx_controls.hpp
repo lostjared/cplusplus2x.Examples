@@ -12,7 +12,7 @@ namespace mx {
         virtual void draw(mxApp &app) override;
         virtual void setWindowPos(int xx, int yy) override;
         virtual bool event(mxApp &app, SDL_Event &e) override;
-        void create(const std::string &text, SDL_Color col, int x, int y);
+        void create(Window *parent, const std::string &text, SDL_Color col, int x, int y);
         void loadFont(const std::string &name, int size);
         void setText(const std::string  &text, SDL_Color color);
         void setGeometry(int xx, int yy);
@@ -29,6 +29,8 @@ namespace mx {
         bool under_ = false;
     };
 
+    
+
     class Button : public Control {
     public:
         Button(mxApp &app);
@@ -36,13 +38,14 @@ namespace mx {
         virtual void draw(mxApp &app) override;
         virtual void setWindowPos(int xx, int yy) override;
         virtual bool event(mxApp &app, SDL_Event &e) override;
-        void create(const std::string &text, int x, int y, int w, int h);
+        void create(Window *parent, const std::string &text, int x, int y, int w, int h);
         void setText(const std::string &t);
         void setGeometry(int xx, int yy, int ww, int hh);
         void show(bool v);
-    private:
+     private:
         std::string text;
         int x, y, w, h;
+        int wx, wy;
         bool visible;
         bool hover;
         bool pressed;

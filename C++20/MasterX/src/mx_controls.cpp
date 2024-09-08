@@ -4,7 +4,8 @@ namespace mx {
 
        Label::Label(mxApp &app)
         : font_(nullptr), name_(""), text_(""), x(0), y(0), size_(0), wx(0), wy(0), w(0), h(0) {
-    }
+            parent = nullptr;
+        }
 
     Label::~Label() {
     }
@@ -47,9 +48,10 @@ namespace mx {
         mode = m;
     }
 
-    void Label::create(const std::string &text, SDL_Color col, int xx, int yy) {
+    void Label::create(Window *parent, const std::string &text, SDL_Color col, int xx, int yy) {
         setText(text, col);
         setGeometry(xx, yy);
+        this->parent = parent;
     }
 
     bool Label::event(mxApp &app, SDL_Event &e) {
@@ -93,7 +95,7 @@ namespace mx {
     }
 
     Button::Button(mxApp &app) 
-        : x(0), y(0), w(0), h(0), visible(true), hover(false), pressed(false) {
+        : x(0), y(0), w(0), h(0),wx(0), wy(0), visible(true), hover(false), pressed(false) {
         fgColor = { 200, 200, 200, 255 };  
         bgColor = { 240, 240, 240, 255 };  
         hover_fg = { 180, 180, 180, 255 };  
@@ -101,6 +103,7 @@ namespace mx {
         pressed_fg = { 120, 120, 120, 255 };  
         pressed_bg = { 200, 200, 200, 255 };  
         textColor = { 0, 0, 0, 255 };        
+        parent = nullptr;
     }
 
     Button::~Button() {}
@@ -108,8 +111,9 @@ namespace mx {
     void Button::draw(mxApp &app) {
         if (!visible) return;
 
+
         SDL_Renderer* renderer = app.ren;
-        SDL_Rect rect = { x, y, w, h };
+        SDL_Rect rect = { x+wx, y+wy, w, h };
         
         SDL_Color topLeftColor = fgColor;
         SDL_Color bottomRightColor = { 100, 100, 100, 255 };  
@@ -126,14 +130,16 @@ namespace mx {
         
         SDL_RenderFillRect(renderer, &rect);
         
+        int cx = x + wx;
+        int cy = y + wy;
         
         SDL_SetRenderDrawColor(renderer, topLeftColor.r, topLeftColor.g, topLeftColor.b, topLeftColor.a);
-        SDL_RenderDrawLine(renderer, x, y, x + w - 1, y);  
-        SDL_RenderDrawLine(renderer, x, y, x, y + h - 1);  
+        SDL_RenderDrawLine(renderer, cx, cy, cx + w - 1, cy);  
+        SDL_RenderDrawLine(renderer, cx, cy, cx, cy + h - 1);  
         
         SDL_SetRenderDrawColor(renderer, bottomRightColor.r, bottomRightColor.g, bottomRightColor.b, bottomRightColor.a);
-        SDL_RenderDrawLine(renderer, x + w - 1, y, x + w - 1, y + h - 1);  
-        SDL_RenderDrawLine(renderer, x, y + h - 1, x + w - 1, y + h - 1);  
+        SDL_RenderDrawLine(renderer, cx + w - 1, cy, cx + w - 1, cy + h - 1);  
+        SDL_RenderDrawLine(renderer, cx, cy + h - 1, cx + w - 1, cy + h - 1);  
 
         if (app.font) {
             SDL_Surface* surface = TTF_RenderText_Blended(app.font, text.c_str(), textColor);
@@ -141,7 +147,7 @@ namespace mx {
 
             int text_width = surface->w;
             int text_height = surface->h;
-            SDL_Rect dstrect = { x + (w - text_width) / 2, y + (h - text_height) / 2, text_width, text_height };
+            SDL_Rect dstrect = { cx + (w - text_width) / 2, cy + (h - text_height) / 2, text_width, text_height };
 
             SDL_RenderCopy(renderer, texture, nullptr, &dstrect);
 
@@ -151,30 +157,38 @@ namespace mx {
     }
 
     void Button::setWindowPos(int xx, int yy) {
-        x = xx;
-        y = yy;
+        wx = xx;
+        wy = yy;
     }
 
     bool Button::event(mxApp &app, SDL_Event &e) {
+
+        int cx = x + wx;
+        int cy = y + wy;
+
         if (e.type == SDL_MOUSEMOTION) {
             int mouseX = e.motion.x;
             int mouseY = e.motion.y;
-            hover = (mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h);
+            hover = (mouseX >= cx && mouseX <= cx + w && mouseY >= cy && mouseY <= cy + h);
         }
 
         if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
             int mouseX = e.button.x;
             int mouseY = e.button.y;
-            if (mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h) {
+            if (mouseX >= cx && mouseX <= cx + w && mouseY >= cy && mouseY <= cy + h) {
                 pressed = true;
+              
             }
         }
 
         if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
             int mouseX = e.button.x;
             int mouseY = e.button.y;
-            if (pressed && mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h) {
+            if (pressed && mouseX >= cx && mouseX <= cx + w && mouseY >= cy && mouseY <= cy + h) {
                 pressed = false;
+                if(callback && parent) {
+                    return callback(app, parent, e);
+                }
                 return true;  
             }
             pressed = false;
@@ -183,12 +197,13 @@ namespace mx {
         return false;
     }
 
-    void Button::create(const std::string &text, int x, int y, int w, int h) {
+    void Button::create(Window *parent, const std::string &text, int x, int y, int w, int h) {
         this->text = text;
         this->x = x;
         this->y = y;
         this->w = w;
         this->h = h;
+        this->parent = parent;
     }
 
     void Button::setText(const std::string &t) {

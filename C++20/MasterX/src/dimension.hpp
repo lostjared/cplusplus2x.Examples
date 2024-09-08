@@ -59,10 +59,19 @@ namespace mx {
         std::vector<int> activeDimensionsStack;
     };
 
+    class Window;
+    using EventCallback = bool (*)(mxApp &app, Window *window, SDL_Event &e);
+    
     class Control : public Screen {
     public:
         virtual ~Control() = default;
-        virtual void setWindowPos(int x, int y) = 0;  
+        virtual void setWindowPos(int x, int y) = 0;
+        
+        template<typename F>
+        void setCallback(F callb) { callback = callb; }  
+        
+        Window *parent = nullptr;
+        EventCallback callback = nullptr;
     };
 
     class Window : public Screen {
