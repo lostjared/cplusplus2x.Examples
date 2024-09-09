@@ -705,6 +705,15 @@ int  SystemBar::getCurrentDimension() const {
 
         if(shown == false) return false;
 
+        if (e.type == SDL_WINDOWEVENT) {
+            if (e.window.event == SDL_WINDOWEVENT_LEAVE) {
+                minimizeHovered = SDL_FALSE;
+                closeHovered = SDL_FALSE;
+                maximizeHovered = SDL_FALSE;
+                return false;
+            }
+        }
+
         if (e.type == SDL_MOUSEMOTION) {
             SDL_Point mousePoint = {e.motion.x, e.motion.y};
             minimizeHovered = SDL_PointInRect(&mousePoint, &minimizeButton);
