@@ -10,6 +10,7 @@ namespace mx {
         Terminal(mxApp  &app);
         void draw(mxApp  &app);
         bool event(mxApp &app, SDL_Event  &e);
+        void print(const std::string &s);
       private:
         std::string inputText;
         std::vector<std::string> outputLines;
@@ -20,6 +21,10 @@ namespace mx {
         std::vector<std::string> splitText(const std::string &text);
         int scrollOffset = 0; 
         int maxVisibleLines = 10; 
+        bool showCursor = true;
+        Uint32 cursorTimer = 0, cursorBlinkInterval = 100;  
+        SDL_Color text_color;
+
     };
 
 

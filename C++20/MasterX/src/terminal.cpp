@@ -1,10 +1,14 @@
 #include"terminal.hpp"
 #include<sstream>
 #include<algorithm>
-  
+#include<iostream>
+
 namespace mx {
 
-    Terminal::Terminal(mxApp  &app) : Window(app) {}
+    Terminal::Terminal(mxApp  &app) : Window(app) {
+        print("MasterX System - Logged in...");
+        text_color = { 255, 255, 255 };
+    }
 
     void Terminal::draw(mxApp &app) {
         Window::draw(app);
@@ -31,12 +35,27 @@ namespace mx {
         for (int i = scrollOffset; i < static_cast<int>(outputLines.size()) && i < scrollOffset + maxVisibleLines; ++i) {
             renderTextWrapped(app, outputLines[i], rc.x + 5, y, maxWidth);
         }
-        renderTextWrapped(app, "=)> " + inputText, rc.x + 5, y, maxWidth);
+        renderTextWrapped(app, "$ " + inputText, rc.x + 5, y, maxWidth);
+
+        
+        Uint32 currentTime = SDL_GetTicks();
+        if (currentTime - cursorTimer >= cursorBlinkInterval) {
+            showCursor = !showCursor;
+            cursorTimer = currentTime;
+        }
+
+        
+        if (showCursor) {
+            int textWidth, textHeight;
+            TTF_SizeText(app.font, ("$ " + inputText).c_str(), &textWidth, &textHeight);
+            int cursorY = y - lineHeight;  
+           SDL_SetRenderDrawColor(app.ren, text_color.r, text_color.g, text_color.b, 255);  
+           SDL_RenderDrawLine(app.ren, rc.x + 5 + textWidth, cursorY + textHeight - 2, rc.x + 5 + textWidth + 10, cursorY + textHeight - 2);
+        }
     }
 
     void Terminal::renderText(mxApp &app, const std::string &text, int x, int y) {
-        SDL_Color color = {255, 255, 255}; 
-        SDL_Surface* surface = TTF_RenderText_Solid(app.font, text.c_str(), color);
+        SDL_Surface* surface = TTF_RenderText_Solid(app.font, text.c_str(), text_color);
         SDL_Texture* texture = SDL_CreateTextureFromSurface(app.ren, surface);
 
         SDL_Rect dstRect = {x, y, surface->w, surface->h};
@@ -154,20 +173,40 @@ namespace mx {
     }
 
     void Terminal::processCommand(mxApp &app, const std::string &command) {
-        outputLines.push_back("=)> " + command);
+        outputLines.push_back("$ " + command);
+
+        std::vector<std::string> words;
+        words = splitText(command);
 
         if (command == "clear") {
             outputLines.clear();
             scrollOffset = 0; 
+        } else if(words.size()>0 && words[0] == "settextcolor") {
+            if(words.size()==4) {
+                int r = atoi(words[1].c_str());
+                int g = atoi(words[2].c_str());
+                int b = atoi(words[3].c_str());
+                text_color.r = r;
+                text_color.g = g;
+                text_color.b = b;
+                text_color.a = 255;
+                print("MasterX System: Terminal color set.");
+            }
         } else if(command == "about") {
-            outputLines.push_back("MasterX written by Jared Bruni");
-            outputLines.push_back("(C) 2024 LostSideDead Software");
-            outputLines.push_back("site: lostsidedead.biz");
+            print("MasterX System - written by Jared Bruni\n(c) 2024 LostSideDead Software\nsite: lostsidedead.biz");
         } else {
             int totalLines = static_cast<int>(outputLines.size());
             if (totalLines > maxVisibleLines) {
                 scrollOffset = totalLines - maxVisibleLines;
             }
+        }
+    }
+
+    void Terminal::print(const std::string &s) {
+        std::istringstream stream(s);
+        std::string line;
+        while(std::getline(stream, line)) {
+            outputLines.push_back(line);
         }
     }
 }
