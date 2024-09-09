@@ -48,13 +48,14 @@ namespace mx {
         void addMinimizedWindow(Window *win);
         void performAction(int action);
         void restoreWindow(Window *window);
+        void drawMinimizedMenu(mxApp &app, int button_x, int button_y, int button_width);
         friend class Window;
     private:
-        bool holdingDimension;
-        bool showMinimizedMenu;
-        Uint32 holdStartTime;
-        int yPos;
-        bool animationComplete;
+        bool holdingDimension = false;
+        bool showMinimizedMenu = false;
+        Uint32 holdStartTime = 0;
+        int yPos = 0;
+        bool animationComplete = false;
         TTF_Font  *font;
         SDL_Color start_bg;
         bool isHovering = false;
@@ -63,7 +64,6 @@ namespace mx {
         MenuBar *menu;
         int cur_dim = 0;
         int prev_dim = 0;
-
         void drawDimensions(mxApp &app);
         std::vector<int> activeDimensionsStack;
         std::vector<Window *> minimizedWindows;
@@ -128,7 +128,7 @@ namespace mx {
         bool isMinimizing = false;
         int minTargetX = 0, minTargetY = 0;  
         int minTargetW = 0, minTargetH = 0;  
-        int minAnimationStep = 5;   
+        int minAnimationStep = 1;   
         int restoreAnimationStep = 5;
         int originalX;    
         int originalY;    
@@ -157,6 +157,7 @@ namespace mx {
         virtual void draw(mxApp &app) override;
         virtual bool event(mxApp &app, SDL_Event &e) override;
         std::vector<std::unique_ptr<Screen>> objects;
+        std::vector<Window *> mini_win;
         void setActive(bool a);
         bool isActive() const;
         void setVisible(bool v);
