@@ -9,6 +9,7 @@ namespace mx {
         print("MasterX System - Logged in...");
         text_color = { 255, 255, 255 };
         font = app.font;
+        Window::setCanResize(true);
     }
 
     void Terminal::draw(mxApp &app) {
