@@ -31,6 +31,8 @@ namespace mx {
         SDL_Color white;
     };
 
+    class Window;
+
     class SystemBar : public Screen {
     public:
         SystemBar(mxApp &app);
@@ -43,9 +45,14 @@ namespace mx {
         void activateDimension(int dim);
         void deactivateDimension(int dim);
         bool empty() const;
-    
+        void addMinimizedWindow(Window *win);
         void performAction(int action);
+        void restoreWindow(Window *window);
+        friend class Window;
     private:
+        bool holdingDimension;
+        bool showMinimizedMenu;
+        Uint32 holdStartTime;
         int yPos;
         bool animationComplete;
         TTF_Font  *font;
@@ -59,9 +66,10 @@ namespace mx {
 
         void drawDimensions(mxApp &app);
         std::vector<int> activeDimensionsStack;
+        std::vector<Window *> minimizedWindows;
+     
     };
 
-    class Window;
     using EventCallback = bool (*)(mxApp &app, Window *window, SDL_Event &e);
     using ResizeCallback = std::function<void(Window*, int, int)>;
 
@@ -75,14 +83,16 @@ namespace mx {
         void setCallback(F callb) { callback = callb; }  
         template<typename F>
         void setResizeCallback(F callb) { rcallback = callb; }
-        
         Window *parent = nullptr;
         EventCallback callback = nullptr;
         ResizeCallback rcallback = nullptr;
+        bool show = true;
+        void setShow(bool s) { show = s; }
     };
 
     class Window : public Screen {
     public:
+        friend class SystemBar;
         Window(mxApp &app);
         virtual ~Window();
         virtual void draw(mxApp &app) override;
@@ -101,11 +111,11 @@ namespace mx {
         void setReload(bool r);
         void setCanResize(bool r);
         bool canResize() const;
-        
+        void setSystemBar(SystemBar *s);
+        SystemBar *systemBar = nullptr;
     private:
         int x,y,w,h;
         int dim_w = 0, dim_h = 0;
-        std::string title = "Window";
         bool shown = false;
         bool minimized = false;
         bool maximized = false;
@@ -115,10 +125,26 @@ namespace mx {
         bool is_visible = true;
         bool reload_window = false;
         bool can_resize = false;
+        bool isMinimizing = false;
+        int minTargetX = 0, minTargetY = 0;  
+        int minTargetW = 0, minTargetH = 0;  
+        int minAnimationStep = 5;   
+        int restoreAnimationStep = 5;
+        int originalX;    
+        int originalY;    
+        int originalWidth;  
+        int originalHeight; 
+        bool isRestoring = false;
+        int restoreTargetX; 
+        int restoreTargetY; 
+        int restoreTargetW;  
+        int restoreTargetH;
+        int orig_x = 0, orig_y = 0;
     public:
         std::vector<std::unique_ptr<Control>> children;
         SDL_Rect minimizeButton, closeButton, maximizeButton;
         SDL_bool minimizeHovered, closeHovered, maximizeHovered;
+        std::string title = "Window";
     };
 
   

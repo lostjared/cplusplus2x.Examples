@@ -16,6 +16,11 @@ namespace mx {
     }
 
     void Label::draw(mxApp &app) {
+
+        if(!show)
+            return;
+
+
         if(font_ != nullptr && text_.length() > 0 && multi_lined == false) {
             if(mode == false || under_ == false) {
                 TTF_SetFontStyle(font_, TTF_STYLE_NORMAL);
@@ -96,6 +101,8 @@ namespace mx {
 
     bool Label::event(mxApp &app, SDL_Event &e) {
 
+        if(!show) return false;
+
         if(e.type == SDL_MOUSEMOTION) {
             int mx = e.motion.x;
             int my = e.motion.y;
@@ -139,7 +146,7 @@ namespace mx {
     }
 
     Button::Button(mxApp &app) 
-        : x(0), y(0), w(0), h(0),wx(0), wy(0), visible(true), hover(false), pressed(false) {
+        : x(0), y(0), w(0), h(0),wx(0), wy(0), hover(false), pressed(false) {
         fgColor = { 200, 200, 200, 255 };  
         bgColor = { 240, 240, 240, 255 };  
         hover_fg = { 180, 180, 180, 255 };  
@@ -153,8 +160,7 @@ namespace mx {
     Button::~Button() {}
 
     void Button::draw(mxApp &app) {
-        if (!visible) return;
-
+        if (!show) return;
 
         SDL_Renderer* renderer = app.ren;
         SDL_Rect rect = { x+wx, y+wy, w, h };
@@ -260,17 +266,14 @@ namespace mx {
         w = ww;
         h = hh;
     }
-    void Button::show(bool v) {
-        visible = v;
-    }
-
+ 
     void Button::resizeWindow(int w, int h) {
         if(rcallback && parent) {
             rcallback(parent, w, h);
         }
     }
 
-    Image::Image(mxApp &app) : x(0), y(0), w(0), h(0), visible(true), image(nullptr) {
+    Image::Image(mxApp &app) : x(0), y(0), w(0), h(0), image(nullptr) {
 
     }
 
@@ -287,7 +290,7 @@ namespace mx {
 
     void Image::draw(mxApp &app) {
 
-        if(visible == false)
+        if(!show)
             return;
 
         if(image) {
@@ -304,12 +307,12 @@ namespace mx {
     void Image::getRect(SDL_Rect &rc) {
         rc.x = x;
         rc.y = y;
-        rc.w = sw;
-        rc.h = sh;
+        rc.w = w;
+        rc.h = h;
     }
 
     bool Image::event(mxApp &app, SDL_Event &e) {
-        if(visible == false)
+        if(show == false)
             return false;
         int cx = x + wx;
         int cy = y + wy;
@@ -329,8 +332,10 @@ namespace mx {
     void Image::create(mxApp &app, Window *window, const std::string &path, int x, int y) {
         image = loadTexture(app, path, sw, sh);
         parent= window;
-        w = 0;
-        h = 0;
+        this->x = x;
+        this->y = y;
+        w = sw;
+        h = sh;
     }
 
     void Image::setSourceRect(int x, int y, int w, int h) {
@@ -341,22 +346,14 @@ namespace mx {
         use_rect = true;
     }
 
-    void Image::setGeometry(int x, int y, std::optional<int> w, std::optional<int> h) {
+    void Image::setGeometry(int x, int y, int w, int h) {
         this->x = x;
         this->y = y;
-        if(w.has_value()) {
-            this->w = w.value();
-        } else {
-            this->w = 0;
-        }
-        if(h.has_value()) {
-            this->h = h.value();
-        } else {
-            this-> h = 0;
-        }
+        this->w = w;
+        this->h = h;
     }    
 
     void Image::resizeWindow(int w, int h) {
-        setGeometry(x, y, w-10, h-35);  
+        setGeometry(x, y, w, h);  
     }
 }

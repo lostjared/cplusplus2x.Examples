@@ -28,6 +28,25 @@ namespace mx {
     SystemBar::~SystemBar() {
     }
 
+    void SystemBar::addMinimizedWindow(Window *window) {
+            minimizedWindows.push_back(window);
+    }
+
+    void SystemBar::restoreWindow(Window *window) {
+        if (window->minimized) {
+            window->isMinimizing = false;  
+            window->minimized = false;   
+            window->restoreTargetX = window->originalX; 
+            window->restoreTargetY = window->originalY; 
+            window->restoreTargetW = window->originalWidth; 
+            window->restoreTargetH = window->originalHeight; 
+            window->restoreAnimationStep = 10; 
+            window->isRestoring = true;
+        }
+
+
+    }
+
     void SystemBar::setDimensions(std::vector<std::unique_ptr<Screen>> *dim) {
         dimensions = dim;
     }
@@ -252,7 +271,7 @@ namespace mx {
                             activeIndex++;
                             SDL_Rect closeButtonRect = {button_x + button_width - square_size - 5, button_y + (button_height - square_size) / 2, square_size, square_size};
                             SDL_Point cur_point { mouseX, mouseY };
-                        if (SDL_PointInRect(&cur_point, &closeButtonRect)) {
+                        if (con->name != "Dashboard" && SDL_PointInRect(&cur_point, &closeButtonRect)) {
                             con->hoveringX = true; 
                         } else {
                             con->hoveringX = false;
@@ -281,6 +300,21 @@ namespace mx {
             return true;
         }
 
+
+        if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
+            if (holdingDimension) {
+                Uint32 holdTime = SDL_GetTicks() - holdStartTime;
+                
+                if (holdTime > 500) { 
+                    showMinimizedMenu = true;  
+                }
+
+                holdingDimension = false;  
+                return true;
+            }
+        }
+
+            
         if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
             int mouseX = e.button.x;
             int mouseY = e.button.y;
@@ -565,7 +599,7 @@ namespace mx {
 
  
 
-    Window::Window(mxApp &app) : x{0}, y{0}, w{320}, h{240}, title{"windwow"}, shown{false}, minimizeHovered(SDL_FALSE), closeHovered(SDL_FALSE), maximizeHovered(SDL_FALSE) {
+    Window::Window(mxApp &app) : x{0}, y{0}, w{320}, h{240}, shown{false}, minimizeHovered(SDL_FALSE), closeHovered(SDL_FALSE), maximizeHovered(SDL_FALSE), title{"windwow"} {
         dim_w = app.width;
         dim_h = app.height;
     }
@@ -574,19 +608,71 @@ namespace mx {
         std::cout << "MasterX: Releasing Window: " << title << "\n";
     }
 
+
     void Window::create(const std::string &n, const int xx, const int yy, const int ww, const int hh) {
         title = n;
         x = xx;
         y = yy;
         w = ww;
         h = hh;
+        orig_x = x;
+        orig_y = y;
     }
 
 
     void Window::draw(mxApp &app) {
+      
+        if(shown == false) return;
 
-        if(shown == false)
-            return;
+        if (isMinimizing) {
+            x += (minTargetX - x) / minAnimationStep;
+            y += (minTargetY - y) / minAnimationStep;
+            w += (minTargetW - w) / minAnimationStep;
+            h += (minTargetH - h) / minAnimationStep;
+
+            if (abs(x - minTargetX) < 1 && abs(y - minTargetY) < 1 && 
+                abs(w - minTargetW) < 1 && abs(h - minTargetH) < 1) {
+                isMinimizing = false;
+                minimized = true;
+                minimizeHovered = SDL_FALSE;
+                maximizeHovered = SDL_FALSE;
+                closeHovered = SDL_FALSE;                                       
+
+            }
+        }
+
+        if (isRestoring) {
+            
+            x += (restoreTargetX - x) / restoreAnimationStep;
+            y += (restoreTargetY - y) / restoreAnimationStep;
+            w += (restoreTargetW - w) / restoreAnimationStep;
+            h += (restoreTargetH - h) / restoreAnimationStep;
+
+            if (abs(x - restoreTargetX) < 1 && abs(y - restoreTargetY) < 1 && 
+                abs(w - restoreTargetW) < 1 && abs(h - restoreTargetH) < 1) {
+                x = restoreTargetX;
+                y = restoreTargetY;
+                w = restoreTargetW;
+                h = restoreTargetH;
+                isRestoring = false;
+                minimized = false;
+                minimizeHovered = SDL_FALSE;
+                maximizeHovered = SDL_FALSE;
+                closeHovered = SDL_FALSE;
+
+                for(auto &c : children) {
+                    c->setWindowPos(x, y);
+                    c->resizeWindow(w, h);
+                }
+            }
+            
+                x = restoreTargetX;
+                y = restoreTargetY;
+                w = restoreTargetW;
+                h = restoreTargetH;
+                isRestoring = false;
+                dragging = true; 
+        }
 
         SDL_Rect rc = {x, y, w, h};
         SDL_SetRenderDrawColor(app.ren, 205, 205, 205, 255);
@@ -724,33 +810,29 @@ namespace mx {
         w = rc.w;
         h = rc.h;
     }
-    bool Window::event(mxApp &app, SDL_Event &e) {
-
-        if(shown == false) return false;
-
-        if (e.type == SDL_WINDOWEVENT) {
-            if (e.window.event == SDL_WINDOWEVENT_LEAVE) {
-                minimizeHovered = SDL_FALSE;
-                closeHovered = SDL_FALSE;
-                maximizeHovered = SDL_FALSE;
-                return false;
-            }
-        }
-
+   bool Window::event(mxApp &app, SDL_Event &e) {
+        
+        static Uint32 lastClickTime = 0;   
         if (e.type == SDL_MOUSEMOTION) {
             SDL_Point mousePoint = {e.motion.x, e.motion.y};
             minimizeHovered = SDL_PointInRect(&mousePoint, &minimizeButton);
             closeHovered = SDL_PointInRect(&mousePoint, &closeButton);
             maximizeHovered = SDL_PointInRect(&mousePoint, &maximizeButton);
             if (dragging) {
-                if(e.motion.y > 0) {
-                    x = e.motion.x - dragOffsetX;
-                    y = e.motion.y - dragOffsetY;
-                }
-            }
-        } else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
+                    if (e.motion.y > 0) {
+                        x = e.motion.x - dragOffsetX;
+                        y = e.motion.y - dragOffsetY;
+                        isMinimizing = false;
+                        isRestoring = false;
+                        return true;
+                    }
+            }          
+        } 
+        
+        if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
             SDL_Point mousePoint = {e.button.x, e.button.y};
             SDL_Rect titleBarRect = {x, y, w, 30};
+
             if (SDL_PointInRect(&mousePoint, &titleBarRect) &&
                 !SDL_PointInRect(&mousePoint, &minimizeButton) &&
                 !SDL_PointInRect(&mousePoint, &closeButton)) {
@@ -758,31 +840,83 @@ namespace mx {
                 dragOffsetX = e.button.x - x;
                 dragOffsetY = e.button.y - y;
             }
+
             if (SDL_PointInRect(&mousePoint, &closeButton)) {
                 show(false);
-                return true;  
             }
+
             if (SDL_PointInRect(&mousePoint, &minimizeButton)) {
-                minimize(true);  
-                return true;
+                if (!minimized) {
+                    minimize(true);
+                    if (systemBar) systemBar->addMinimizedWindow(this);
+                    minimizeHovered = SDL_FALSE;
+                } else {
+                    minimize(false);
+                    if (systemBar) systemBar->restoreWindow(this);
+                    minimizeHovered = SDL_FALSE;
+                }
             }
-            if (SDL_PointInRect(&mousePoint, &maximizeButton)) {
-               maximize(!maximized);  
-               if(can_resize) {
-                    for(auto &c : children) {
-                        c->resizeWindow(w, h);
+                
+            if (canResize() == true && minimized == false && SDL_PointInRect(&mousePoint, &maximizeButton)) {
+
+                maximize(!maximized);
+                shown = true;
+                if (can_resize) {
+                    for (auto &c : children) {
+                        if(c->show) {
+                            c->setWindowPos(x,y);
+                            c->resizeWindow(w, h);
+                        }
                     }
-               }
-               return true;
+                }
             }
-        } else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
+        } 
+        
+        
+        if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
             dragging = false;
+            isMinimizing = false;
+            isRestoring = false;
         }
-        for(auto &c : children) {
-            if(c->event(app, e))
-                return true;
+
+        if (!shown || minimized) {
+            
+            if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
+                Uint32 currentTime = SDL_GetTicks();  
+                SDL_Point mousePoint = {e.button.x, e.button.y};
+                SDL_Rect titleBarRect = {x, y, w, 30};  
+                if (SDL_PointInRect(&mousePoint, &titleBarRect)) {
+                    if (currentTime - lastClickTime < 500) {  
+                        if (minimized) {
+                            minimize(false);  
+                            if (systemBar) systemBar->restoreWindow(this);
+                            return true;
+                        }
+                    }       
+                    lastClickTime = currentTime;
+                }
+            }
+            return false;
         }
+
+        if (e.type == SDL_WINDOWEVENT) {
+            if (e.window.event == SDL_WINDOWEVENT_LEAVE) {
+                minimizeHovered = SDL_FALSE;
+                closeHovered = SDL_FALSE;
+                maximizeHovered = SDL_FALSE;
+            }
+        }
+
+        for (auto &c : children) {
+            if (c->event(app, e)) return true;
+        }
+     
+      
         return false;
+    }
+
+    void Window::setSystemBar(SystemBar *s) {
+        systemBar = s;
     }
 
     Control *Window::getControl() {
@@ -799,7 +933,42 @@ namespace mx {
     }
 
     void Window::minimize(bool m) {
-        minimized = m;
+        if (m) {
+           if (!minimized) {  
+                originalX = x;
+                originalY = y;
+                originalWidth = w;
+                originalHeight = h;
+            }
+            isMinimizing = true;
+            minimized = true;
+            minTargetX = 5;  
+            minTargetY = systemBar->yPos - 50;
+            minTargetW = 200;  
+            minTargetH = 5; 
+            originalX = x;
+            originalY = y;  
+            originalWidth = w;
+            originalHeight = h;
+            if(isVisible()) {  
+                for (auto &c : children) {
+                    c->setShow(false);  
+                }
+            }
+        } else if (!m && minimized) {
+            minimized = false;
+            isRestoring = true;
+            restoreTargetX = originalX;
+            restoreTargetY = originalY;
+            restoreTargetW = originalWidth;
+            restoreTargetH = originalHeight;
+            shown = true;
+            if(isVisible()) {
+                for (auto &c : children) {
+                    c->setShow(true);  
+                }
+            }
+        }
         stateChanged(m, false, false);
     }
 
@@ -951,29 +1120,29 @@ namespace mx {
         welcome_window = dynamic_cast<Window *>(welcome->objects[0].get());
         welcome_window->create("Welcome", 45, 25, 640, 480);
         welcome_window->show(true);
-        welcome_window->setReload(true);
+        welcome_window->setReload(false);
         welcome_window->setCanResize(true);
         welcome_window->children.push_back(std::make_unique<Image>(app));
         welcome_image = dynamic_cast<Image *>(welcome_window->getControl());
         welcome_image->create(app, welcome_window, "images/welcome_logo.bmp", 45, 45);
-        welcome_image->setGeometry(5, 5, std::nullopt, std::nullopt);
-        SDL_Rect i_rc;
-        welcome_image->getRect(i_rc);
-        i_rc.w += 10;
-        i_rc.h += 35;
-        welcome_window->setRect(i_rc);
+        welcome_image->setGeometry(5, 5, 640-10, 480-35);
         welcome_window->children.push_back(std::make_unique<Button>(app));
         welcome_ok = dynamic_cast<Button *>(welcome_window->getControl());
+        SDL_Rect i_rc;
+        welcome_window->getRect(i_rc);
         welcome_ok->create(welcome_window, "Dismiss", i_rc.w-110, i_rc.h-35, 100, 25);
-        welcome_ok->show(true);
+        welcome_ok->setShow(true);
         welcome_ok->setCallback([](mxApp &app, Window *parent, SDL_Event &e) -> bool {
             parent->show(false);
             return true;
         });
         welcome_ok->setResizeCallback([&](Window *parent, int x, int y) -> void {
-            SDL_Rect rc;
+            SDL_Rect rc,src;
             parent->getRect(rc);
-            welcome_ok->setGeometry(rc.w - 110, rc.h - 40, 100, 25);
+            welcome_ok->setGeometry(rc.w - 110, rc.h - 40, 100, 30);
+            welcome_image->getRect(src);
+            welcome_image->setGeometry(src.x, src.y, rc.w-10, rc.h-35);    
+            welcome_image->setWindowPos(rc.x, rc.y);
         });
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         about = dynamic_cast<DimensionContainer *>(getDimension());
@@ -997,7 +1166,7 @@ namespace mx {
         about_window_ok = dynamic_cast<Button *>(about_window->getControl());
 
         about_window_ok->create(about_window, "Ok", 800-110, 600-35, 100, 25);
-        about_window_ok->show(true);
+        about_window_ok->setShow(true);
         about_window_ok->setCallback([](mxApp &app, Window *parent, SDL_Event &e) -> bool {
             parent->show(false);
             return false;
@@ -1008,8 +1177,7 @@ namespace mx {
         about_window_info->create_multi(about_window, info_text, { 255,255,255,255}, 25, 25 );
         about_window_info->loadFont("fonts/arial.ttf", 36);
         about_window_info->linkMode(false);
-        
-
+        about_window->setCanResize(false);
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         term = dynamic_cast<DimensionContainer *>(getDimension());
         term->init("Terminal", loadTexture(app, "images/terminal.bmp"));
@@ -1023,6 +1191,9 @@ namespace mx {
         termx->show(true);
         termx->setReload(true);
         system_bar->setDimensions(&dimensions);
+        welcome_window->setSystemBar(system_bar);
+        about_window->setSystemBar(system_bar);
+        termx->setSystemBar(system_bar);
         setCurrentDimension(1);
         system_bar->activateDimension(1);
         SDL_Surface *hand_cursor_surf = SDL_LoadBMP(getPath("images/hand.bmp").c_str());

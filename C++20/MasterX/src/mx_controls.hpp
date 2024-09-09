@@ -47,12 +47,10 @@ namespace mx {
         void create(Window *parent, const std::string &text, int x, int y, int w, int h);
         void setText(const std::string &t);
         void setGeometry(int xx, int yy, int ww, int hh);
-        void show(bool v);
      private:
         std::string text;
         int x, y, w, h;
         int wx, wy;
-        bool visible;
         bool hover;
         bool pressed;
         SDL_Color fgColor;
@@ -73,12 +71,11 @@ namespace mx {
         virtual void setWindowPos(int x, int y) override;
         virtual void resizeWindow(int w, int h) override;
         void create(mxApp &app, Window *parent, const std::string &path, int x, int y);
-        void setGeometry(int x, int y, std::optional<int> w, std::optional<int> h);
+        void setGeometry(int x, int y, int w, int h);
         void setSourceRect(int x, int y, int w, int h);
         void getRect(SDL_Rect &rc);
     private:
         int x, y, w, h;
-        bool visible;
         SDL_Texture *image;
         int sw = 0, sh = 0;
         int wx = 0, wy = 0;

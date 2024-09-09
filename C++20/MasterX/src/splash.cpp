@@ -21,7 +21,7 @@ namespace mx {
     }
 
     Splash::~Splash() {
-        std::cout << "Releasing Splash..\n";
+        std::cout << "MasterX: Releasing Splash..\n";
         SDL_DestroyTexture(bg);
         //TTF_CloseFont(font);
     }
