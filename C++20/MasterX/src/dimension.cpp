@@ -99,33 +99,35 @@ namespace mx {
                     SDL_RenderCopy(app.ren, textTexture, nullptr, &textRect);
                     SDL_DestroyTexture(textTexture);
 
-                    int square_size = 20;
-                    int square_x = button_x + button_width - square_size - 5;
-                    int square_y = button_y + (button_height - square_size) / 2;
+                    if(dim->name != "Dashboard") {
+                        int square_size = 20;
+                        int square_x = button_x + button_width - square_size - 5;
+                        int square_y = button_y + (button_height - square_size) / 2;
 
-                    SDL_SetRenderDrawColor(app.ren, 200, 200, 200, 255);
-                    SDL_Rect closeButtonRect = {square_x, square_y, square_size, square_size};
-                    if (dim->hoveringX) {
-                        SDL_SetRenderDrawColor(app.ren, 0xBD, 0, 0, 255);  
-                        tcursor = true;
-                    } 
-                    SDL_RenderFillRect(app.ren, &closeButtonRect);
+                        SDL_SetRenderDrawColor(app.ren, 200, 200, 200, 255);
+                        SDL_Rect closeButtonRect = {square_x, square_y, square_size, square_size};
+                        if (dim->hoveringX) {
+                            SDL_SetRenderDrawColor(app.ren, 0xBD, 0, 0, 255);  
+                            tcursor = true;
+                        } 
+                        SDL_RenderFillRect(app.ren, &closeButtonRect);
 
-                    SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
-                    SDL_RenderDrawRect(app.ren, &closeButtonRect);
+                        SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
+                        SDL_RenderDrawRect(app.ren, &closeButtonRect);
 
-                    
-                    SDL_Color black = {0, 0, 0, 255};
-                    SDL_Surface* xSurface = TTF_RenderText_Solid(font, "X", black);
-                    if (xSurface != nullptr) {
-                        SDL_Texture* xTexture = SDL_CreateTextureFromSurface(app.ren, xSurface);
-                        int x_width = xSurface->w;
-                        int x_height = xSurface->h;
-                        SDL_FreeSurface(xSurface);
+                        
+                        SDL_Color black = {0, 0, 0, 255};
+                        SDL_Surface* xSurface = TTF_RenderText_Solid(font, "X", black);
+                        if (xSurface != nullptr) {
+                            SDL_Texture* xTexture = SDL_CreateTextureFromSurface(app.ren, xSurface);
+                            int x_width = xSurface->w;
+                            int x_height = xSurface->h;
+                            SDL_FreeSurface(xSurface);
 
-                        SDL_Rect xRect = {square_x + (square_size - x_width) / 2, square_y + (square_size - x_height) / 2, x_width, x_height};
-                        SDL_RenderCopy(app.ren, xTexture, nullptr, &xRect);
-                        SDL_DestroyTexture(xTexture);
+                            SDL_Rect xRect = {square_x + (square_size - x_width) / 2, square_y + (square_size - x_height) / 2, x_width, x_height};
+                            SDL_RenderCopy(app.ren, xTexture, nullptr, &xRect);
+                            SDL_DestroyTexture(xTexture);
+                        }
                     }
                 }
             }
@@ -317,7 +319,7 @@ namespace mx {
                         int square_size = 20;
                         SDL_Rect closeButtonRect = {button_x + button_width - square_size - 5, button_y + (button_height - square_size) / 2, square_size, square_size};
                         SDL_Point cur_point = { mouseX, mouseY };
-                        if (SDL_PointInRect(&cur_point, &closeButtonRect)) {
+                        if (con->name != "Dashboard" && SDL_PointInRect(&cur_point, &closeButtonRect)) {
                             con->setActive(false);  
                             if(i == getCurrentDimension()) {
                                 deactivateDimension(i);
