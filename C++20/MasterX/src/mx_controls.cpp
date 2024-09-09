@@ -264,6 +264,12 @@ namespace mx {
         visible = v;
     }
 
+    void Button::resizeWindow(int w, int h) {
+        if(rcallback && parent) {
+            rcallback(parent, w, h);
+        }
+    }
+
     Image::Image(mxApp &app) : x(0), y(0), w(0), h(0), visible(true), image(nullptr) {
 
     }
@@ -349,4 +355,8 @@ namespace mx {
             this-> h = 0;
         }
     }    
+
+    void Image::resizeWindow(int w, int h) {
+        setGeometry(x, y, w-10, h-35);  
+    }
 }

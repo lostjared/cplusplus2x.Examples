@@ -6,6 +6,8 @@
 #include<vector>
 #include<string>
 #include<iostream>
+#include<functional>
+
 namespace mx {
 
     extern bool cursor_shown;
@@ -61,17 +63,22 @@ namespace mx {
 
     class Window;
     using EventCallback = bool (*)(mxApp &app, Window *window, SDL_Event &e);
-    
+    using ResizeCallback = std::function<void(Window*, int, int)>;
+
     class Control : public Screen {
     public:
         virtual ~Control() = default;
         virtual void setWindowPos(int x, int y) = 0;
-        
+        virtual void resizeWindow(int w, int h) {}
+
         template<typename F>
         void setCallback(F callb) { callback = callb; }  
+        template<typename F>
+        void setResizeCallback(F callb) { rcallback = callb; }
         
         Window *parent = nullptr;
         EventCallback callback = nullptr;
+        ResizeCallback rcallback = nullptr;
     };
 
     class Window : public Screen {
@@ -92,6 +99,8 @@ namespace mx {
         bool isVisible() const;
         bool reload() const;
         void setReload(bool r);
+        void setCanResize(bool r);
+        bool canResize() const;
         
     private:
         int x,y,w,h;
@@ -105,6 +114,7 @@ namespace mx {
         int oldX = 0, oldY = 0, oldW = 0, oldH = 0;
         bool is_visible = true;
         bool reload_window = false;
+        bool can_resize = false;
     public:
         std::vector<std::unique_ptr<Control>> children;
         SDL_Rect minimizeButton, closeButton, maximizeButton;
@@ -167,6 +177,7 @@ namespace mx {
         Button *about_window_ok, *welcome_ok;
         Image *welcome_image;
         Label *about_window_info;
+        Image *about_window_logo;
         int current_dim;
         SDL_Texture *hand_cursor, *reg_cursor;
         int cursor_x = 0, cursor_y = 0;

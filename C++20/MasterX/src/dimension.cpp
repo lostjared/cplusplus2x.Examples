@@ -761,6 +761,11 @@ int  SystemBar::getCurrentDimension() const {
             }
             if (SDL_PointInRect(&mousePoint, &maximizeButton)) {
                maximize(!maximized);  
+               if(can_resize) {
+                    for(auto &c : children) {
+                        c->resizeWindow(w, h);
+                    }
+               }
                return true;
             }
         } else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
@@ -819,6 +824,14 @@ int  SystemBar::getCurrentDimension() const {
         reload_window = r;
     }
 
+   void Window::setCanResize(bool r) {
+        can_resize = r;
+   }
+    
+    bool Window::canResize() const {
+        return can_resize;
+    }
+  
     DimensionContainer::DimensionContainer(mxApp &app) : wallpaper{nullptr} , active{false} {}
 
     DimensionContainer::~DimensionContainer() {
@@ -925,6 +938,7 @@ int  SystemBar::getCurrentDimension() const {
         welcome_window->create("Welcome", 45, 25, 640, 480);
         welcome_window->show(true);
         welcome_window->setReload(true);
+        welcome_window->setCanResize(true);
         welcome_window->children.push_back(std::make_unique<Image>(app));
         welcome_image = dynamic_cast<Image *>(welcome_window->getControl());
         welcome_image->create(app, welcome_window, "images/welcome_logo.bmp", 45, 45);
@@ -942,7 +956,11 @@ int  SystemBar::getCurrentDimension() const {
             parent->show(false);
             return true;
         });
-
+        welcome_ok->setResizeCallback([&](Window *parent, int x, int y) -> void {
+            SDL_Rect rc;
+            parent->getRect(rc);
+            welcome_ok->setGeometry(rc.w - 110, rc.h - 40, 100, 25);
+        });
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         about = dynamic_cast<DimensionContainer *>(getDimension());
         about->init("About", loadTexture(app, "images/about.bmp"));
@@ -950,10 +968,17 @@ int  SystemBar::getCurrentDimension() const {
         about->setVisible(false);
         about->objects.push_back(std::make_unique<Window>(app));
         about_window = dynamic_cast<Window *>(about->objects[0].get());
-
-        about_window->create("About", 45, 45, 800, 600);
+        int centered_x = (app.width - 800) / 2;
+        int centered_y = (app.height - 600) / 2;
+        about_window->create("About", centered_x, centered_y-35, 800, 600);
         about_window->show(true);
         about_window->setReload(false);
+
+        about_window->children.push_back(std::make_unique<Image>(app));
+        Image *image = dynamic_cast<Image *>(about_window->getControl());
+        image->create(app, about_window, "images/logo.bmp", 0, 0);
+        image->setGeometry(5, 5, 800-10, 600-35);
+
         about_window->children.push_back(std::make_unique<Button>(app));
         about_window_ok = dynamic_cast<Button *>(about_window->getControl());
 
@@ -965,9 +990,9 @@ int  SystemBar::getCurrentDimension() const {
         });
         about_window->children.push_back(std::make_unique<Label>(app));
         about_window_info = dynamic_cast<Label *>(about_window->getControl());
-        std::vector<std::string> info_text {"MasterX System", "written by Jared Bruni", "(C) 2024 LostSideDead Software", "https:///lostsidedead.biz", "\"Open Source, Open Mind\""};
-        about_window_info->create_multi(about_window, info_text, { 0xBD, 0, 0, 255}, 25, 25 );
-        about_window_info->loadFont("fonts/arial.ttf", 14);
+        std::vector<std::string> info_text {"MasterX System", "written by Jared Bruni", "(C) 2024 LostSideDead Software", "https://lostsidedead.biz", "\"Open Source, Open Mind\""};
+        about_window_info->create_multi(about_window, info_text, { 255,255,255,255}, 25, 25 );
+        about_window_info->loadFont("fonts/arial.ttf", 36);
         about_window_info->linkMode(false);
         
 

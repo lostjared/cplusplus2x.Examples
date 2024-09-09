@@ -43,6 +43,7 @@ namespace mx {
         virtual void draw(mxApp &app) override;
         virtual void setWindowPos(int xx, int yy) override;
         virtual bool event(mxApp &app, SDL_Event &e) override;
+        virtual void resizeWindow(int w, int h) override;
         void create(Window *parent, const std::string &text, int x, int y, int w, int h);
         void setText(const std::string &t);
         void setGeometry(int xx, int yy, int ww, int hh);
@@ -70,6 +71,7 @@ namespace mx {
         virtual void draw(mxApp &app) override;
         virtual bool event(mxApp &app, SDL_Event  &e) override;
         virtual void setWindowPos(int x, int y) override;
+        virtual void resizeWindow(int w, int h) override;
         void create(mxApp &app, Window *parent, const std::string &path, int x, int y);
         void setGeometry(int x, int y, std::optional<int> w, std::optional<int> h);
         void setSourceRect(int x, int y, int w, int h);
