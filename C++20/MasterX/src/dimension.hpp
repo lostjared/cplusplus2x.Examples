@@ -80,21 +80,26 @@ namespace mx {
         virtual ~Window();
         virtual void draw(mxApp &app) override;
         virtual bool event(mxApp &app, SDL_Event &e) override;
+        virtual void stateChanged(bool min, bool max, bool close) {}
         void create(const std::string &name, const int x, const int y, const int w, const int h);
         void show(bool b);
         void minimize(bool m);
+        void maximize(bool m);
         void getRect(SDL_Rect &rc);
     private:
         int x,y,w,h;
+        int dim_w = 0, dim_h = 0;
         std::string title = "Window";
         bool shown = false;
         bool minimized = false;
+        bool maximized = false;
         bool dragging = false;
         int dragOffsetX = 0, dragOffsetY = 0;
+        int oldX = 0, oldY = 0, oldW = 0, oldH = 0;
     public:
         std::vector<std::unique_ptr<Control>> children;
-        SDL_Rect minimizeButton, closeButton;
-        SDL_bool minimizeHovered, closeHovered;
+        SDL_Rect minimizeButton, closeButton, maximizeButton;
+        SDL_bool minimizeHovered, closeHovered, maximizeHovered;
     };
 
   

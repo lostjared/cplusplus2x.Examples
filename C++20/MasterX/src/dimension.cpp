@@ -550,7 +550,8 @@ int  SystemBar::getCurrentDimension() const {
  
 
     Window::Window(mxApp &app) : x{0}, y{0}, w{320}, h{240}, title{"windwow"}, shown{false}, minimizeHovered(SDL_FALSE), closeHovered(SDL_FALSE) {
-   
+        dim_w = app.width;
+        dim_h = app.height;
     }
 
     Window::~Window() {
@@ -588,7 +589,8 @@ int  SystemBar::getCurrentDimension() const {
         int buttonSize = 20;
         int buttonPadding = 5;
 
-        minimizeButton = {x + w - 2 * (buttonSize + buttonPadding), y + 5, buttonSize, buttonSize};
+        minimizeButton = {x + w - 3 * (buttonSize + buttonPadding), y + 5, buttonSize, buttonSize};
+        maximizeButton = {x + w - 2 * (buttonSize + buttonPadding), y + 5, buttonSize, buttonSize};
         closeButton = {x + w - (buttonSize + buttonPadding), y + 5, buttonSize, buttonSize};
 
         SDL_RenderDrawLine(app.ren, minimizeButton.x, minimizeButton.y, minimizeButton.x + buttonSize, minimizeButton.y);
@@ -610,6 +612,20 @@ int  SystemBar::getCurrentDimension() const {
             SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255);  
         }
         SDL_RenderFillRect(app.ren, &closeButton);
+        if (maximizeHovered) {
+            cursor_shown = true;
+            SDL_SetRenderDrawColor(app.ren, 255, 0, 0, 255);  
+        } else {
+            SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255);  
+        }
+        SDL_RenderFillRect(app.ren, &maximizeButton);
+
+        SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
+        SDL_RenderDrawLine(app.ren, maximizeButton.x + 2, maximizeButton.y + 2, maximizeButton.x + buttonSize - 2, maximizeButton.y + 2);
+        SDL_RenderDrawLine(app.ren, maximizeButton.x + 2, maximizeButton.y + 2, maximizeButton.x + 2, maximizeButton.y + buttonSize - 2);
+        SDL_RenderDrawLine(app.ren, maximizeButton.x + 2, maximizeButton.y + buttonSize - 2, maximizeButton.x + buttonSize - 2, maximizeButton.y + buttonSize - 2);
+        SDL_RenderDrawLine(app.ren, maximizeButton.x + buttonSize - 2, maximizeButton.y + 2, maximizeButton.x + buttonSize - 2, maximizeButton.y + buttonSize - 2);
+ 
         SDL_RenderDrawLine(app.ren, closeButton.x, closeButton.y, closeButton.x + buttonSize, closeButton.y);
         SDL_RenderDrawLine(app.ren, closeButton.x, closeButton.y, closeButton.x, closeButton.y + buttonSize);
         SDL_SetRenderDrawColor(app.ren, 128, 128, 128, 255);
@@ -693,9 +709,12 @@ int  SystemBar::getCurrentDimension() const {
             SDL_Point mousePoint = {e.motion.x, e.motion.y};
             minimizeHovered = SDL_PointInRect(&mousePoint, &minimizeButton);
             closeHovered = SDL_PointInRect(&mousePoint, &closeButton);
+            maximizeHovered = SDL_PointInRect(&mousePoint, &maximizeButton);
             if (dragging) {
-                 x = e.motion.x - dragOffsetX;
-                y = e.motion.y - dragOffsetY;
+                if(e.motion.y > 0) {
+                    x = e.motion.x - dragOffsetX;
+                    y = e.motion.y - dragOffsetY;
+                }
             }
         } else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
             SDL_Point mousePoint = {e.button.x, e.button.y};
@@ -713,6 +732,9 @@ int  SystemBar::getCurrentDimension() const {
             if (SDL_PointInRect(&mousePoint, &minimizeButton)) {
                 minimize(true);  
             }
+            if (SDL_PointInRect(&mousePoint, &maximizeButton)) {
+               maximize(!maximized);  
+            }
         } else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
             dragging = false;
         }
@@ -727,6 +749,25 @@ int  SystemBar::getCurrentDimension() const {
         minimized = m;
     }
 
+    void Window::maximize(bool m) {
+    if (m && !maximized) {
+        oldX = x;
+        oldY = y;
+        oldW = w;
+        oldH = h;
+        x = 0;
+        y = 0;
+        w = dim_w;
+        h = dim_h-50;
+    } else if (!m && maximized) {
+        x = oldX;
+        y = oldY;
+        w = oldW;
+        h = oldH;
+    }
+    maximized = m;
+    stateChanged(false, true, false);
+}
     DimensionContainer::DimensionContainer(mxApp &app) : wallpaper{nullptr} , active{false} {}
 
     DimensionContainer::~DimensionContainer() {

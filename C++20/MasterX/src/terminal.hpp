@@ -11,6 +11,8 @@ namespace mx {
         void draw(mxApp  &app);
         bool event(mxApp &app, SDL_Event  &e);
         void print(const std::string &s);
+        void scroll();
+        void stateChanged(bool min, bool max, bool closed);
       private:
         std::string inputText;
         std::vector<std::string> outputLines;

@@ -23,9 +23,7 @@ namespace mx {
 
 
         int lineHeight = TTF_FontHeight(app.font);
-        maxVisibleLines = ((rc.h -1) / lineHeight)-1;  // Calculate maxVisibleLines once here
-
-
+        maxVisibleLines = ((rc.h -1) / lineHeight)-1;  
         if (scrollOffset > static_cast<int>(outputLines.size()) - maxVisibleLines) {
             scrollOffset = std::max(0, static_cast<int>(outputLines.size()) - maxVisibleLines);
         }
@@ -174,7 +172,6 @@ namespace mx {
 
     void Terminal::processCommand(mxApp &app, const std::string &command) {
         outputLines.push_back("$ " + command);
-
         std::vector<std::string> words;
         words = splitText(command);
 
@@ -194,12 +191,8 @@ namespace mx {
             }
         } else if(command == "about") {
             print("MasterX System - written by Jared Bruni\n(c) 2024 LostSideDead Software\nsite: lostsidedead.biz");
-        } else {
-            int totalLines = static_cast<int>(outputLines.size());
-            if (totalLines > maxVisibleLines) {
-                scrollOffset = totalLines - maxVisibleLines;
-            }
-        }
+        } 
+        scroll();
     }
 
     void Terminal::print(const std::string &s) {
@@ -208,6 +201,19 @@ namespace mx {
         while(std::getline(stream, line)) {
             outputLines.push_back(line);
         }
+    }
+
+    void Terminal::scroll() {
+         int totalLines = static_cast<int>(outputLines.size());
+        if (totalLines > maxVisibleLines) {
+            scrollOffset = totalLines - maxVisibleLines;
+        } else {
+            scrollOffset = 0;
+        }
+    }
+
+    void Terminal::stateChanged(bool min, bool max, bool closed) {
+        scroll();
     }
 }
  
