@@ -727,13 +727,16 @@ int  SystemBar::getCurrentDimension() const {
                 dragOffsetY = e.button.y - y;
             }
             if (SDL_PointInRect(&mousePoint, &closeButton)) {
-                show(false);  
+                show(false);
+                return true;  
             }
             if (SDL_PointInRect(&mousePoint, &minimizeButton)) {
                 minimize(true);  
+                return true;
             }
             if (SDL_PointInRect(&mousePoint, &maximizeButton)) {
                maximize(!maximized);  
+               return true;
             }
         } else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
             dragging = false;
@@ -766,7 +769,7 @@ int  SystemBar::getCurrentDimension() const {
         h = oldH;
     }
     maximized = m;
-    stateChanged(false, true, false);
+    stateChanged(false, maximized, false);
 }
     DimensionContainer::DimensionContainer(mxApp &app) : wallpaper{nullptr} , active{false} {}
 

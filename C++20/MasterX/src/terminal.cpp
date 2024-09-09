@@ -8,6 +8,7 @@ namespace mx {
     Terminal::Terminal(mxApp  &app) : Window(app) {
         print("MasterX System - Logged in...");
         text_color = { 255, 255, 255 };
+        font = app.font;
     }
 
     void Terminal::draw(mxApp &app) {
@@ -23,7 +24,7 @@ namespace mx {
 
 
         int lineHeight = TTF_FontHeight(app.font);
-        maxVisibleLines = ((rc.h -1) / lineHeight)-1;  
+        maxVisibleLines = ((rc.h - 1) / lineHeight) - 1;
         if (scrollOffset > static_cast<int>(outputLines.size()) - maxVisibleLines) {
             scrollOffset = std::max(0, static_cast<int>(outputLines.size()) - maxVisibleLines);
         }
@@ -204,16 +205,23 @@ namespace mx {
     }
 
     void Terminal::scroll() {
-         int totalLines = static_cast<int>(outputLines.size());
+        int totalLines = static_cast<int>(outputLines.size());
+        SDL_Rect rc;
+        Window::getRect(rc);
+        rc.h -= 33;
+        int lineHeight = TTF_FontHeight(font);
+        maxVisibleLines = ((rc.h - 1) / lineHeight) - 1;
         if (totalLines > maxVisibleLines) {
             scrollOffset = totalLines - maxVisibleLines;
         } else {
-            scrollOffset = 0;
+                scrollOffset = 0;  
         }
     }
 
     void Terminal::stateChanged(bool min, bool max, bool closed) {
+        isMaximized = max;
         scroll();
+
     }
 }
  
