@@ -46,112 +46,112 @@ namespace mx {
             activeDimensionsStack.erase(it);
         }
     }
-void SystemBar::drawDimensions(mxApp &app) {
-    if (dimensions != nullptr && animationComplete == true) {
-        int activeIndex = 0;  
-        
-        bool tcursor = false;
-        
-        for (size_t j = 0; j < activeDimensionsStack.size(); ++j) {
-            int i = activeDimensionsStack[j]; 
-            DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](i).get());
+    void SystemBar::drawDimensions(mxApp &app) {
+        if (dimensions != nullptr && animationComplete == true) {
+            int activeIndex = 0;  
             
-            if (dim != nullptr && dim->isActive()) { 
-                const std::string &name = dim->name;
-                SDL_Color white = {255, 255, 255, 255};
-                SDL_Surface* textSurface = TTF_RenderText_Solid(font, name.c_str(), white);
-                if (textSurface == nullptr) {
-                    continue;
-                }
-
-                SDL_Texture* textTexture = SDL_CreateTextureFromSurface(app.ren, textSurface);
-                int text_width = textSurface->w;
-                int text_height = textSurface->h;
-                SDL_FreeSurface(textSurface);
-                if (textTexture == nullptr) {
-                    continue;
-                }
-
-                int button_width = 150; 
-                int button_height = text_height + 20;
-                int bar_height = 50;
-                int button_y = (bar_height - button_height) / 2 + app.height - bar_height; 
+            bool tcursor = false;
+            
+            for (size_t j = 0; j < activeDimensionsStack.size(); ++j) {
+                int i = activeDimensionsStack[j]; 
+                DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](i).get());
                 
-                
-                int button_x = 10 + activeIndex * (button_width + 10);  
-                activeIndex++;  
+                if (dim != nullptr && dim->isActive()) { 
+                    const std::string &name = dim->name;
+                    SDL_Color white = {255, 255, 255, 255};
+                    SDL_Surface* textSurface = TTF_RenderText_Solid(font, name.c_str(), white);
+                    if (textSurface == nullptr) {
+                        continue;
+                    }
 
-                
-                if (static_cast<int>(i) == cur_dim) {
-                    SDL_SetRenderDrawColor(app.ren, 0, 0, 255, 255);  
-                } else {
-                    SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255); 
-                }
+                    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(app.ren, textSurface);
+                    int text_width = textSurface->w;
+                    int text_height = textSurface->h;
+                    SDL_FreeSurface(textSurface);
+                    if (textTexture == nullptr) {
+                        continue;
+                    }
 
-                SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
-                SDL_RenderFillRect(app.ren, &buttonRect);
+                    int button_width = 150; 
+                    int button_height = text_height + 20;
+                    int bar_height = 50;
+                    int button_y = (bar_height - button_height) / 2 + app.height - bar_height; 
+                    
+                    
+                    int button_x = 10 + activeIndex * (button_width + 10);  
+                    activeIndex++;  
 
-                SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
-                SDL_RenderDrawRect(app.ren, &buttonRect);
+                    
+                    if (static_cast<int>(i) == cur_dim) {
+                        SDL_SetRenderDrawColor(app.ren, 0, 0, 255, 255);  
+                    } else {
+                        SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255); 
+                    }
 
-                
-                SDL_Rect textRect = {button_x + 10, button_y + (button_height - text_height) / 2, text_width, text_height};
-                SDL_RenderCopy(app.ren, textTexture, nullptr, &textRect);
-                SDL_DestroyTexture(textTexture);
+                    SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
+                    SDL_RenderFillRect(app.ren, &buttonRect);
 
-                int square_size = 20;
-                int square_x = button_x + button_width - square_size - 5;
-                int square_y = button_y + (button_height - square_size) / 2;
+                    SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
+                    SDL_RenderDrawRect(app.ren, &buttonRect);
 
-                SDL_SetRenderDrawColor(app.ren, 200, 200, 200, 255);
-                SDL_Rect closeButtonRect = {square_x, square_y, square_size, square_size};
-                if (dim->hoveringX) {
-                    SDL_SetRenderDrawColor(app.ren, 0xBD, 0, 0, 255);  
-                    tcursor = true;
-                } 
-                SDL_RenderFillRect(app.ren, &closeButtonRect);
+                    
+                    SDL_Rect textRect = {button_x + 10, button_y + (button_height - text_height) / 2, text_width, text_height};
+                    SDL_RenderCopy(app.ren, textTexture, nullptr, &textRect);
+                    SDL_DestroyTexture(textTexture);
 
-                SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
-                SDL_RenderDrawRect(app.ren, &closeButtonRect);
+                    int square_size = 20;
+                    int square_x = button_x + button_width - square_size - 5;
+                    int square_y = button_y + (button_height - square_size) / 2;
 
-                
-                SDL_Color black = {0, 0, 0, 255};
-                SDL_Surface* xSurface = TTF_RenderText_Solid(font, "X", black);
-                if (xSurface != nullptr) {
-                    SDL_Texture* xTexture = SDL_CreateTextureFromSurface(app.ren, xSurface);
-                    int x_width = xSurface->w;
-                    int x_height = xSurface->h;
-                    SDL_FreeSurface(xSurface);
+                    SDL_SetRenderDrawColor(app.ren, 200, 200, 200, 255);
+                    SDL_Rect closeButtonRect = {square_x, square_y, square_size, square_size};
+                    if (dim->hoveringX) {
+                        SDL_SetRenderDrawColor(app.ren, 0xBD, 0, 0, 255);  
+                        tcursor = true;
+                    } 
+                    SDL_RenderFillRect(app.ren, &closeButtonRect);
 
-                    SDL_Rect xRect = {square_x + (square_size - x_width) / 2, square_y + (square_size - x_height) / 2, x_width, x_height};
-                    SDL_RenderCopy(app.ren, xTexture, nullptr, &xRect);
-                    SDL_DestroyTexture(xTexture);
+                    SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
+                    SDL_RenderDrawRect(app.ren, &closeButtonRect);
+
+                    
+                    SDL_Color black = {0, 0, 0, 255};
+                    SDL_Surface* xSurface = TTF_RenderText_Solid(font, "X", black);
+                    if (xSurface != nullptr) {
+                        SDL_Texture* xTexture = SDL_CreateTextureFromSurface(app.ren, xSurface);
+                        int x_width = xSurface->w;
+                        int x_height = xSurface->h;
+                        SDL_FreeSurface(xSurface);
+
+                        SDL_Rect xRect = {square_x + (square_size - x_width) / 2, square_y + (square_size - x_height) / 2, x_width, x_height};
+                        SDL_RenderCopy(app.ren, xTexture, nullptr, &xRect);
+                        SDL_DestroyTexture(xTexture);
+                    }
                 }
             }
+            if(tcursor == true) {
+                cursor_shown = true;
+            } 
         }
-        if(tcursor == true) {
-            cursor_shown = true;
-        } 
     }
-}
-void SystemBar::setCurrentDimension(int dim) {
-    if(dim != cur_dim) {
-        DimensionContainer *old, *setv;
-        old = dynamic_cast<DimensionContainer *>(dimensions->operator[](cur_dim).get());
-        setv = dynamic_cast<DimensionContainer *>(dimensions->operator[](dim).get());
-        prev_dim = cur_dim;
-        cur_dim = dim;
-        if (setv) {
-            setv->setActive(true);  
-            setv->setVisible(true);
-            std::cout << "MasterX System: Switching from: " << old->name << " to " << setv->name << "\n";
-            setv->startTransition(old ? old->wallpaper : nullptr);  
-        }
-    }    
-}
+    void SystemBar::setCurrentDimension(int dim) {
+        if(dim != cur_dim) {
+            DimensionContainer *old, *setv;
+            old = dynamic_cast<DimensionContainer *>(dimensions->operator[](cur_dim).get());
+            setv = dynamic_cast<DimensionContainer *>(dimensions->operator[](dim).get());
+            prev_dim = cur_dim;
+            cur_dim = dim;
+            if (setv) {
+                setv->setActive(true);  
+                setv->setVisible(true);
+                std::cout << "MasterX System: Switching from: " << old->name << " to " << setv->name << "\n";
+                setv->startTransition(old ? old->wallpaper : nullptr);  
+            }
+        }    
+    }
 
-int  SystemBar::getCurrentDimension() const {
-        return cur_dim;
+    int  SystemBar::getCurrentDimension() const {
+            return cur_dim;
     }
 
     void SystemBar::draw(mxApp &app) {
@@ -319,8 +319,13 @@ int  SystemBar::getCurrentDimension() const {
                         SDL_Point cur_point = { mouseX, mouseY };
                         if (SDL_PointInRect(&cur_point, &closeButtonRect)) {
                             con->setActive(false);  
-                            deactivateDimension(i);
-                            setCurrentDimension(prev_dim);
+                            if(i == getCurrentDimension()) {
+                                deactivateDimension(i);
+                                setCurrentDimension(0);
+                            } else {
+                                deactivateDimension(i);
+                                setCurrentDimension(prev_dim);
+                            }
                             return true;
                         } else {
                             SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
@@ -373,15 +378,15 @@ int  SystemBar::getCurrentDimension() const {
             case 1: {
                     DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](0).get());
                     dim->setActive(true);
-                    setCurrentDimension(0);
-                    activateDimension(0);
+                    setCurrentDimension(1);
+                    activateDimension(1);
                 }
                 break;
             case 2: {
                     DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](2).get());
                     dim->setActive(true);
-                    setCurrentDimension(2);
-                    activateDimension(2);
+                    setCurrentDimension(3);
+                    activateDimension(3);
             }
                 break;
             case 3:
@@ -393,8 +398,8 @@ int  SystemBar::getCurrentDimension() const {
             case 5: {
                 DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](1).get());
                 dim->setActive(true);
-                setCurrentDimension(1);
-                activateDimension(1);
+                setCurrentDimension(2);
+                activateDimension(2);
             }
                 break;
             case 6:
@@ -928,11 +933,18 @@ int  SystemBar::getCurrentDimension() const {
         wallpaper = loadTexture(app, "images/desktop.bmp");
         objects.push_back(std::make_unique<SystemBar>(app));
         system_bar = dynamic_cast<SystemBar *>(objects[0].get());
+
+        dimensions.push_back(std::make_unique<DimensionContainer>(app));
+        dash = dynamic_cast<DimensionContainer *>(getDimension());
+        dash->init("Dashboard", loadTexture(app, "images/desktop.bmp"));
+        dash->setActive(true);
+        dash->setVisible(true);
+
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         welcome = dynamic_cast<DimensionContainer *>(getDimension());
         welcome->init("Welcome", loadTexture(app, "images/wallpaper.bmp"));
         welcome->setActive(true);
-        welcome->setVisible(false);
+        welcome->setVisible(true);
         welcome->objects.push_back(std::make_unique<Window>(app));
         welcome_window = dynamic_cast<Window *>(welcome->objects[0].get());
         welcome_window->create("Welcome", 45, 25, 640, 480);
@@ -1001,7 +1013,7 @@ int  SystemBar::getCurrentDimension() const {
         term->init("Terminal", loadTexture(app, "images/terminal.bmp"));
         term->setActive(false);
         term->setVisible(false);
-        system_bar->activateDimension(0);
+        system_bar->activateDimension(1);
         system_bar->activateDimension(0);
         term->objects.push_back(std::make_unique<Terminal>(app)); 
         termx = dynamic_cast<Terminal*>(term->objects[0].get());

@@ -168,7 +168,7 @@ namespace mx {
         SDL_Texture *wallpaper;
         std::vector<std::unique_ptr<Screen>> objects;
         std::vector<std::unique_ptr<Screen>> dimensions;
-        DimensionContainer *welcome;
+        DimensionContainer *welcome, *dash;
         DimensionContainer *about;
         DimensionContainer *term;
         SystemBar *system_bar;
