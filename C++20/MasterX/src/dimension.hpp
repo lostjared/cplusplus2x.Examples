@@ -86,6 +86,13 @@ namespace mx {
         void minimize(bool m);
         void maximize(bool m);
         void getRect(SDL_Rect &rc);
+        void setRect(const SDL_Rect &rc);
+        Control *getControl();
+        Control *getControl(int index);
+        bool isVisible() const;
+        bool reload() const;
+        void setReload(bool r);
+        
     private:
         int x,y,w,h;
         int dim_w = 0, dim_h = 0;
@@ -96,6 +103,8 @@ namespace mx {
         bool dragging = false;
         int dragOffsetX = 0, dragOffsetY = 0;
         int oldX = 0, oldY = 0, oldW = 0, oldH = 0;
+        bool is_visible = true;
+        bool reload_window = false;
     public:
         std::vector<std::unique_ptr<Control>> children;
         SDL_Rect minimizeButton, closeButton, maximizeButton;
@@ -132,6 +141,7 @@ namespace mx {
     class Terminal;
     class Label;
     class Button;
+    class Image;
 
     class Dimension : public Screen {
     public:
@@ -142,6 +152,8 @@ namespace mx {
         virtual void draw(mxApp &app) override;
         virtual bool event(mxApp &app, SDL_Event &e) override;
         void drawDash(mxApp &app);
+        Screen *getDimension();
+        Screen *getDimension(int index);
     private:
         SDL_Texture *wallpaper;
         std::vector<std::unique_ptr<Screen>> objects;
@@ -152,8 +164,8 @@ namespace mx {
         SystemBar *system_bar;
         Window *welcome_window;
         Window *about_window;
-        Button *about_window_ok;
-        Label *welcome_label;
+        Button *about_window_ok, *welcome_ok;
+        Image *welcome_image;
         Label *about_window_info;
         int current_dim;
         SDL_Texture *hand_cursor, *reg_cursor;

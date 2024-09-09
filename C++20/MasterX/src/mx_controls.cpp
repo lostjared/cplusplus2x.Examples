@@ -263,4 +263,90 @@ namespace mx {
     void Button::show(bool v) {
         visible = v;
     }
+
+    Image::Image(mxApp &app) : x(0), y(0), w(0), h(0), visible(true), image(nullptr) {
+
+    }
+
+    Image::~Image() {
+        if(image) {
+            SDL_DestroyTexture(image);
+        }
+    }
+
+    void Image::setWindowPos(int x, int y) {
+        wx = x;
+        wy = y;
+    }
+
+    void Image::draw(mxApp &app) {
+
+        if(visible == false)
+            return;
+
+        if(image) {
+            int dw = w, dh = h;
+            if(w == 0 || h == 0) {
+                dw = sw;
+                dh = sh;
+            }
+            SDL_Rect rc = { x+wx, y+wy+25, dw, dh };
+            SDL_RenderCopy(app.ren, image, (use_rect == true) ? &src : nullptr, &rc);
+        }
+    }
+
+    void Image::getRect(SDL_Rect &rc) {
+        rc.x = x;
+        rc.y = y;
+        rc.w = sw;
+        rc.h = sh;
+    }
+
+    bool Image::event(mxApp &app, SDL_Event &e) {
+        if(visible == false)
+            return false;
+        int cx = x + wx;
+        int cy = y + wy;
+        if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
+            int mouseX = e.button.x;
+            int mouseY = e.button.y;
+            if (mouseX >= cx && mouseX <= cx + w && mouseY >= cy && mouseY <= cy + h) {
+                if(callback && parent) {
+                    return callback(app, parent, e);
+                }
+                return true;       
+            }
+        }
+        return false;
+    }
+
+    void Image::create(mxApp &app, Window *window, const std::string &path, int x, int y) {
+        image = loadTexture(app, path, sw, sh);
+        parent= window;
+        w = 0;
+        h = 0;
+    }
+
+    void Image::setSourceRect(int x, int y, int w, int h) {
+        src.x = x;
+        src.y = y;
+        src.w = w;
+        src.h = h;
+        use_rect = true;
+    }
+
+    void Image::setGeometry(int x, int y, std::optional<int> w, std::optional<int> h) {
+        this->x = x;
+        this->y = y;
+        if(w.has_value()) {
+            this->w = w.value();
+        } else {
+            this->w = 0;
+        }
+        if(h.has_value()) {
+            this->h = h.value();
+        } else {
+            this-> h = 0;
+        }
+    }    
 }

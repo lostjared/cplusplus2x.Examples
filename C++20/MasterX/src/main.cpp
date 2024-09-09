@@ -66,11 +66,18 @@ std::string getPath(const std::string &name) {
 }
 
 SDL_Texture *loadTexture(mx::mxApp &app, const std::string &name) {
+    int w, h;
+    return loadTexture(app, name, w, h);
+}
+
+extern SDL_Texture *loadTexture(mx::mxApp &app, const std::string &name, int &w, int &h) {
     SDL_Surface *surf = SDL_LoadBMP(getPath(name).c_str());
     if(!surf) {
         std::cerr << "Error loading surface; " << getPath(name) << "\n";
         exit(EXIT_FAILURE);
     }
+    w = surf->w;
+    h = surf->h;
     SDL_Texture *tex = SDL_CreateTextureFromSurface(app.ren, surf);
     if(!tex) {
         std::cerr << "Error creating texture from surface: " << name << "\n";
@@ -87,8 +94,6 @@ void quit() {
 }
 
 int main(int argc, char **argv) {
-
-
     Argz<std::string> argz(argc, argv);
     argz.addOptionSingleValue('p', "path to assets").addOptionSingle('v', "info").addOptionSingle('h', "info");
     std::string path;

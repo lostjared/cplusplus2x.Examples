@@ -2,6 +2,7 @@
 #define __MX_CONTROLS__H_
 
 #include "dimension.hpp"
+#include<optional>
 
 namespace mx {
 
@@ -60,6 +61,27 @@ namespace mx {
         SDL_Color pressed_fg;
         SDL_Color pressed_bg;
         SDL_Color textColor;
+    };
+
+    class Image : public Control {
+    public:
+        Image(mxApp &app);
+        virtual ~Image();
+        virtual void draw(mxApp &app) override;
+        virtual bool event(mxApp &app, SDL_Event  &e) override;
+        virtual void setWindowPos(int x, int y) override;
+        void create(mxApp &app, Window *parent, const std::string &path, int x, int y);
+        void setGeometry(int x, int y, std::optional<int> w, std::optional<int> h);
+        void setSourceRect(int x, int y, int w, int h);
+        void getRect(SDL_Rect &rc);
+    private:
+        int x, y, w, h;
+        bool visible;
+        SDL_Texture *image;
+        int sw = 0, sh = 0;
+        int wx = 0, wy = 0;
+        bool use_rect = false;
+        SDL_Rect src;
     };
 }
 

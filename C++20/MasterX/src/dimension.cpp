@@ -543,6 +543,15 @@ int  SystemBar::getCurrentDimension() const {
     }
     
     bool MenuBar::event(mxApp &app, SDL_Event &e) {
+
+        if (e.type == SDL_WINDOWEVENT) {
+            if (e.window.event == SDL_WINDOWEVENT_LEAVE) {
+                this->animating = false;
+                this->menuOpen = true;
+                return false;
+            }
+        }
+
         return false;
     }
 
@@ -686,8 +695,13 @@ int  SystemBar::getCurrentDimension() const {
         }
     }
 
+    bool Window::isVisible() const {
+        return shown;
+    }
+
     void Window::show(bool b) {
         shown = b;
+        stateChanged(false, false, shown);
     }
 
     void Window::getRect(SDL_Rect &rc) {
@@ -697,6 +711,12 @@ int  SystemBar::getCurrentDimension() const {
         rc.h = h;
     }
 
+    void Window::setRect(const SDL_Rect &rc) {
+        x = rc.x;
+        y = rc.y;
+        w = rc.w;
+        h = rc.h;
+    }
     bool Window::event(mxApp &app, SDL_Event &e) {
 
         if(shown == false) return false;
@@ -753,29 +773,52 @@ int  SystemBar::getCurrentDimension() const {
         return false;
     }
 
+    Control *Window::getControl() {
+        if(children.size()>0)
+            return children[children.size()-1].get();
+        std::cerr << "MasterX System: Trying to acess out of bounds control.\n";
+        return nullptr;
+    }
+    Control *Window::getControl(int index) {
+        if(index >= 0 && index < static_cast<int>(children.size()))
+            return children[index].get();
+        std::cerr << "MasterX System: Trying to acess out of bounds control.\n";
+        return nullptr;
+    }
+
     void Window::minimize(bool m) {
         minimized = m;
+        stateChanged(m, false, false);
     }
 
     void Window::maximize(bool m) {
-    if (m && !maximized) {
-        oldX = x;
-        oldY = y;
-        oldW = w;
-        oldH = h;
-        x = 0;
-        y = 0;
-        w = dim_w;
-        h = dim_h-50;
-    } else if (!m && maximized) {
-        x = oldX;
-        y = oldY;
-        w = oldW;
-        h = oldH;
+        if (m && !maximized) {
+            oldX = x;
+            oldY = y;
+            oldW = w;
+            oldH = h;
+            x = 0;
+            y = 0;
+            w = dim_w;
+            h = dim_h-50;
+        } else if (!m && maximized) {
+            x = oldX;
+            y = oldY;
+            w = oldW;
+            h = oldH;
+        }
+        maximized = m;
+        stateChanged(false, maximized, false);
     }
-    maximized = m;
-    stateChanged(false, maximized, false);
-}
+
+    bool Window::reload() const {
+        return reload_window;
+    }
+    
+    void Window::setReload(bool r) {
+        reload_window = r;
+    }
+
     DimensionContainer::DimensionContainer(mxApp &app) : wallpaper{nullptr} , active{false} {}
 
     DimensionContainer::~DimensionContainer() {
@@ -792,6 +835,15 @@ int  SystemBar::getCurrentDimension() const {
     
     void DimensionContainer::setActive(bool a) {
         active = a;
+        if(active) {
+            for (auto &i : objects) {
+                if(auto win = dynamic_cast<Window *>(i.get())) {
+                    if(win->reload()) {
+                        win->show(true);
+                    }
+                }
+            }
+        }
     }
 
     bool DimensionContainer::isActive() const {
@@ -864,22 +916,35 @@ int  SystemBar::getCurrentDimension() const {
         objects.push_back(std::make_unique<SystemBar>(app));
         system_bar = dynamic_cast<SystemBar *>(objects[0].get());
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
-        welcome = dynamic_cast<DimensionContainer *>(dimensions[0].get());
+        welcome = dynamic_cast<DimensionContainer *>(getDimension());
         welcome->init("Welcome", loadTexture(app, "images/wallpaper.bmp"));
         welcome->setActive(true);
         welcome->setVisible(false);
         welcome->objects.push_back(std::make_unique<Window>(app));
         welcome_window = dynamic_cast<Window *>(welcome->objects[0].get());
         welcome_window->create("Welcome", 45, 25, 640, 480);
-        welcome_window->children.push_back(std::make_unique<Label>(app));
         welcome_window->show(true);
-        welcome_label = dynamic_cast<Label *>(welcome_window->children[0].get());
-        welcome_label->create(welcome_window, "Hello World!", {0,0,255}, 25, 25);
-        welcome_label->loadFont("fonts/arial.ttf", 14);
-        welcome_label->linkMode(true);
+        welcome_window->setReload(true);
+        welcome_window->children.push_back(std::make_unique<Image>(app));
+        welcome_image = dynamic_cast<Image *>(welcome_window->getControl());
+        welcome_image->create(app, welcome_window, "images/welcome_logo.bmp", 45, 45);
+        welcome_image->setGeometry(5, 5, std::nullopt, std::nullopt);
+        SDL_Rect i_rc;
+        welcome_image->getRect(i_rc);
+        i_rc.w += 10;
+        i_rc.h += 35;
+        welcome_window->setRect(i_rc);
+        welcome_window->children.push_back(std::make_unique<Button>(app));
+        welcome_ok = dynamic_cast<Button *>(welcome_window->getControl());
+        welcome_ok->create(welcome_window, "Dismiss", i_rc.w-110, i_rc.h-35, 100, 25);
+        welcome_ok->show(true);
+        welcome_ok->setCallback([](mxApp &app, Window *parent, SDL_Event &e) -> bool {
+            parent->show(false);
+            return true;
+        });
 
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
-        about = dynamic_cast<DimensionContainer *>(dimensions[1].get());
+        about = dynamic_cast<DimensionContainer *>(getDimension());
         about->init("About", loadTexture(app, "images/about.bmp"));
         about->setActive(false);
         about->setVisible(false);
@@ -888,8 +953,9 @@ int  SystemBar::getCurrentDimension() const {
 
         about_window->create("About", 45, 45, 800, 600);
         about_window->show(true);
+        about_window->setReload(false);
         about_window->children.push_back(std::make_unique<Button>(app));
-        about_window_ok = dynamic_cast<Button *>(about_window->children[0].get());
+        about_window_ok = dynamic_cast<Button *>(about_window->getControl());
 
         about_window_ok->create(about_window, "Ok", 800-110, 600-35, 100, 25);
         about_window_ok->show(true);
@@ -898,14 +964,15 @@ int  SystemBar::getCurrentDimension() const {
             return false;
         });
         about_window->children.push_back(std::make_unique<Label>(app));
-        about_window_info = dynamic_cast<Label *>(about_window->children[1].get());
+        about_window_info = dynamic_cast<Label *>(about_window->getControl());
         std::vector<std::string> info_text {"MasterX System", "written by Jared Bruni", "(C) 2024 LostSideDead Software", "https:///lostsidedead.biz", "\"Open Source, Open Mind\""};
         about_window_info->create_multi(about_window, info_text, { 0xBD, 0, 0, 255}, 25, 25 );
         about_window_info->loadFont("fonts/arial.ttf", 14);
         about_window_info->linkMode(false);
+        
 
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
-        term = dynamic_cast<DimensionContainer *>(dimensions[2].get());
+        term = dynamic_cast<DimensionContainer *>(getDimension());
         term->init("Terminal", loadTexture(app, "images/terminal.bmp"));
         term->setActive(false);
         term->setVisible(false);
@@ -915,7 +982,7 @@ int  SystemBar::getCurrentDimension() const {
         termx = dynamic_cast<Terminal*>(term->objects[0].get());
         termx->create("mXTerm", 25, 25, 640, 480);
         termx->show(true);
-
+        termx->setReload(true);
         system_bar->setDimensions(&dimensions);
         setCurrentDimension(0);
         system_bar->activateDimension(0);
@@ -992,6 +1059,21 @@ int  SystemBar::getCurrentDimension() const {
             SDL_RenderCopy(app.ren, reg_cursor, nullptr, &rc);
         }
         SDL_SetRenderTarget(app.ren, nullptr);
+    }
+
+   Screen *Dimension::getDimension() {
+        if(dimensions.size()>0)
+            return dimensions[dimensions.size()-1].get();
+        std::cerr << "MasterX System: Trying to access out of bounds dimension.\n";
+        return nullptr;
+   }
+    
+    Screen *Dimension::getDimension(int index) {
+        if(index >= 0 && index < static_cast<int>(dimensions.size()))
+            return dimensions[index].get();
+
+        std::cerr << "MasterX System: Trying to access out of bounds dimension.\n";
+        return nullptr;
     }
 
     bool Dimension::event(mxApp &app, SDL_Event &e) {
