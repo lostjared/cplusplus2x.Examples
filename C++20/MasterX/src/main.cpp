@@ -95,7 +95,7 @@ void quit() {
 
 int main(int argc, char **argv) {
     Argz<std::string> argz(argc, argv);
-    argz.addOptionSingleValue('p', "path to assets").addOptionSingle('v', "info").addOptionSingle('h', "info");
+    argz.addOptionSingleValue('p', "path to assets").addOptionDoubleValue('p', "path", "path to assets").addOptionSingleValue('v', "info").addOptionSingle('h', "info");
     std::string path;
     int value = 0;
     Argument<std::string> arg;
@@ -119,6 +119,9 @@ int main(int argc, char **argv) {
     if(path.length()>0) {
         std::cout << "MasterX System: path set to: " << path << "\n";
         cur_path = path;
+    } else {
+        argz.help(std::cout);
+        exit(EXIT_FAILURE);
     }
 
     mx::mxApp app;  
