@@ -549,7 +549,7 @@ int  SystemBar::getCurrentDimension() const {
 
  
 
-    Window::Window(mxApp &app) : x{0}, y{0}, w{320}, h{240}, title{"windwow"}, shown{false}, minimizeHovered(SDL_FALSE), closeHovered(SDL_FALSE) {
+    Window::Window(mxApp &app) : x{0}, y{0}, w{320}, h{240}, title{"windwow"}, shown{false}, minimizeHovered(SDL_FALSE), closeHovered(SDL_FALSE), maximizeHovered(SDL_FALSE) {
         dim_w = app.width;
         dim_h = app.height;
     }
@@ -680,10 +680,6 @@ int  SystemBar::getCurrentDimension() const {
         int iconY = y + (titleBarHeight - iconHeight) / 2;  
         SDL_Rect iconRect = { iconX, iconY, iconWidth, iconHeight };
         SDL_RenderCopy(app.ren, app.icon, nullptr, &iconRect);
-
-
-
-
         for (auto &c : children) {
             c->setWindowPos(x, y);
             c->draw(app);
@@ -901,6 +897,12 @@ int  SystemBar::getCurrentDimension() const {
             parent->show(false);
             return false;
         });
+        about_window->children.push_back(std::make_unique<Label>(app));
+        about_window_info = dynamic_cast<Label *>(about_window->children[1].get());
+        std::vector<std::string> info_text {"MasterX System", "written by Jared Bruni", "(C) 2024 LostSideDead Software", "https:///lostsidedead.biz", "\"Open Source, Open Mind\""};
+        about_window_info->create_multi(about_window, info_text, { 0xBD, 0, 0, 255}, 25, 25 );
+        about_window_info->loadFont("fonts/arial.ttf", 14);
+        about_window_info->linkMode(false);
 
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         term = dynamic_cast<DimensionContainer *>(dimensions[2].get());

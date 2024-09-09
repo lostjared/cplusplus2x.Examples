@@ -13,8 +13,10 @@ namespace mx {
         virtual void setWindowPos(int xx, int yy) override;
         virtual bool event(mxApp &app, SDL_Event &e) override;
         void create(Window *parent, const std::string &text, SDL_Color col, int x, int y);
+        void create_multi(Window *parent, std::vector<std::string>  &t, SDL_Color col, int xx,  int yy);
         void loadFont(const std::string &name, int size);
         void setText(const std::string  &text, SDL_Color color);
+        void setMultiLine(std::vector<std::string> &v);
         void setGeometry(int xx, int yy);
         void linkMode(bool m);
     private:
@@ -27,6 +29,8 @@ namespace mx {
         int w, h;
         bool mode = false;
         bool under_ = false;
+        bool multi_lined = false;
+        std::vector<std::string> multi_text;
     };
 
     

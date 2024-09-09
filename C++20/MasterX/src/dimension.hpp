@@ -154,6 +154,7 @@ namespace mx {
         Window *about_window;
         Button *about_window_ok;
         Label *welcome_label;
+        Label *about_window_info;
         int current_dim;
         SDL_Texture *hand_cursor, *reg_cursor;
         int cursor_x = 0, cursor_y = 0;

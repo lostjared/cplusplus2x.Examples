@@ -16,13 +16,14 @@ namespace mx {
     }
 
     void Label::draw(mxApp &app) {
-        if(font_ != nullptr && text_.length() > 0) {
+        if(font_ != nullptr && text_.length() > 0 && multi_lined == false) {
             if(mode == false || under_ == false) {
                 TTF_SetFontStyle(font_, TTF_STYLE_NORMAL);
             } else if(under_ == true) {
                 cursor_shown = true;
                 TTF_SetFontStyle(font_, TTF_STYLE_UNDERLINE);
             }
+
             SDL_Surface *surf = TTF_RenderText_Solid(font_, text_.c_str(), color_);
             if(surf == nullptr) {
                 std::cerr << "MasterX System: Error creating surface.\n";
@@ -41,6 +42,35 @@ namespace mx {
             SDL_SetRenderTarget(app.ren, app.tex);
             SDL_Rect point = {x+wx,y+wy+25,sw,sh};
             SDL_RenderCopy(app.ren, t, nullptr, &point);
+            SDL_DestroyTexture(t);
+
+        } else if(font_ != nullptr && multi_text.size()>0 && multi_lined == true) {
+            int off_y = 0;
+            int height = TTF_FontHeight(font_);
+                
+            for(int i = 0; i < static_cast<int>(multi_text.size()); ++i) {
+                if(multi_text[i].length()==0) continue;
+                SDL_Surface *surf = TTF_RenderText_Solid(font_, multi_text[i].c_str(), color_);
+                if(surf == nullptr) {
+                    std::cerr << "MasterX System: Error creating surface.\n";
+                    exit(EXIT_FAILURE);
+                }
+                int sw = surf->w;
+                int sh = surf->h;
+                w = sw;
+                h = sh;
+                SDL_Texture *t = SDL_CreateTextureFromSurface(app.ren, surf);
+                if(t == nullptr) {
+                    std::cerr << "MasterX System: Error creating texture.\n";
+                    exit(EXIT_FAILURE);
+                }
+                SDL_FreeSurface(surf);
+                SDL_SetRenderTarget(app.ren, app.tex);
+                SDL_Rect point = {x+wx,y+wy+25+off_y+height,sw,sh};
+                SDL_RenderCopy(app.ren, t, nullptr, &point);
+                SDL_DestroyTexture(t);
+                off_y += height;
+            }
         }
     }
 
@@ -52,6 +82,16 @@ namespace mx {
         setText(text, col);
         setGeometry(xx, yy);
         this->parent = parent;
+        multi_lined = false;
+        color_ = col;
+    }
+    
+    void Label::create_multi(Window *parent, std::vector<std::string>  &t, SDL_Color col, int xx,  int yy) {
+        setMultiLine(t);
+        setGeometry(xx,yy);
+        this->parent = parent;
+        multi_lined = true;
+        color_ = col;
     }
 
     bool Label::event(mxApp &app, SDL_Event &e) {
@@ -72,6 +112,10 @@ namespace mx {
 
 
         return false;
+    }
+
+    void Label::setMultiLine(std::vector<std::string> &v) {
+        multi_text = std::move(v);
     }
 
     void Label::loadFont(const std::string &name, int sizex) {
