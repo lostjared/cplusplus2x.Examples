@@ -955,6 +955,9 @@ namespace mx {
                     c->setShow(false);  
                 }
             }
+            w = 200;
+            h = 25;
+            
         } else if (!m && minimized) {
             minimized = false;
             isRestoring = true;
