@@ -321,12 +321,12 @@ namespace mx {
                         SDL_Point cur_point = { mouseX, mouseY };
                         if (con->name != "Dashboard" && SDL_PointInRect(&cur_point, &closeButtonRect)) {
                             con->setActive(false);  
-                            if(i == getCurrentDimension()) {
+                            if(i == cur_dim) {
                                 deactivateDimension(i);
-                                setCurrentDimension(0);
+                                prev_dim = 0;
+                                setCurrentDimension(0); 
                             } else {
                                 deactivateDimension(i);
-                                setCurrentDimension(prev_dim);
                             }
                             return true;
                         } else {
@@ -940,13 +940,13 @@ namespace mx {
         dash = dynamic_cast<DimensionContainer *>(getDimension());
         dash->init("Dashboard", loadTexture(app, "images/desktop.bmp"));
         dash->setActive(true);
-        dash->setVisible(true);
+        dash->setVisible(false);
 
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         welcome = dynamic_cast<DimensionContainer *>(getDimension());
         welcome->init("Welcome", loadTexture(app, "images/wallpaper.bmp"));
-        welcome->setActive(true);
-        welcome->setVisible(true);
+        welcome->setActive(false);
+        welcome->setVisible(false);
         welcome->objects.push_back(std::make_unique<Window>(app));
         welcome_window = dynamic_cast<Window *>(welcome->objects[0].get());
         welcome_window->create("Welcome", 45, 25, 640, 480);
@@ -1023,8 +1023,8 @@ namespace mx {
         termx->show(true);
         termx->setReload(true);
         system_bar->setDimensions(&dimensions);
-        setCurrentDimension(0);
-        system_bar->activateDimension(0);
+        setCurrentDimension(1);
+        system_bar->activateDimension(1);
         SDL_Surface *hand_cursor_surf = SDL_LoadBMP(getPath("images/hand.bmp").c_str());
         if(hand_cursor_surf == nullptr) {
             std::cerr << "MasterX: Error loading cursor..\n";
