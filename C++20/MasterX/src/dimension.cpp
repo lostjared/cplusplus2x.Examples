@@ -87,8 +87,10 @@ namespace mx {
         int yOffset = 20;  
         for (size_t i = 0; i < con->mini_win.size(); ++i) {
             Window *win = con->mini_win[i];
-
+            if(menuHover == true)
+                TTF_SetFontStyle(font, TTF_STYLE_UNDERLINE);
             SDL_Surface *textSurface = TTF_RenderText_Solid(font, win->title.c_str(), white);
+            TTF_SetFontStyle(font, TTF_STYLE_NORMAL);
             SDL_Texture *textTexture = SDL_CreateTextureFromSurface(app.ren, textSurface);
             int text_width = textSurface->w;
             int text_height = textSurface->h;
@@ -248,6 +250,10 @@ namespace mx {
             }
         }
 
+        if(menuHover) {
+            cursor_shown = true;
+        }
+
         SDL_SetRenderTarget(app.ren, app.tex);
         SDL_SetRenderDrawColor(app.ren, 192, 192, 192, 255);
         SDL_Rect barRect = {0, yPos, windowWidth, barHeight};
@@ -329,6 +335,27 @@ namespace mx {
 
         int menu_x = button_x + (button_width - menu_width) / 2;
         int menu_y = button_y - menu_height - 5;  
+
+        bool chover = false;
+
+        if (showMinimizedMenu && e.type == SDL_MOUSEMOTION) {
+            int mouseX = e.motion.x;  
+            int mouseY = e.motion.y;  
+            SDL_Rect menuRect = {menu_x, menu_y, menu_width, menu_height};
+            SDL_Point rc = {mouseX, mouseY};
+            if (SDL_PointInRect(&rc, &menuRect)) {            
+                int yOffset = 20;
+                for (size_t i = 0; i < con->mini_win.size(); ++i) {
+                    SDL_Rect textRect = {menu_x + 10, menu_y + yOffset, 180, 20};  
+                    if (SDL_PointInRect(&rc, &textRect)) {
+                       chover = true;  
+                    }
+                    yOffset += 30;  
+                }
+            }
+        }
+
+        menuHover = chover;
 
         if (showMinimizedMenu && e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
             int mouseX = e.button.x;  
@@ -459,6 +486,7 @@ namespace mx {
             }
         } else if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_LEAVE) {
             isHovering = false;
+            menuHover = false;
             return true;
         }
 

@@ -64,6 +64,7 @@ namespace mx {
         MenuBar *menu;
         int cur_dim = 0;
         int prev_dim = 0;
+        bool menuHover = false;
         void drawDimensions(mxApp &app);
         std::vector<int> activeDimensionsStack;
         std::vector<Window *> minimizedWindows;
