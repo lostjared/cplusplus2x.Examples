@@ -2,6 +2,8 @@
 #include<sstream>
 #include<algorithm>
 #include<iostream>
+#include"mx_window.hpp"
+#include"mx_system_bar.hpp"
 
 namespace mx {
 

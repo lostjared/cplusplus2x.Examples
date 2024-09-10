@@ -1,8 +1,9 @@
 #ifndef __MX_CONTROLS__H_
 #define __MX_CONTROLS__H_
 
-#include "dimension.hpp"
+#include "window.hpp"
 #include<optional>
+#include"mx_abstract_control.hpp"
 
 namespace mx {
 

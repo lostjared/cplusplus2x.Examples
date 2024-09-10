@@ -1,7 +1,9 @@
 #ifndef __TERM_H_
 #define __TERM_H_
 
-#include"dimension.hpp"
+#include"window.hpp"
+#include"mx_window.hpp"
+
 
 namespace mx {
 

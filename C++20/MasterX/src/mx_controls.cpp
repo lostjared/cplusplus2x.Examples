@@ -1,4 +1,5 @@
 #include "mx_controls.hpp"
+#include "mx_window.hpp"
 
 namespace mx {
 
