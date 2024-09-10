@@ -117,14 +117,14 @@ namespace mx {
         void drawMenubar(mxApp &app);
         SystemBar *systemBar = nullptr;
         bool minimized = false;
+        bool dragging = false;
     private:
         int x,y,w,h;
         int dim_w = 0, dim_h = 0;
         bool shown = false;
         
         bool maximized = false;
-        bool dragging = false;
-        int dragOffsetX = 0, dragOffsetY = 0;
+          int dragOffsetX = 0, dragOffsetY = 0;
         int oldX = 0, oldY = 0, oldW = 0, oldH = 0;
         bool is_visible = true;
         bool reload_window = false;
