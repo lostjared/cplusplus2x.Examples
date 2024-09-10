@@ -33,6 +33,9 @@ namespace mx {
           DimensionContainer *con = dynamic_cast<DimensionContainer *>(dimensions->operator[](cur_dim).get());
           if(con != nullptr) {
             con->mini_win.push_back(window);
+            std::cout << "MasterX System: Minimized Window.\n";
+          } else {
+            std::cerr << "MasterX System: Error: Wrong Type\n";
           }
     }
 
@@ -64,7 +67,7 @@ namespace mx {
         DimensionContainer *con = dynamic_cast<DimensionContainer *>(dimensions->operator[](cur_dim).get());
         if (!con) return;
 
-        SDL_Color white = {255, 255, 255, 255};
+        SDL_Color white = {0xBD, 0, 0, 255};
         SDL_Color gray = {200, 200, 200, 255};
 
         int menu_width = 150;
@@ -119,92 +122,87 @@ namespace mx {
     void SystemBar::drawDimensions(mxApp &app) {
         if (dimensions != nullptr && animationComplete == true) {
             int activeIndex = 0;  
-            
             bool tcursor = false;
-                        
-            std::unordered_set<int> uniqueDimensions;
             for (size_t j = 0; j < activeDimensionsStack.size(); ++j) {
                 int i = activeDimensionsStack[j];
-                if (uniqueDimensions.count(i) == 0) {
-                    uniqueDimensions.insert(i);
-                    DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](i).get());
-                
-                    if (dim != nullptr && dim->isActive()) { 
-                        const std::string &name = dim->name;
-                        SDL_Color white = {255, 255, 255, 255};
-                        SDL_Surface* textSurface = TTF_RenderText_Solid(font, name.c_str(), white);
-                        if (textSurface == nullptr) {
-                            continue;
-                        }
+                DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](i).get());
+            
+                if (dim != nullptr && dim->isVisible() || dim->isActive()) { 
 
-                        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(app.ren, textSurface);
-                        int text_width = textSurface->w;
-                        int text_height = textSurface->h;
-                        SDL_FreeSurface(textSurface);
-                        if (textTexture == nullptr) {
-                            continue;
-                        }
+                    const std::string &name = dim->name;
+                    SDL_Color white = {255, 255, 255, 255};
+                    SDL_Surface* textSurface = TTF_RenderText_Solid(font, name.c_str(), white);
+                    if (textSurface == nullptr) {
+                        continue;
+                    }
 
-                        int button_width = 150; 
-                        int button_height = text_height + 20;
-                        int bar_height = 50;
-                        int button_y = (bar_height - button_height) / 2 + app.height - bar_height; 
-                        
-                        
-                        int button_x = 10 + activeIndex * (button_width + 10);  
-                        activeIndex++;  
+                    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(app.ren, textSurface);
+                    int text_width = textSurface->w;
+                    int text_height = textSurface->h;
+                    SDL_FreeSurface(textSurface);
+                    if (textTexture == nullptr) {
+                        continue;
+                    }
 
-                        
-                        if (static_cast<int>(i) == cur_dim) {
-                            SDL_SetRenderDrawColor(app.ren, 0, 0, 255, 255);  
-                        } else {
-                            SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255); 
-                        }
+                    int button_width = 150; 
+                    int button_height = text_height + 20;
+                    int bar_height = 50;
+                    int button_y = (bar_height - button_height) / 2 + app.height - bar_height; 
+                    
+                    
+                    int button_x = 10 + activeIndex * (button_width + 10);  
+                    activeIndex++;  
 
-                        SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
-                        SDL_RenderFillRect(app.ren, &buttonRect);
+                    
+                    if (static_cast<int>(i) == cur_dim) {
+                        SDL_SetRenderDrawColor(app.ren, 0, 0, 255, 255);  
+                    } else {
+                        SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255); 
+                    }
+
+                    SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
+                    SDL_RenderFillRect(app.ren, &buttonRect);
+
+                    SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
+                    SDL_RenderDrawRect(app.ren, &buttonRect);
+
+                    
+                    SDL_Rect textRect = {button_x + 10, button_y + (button_height - text_height) / 2, text_width, text_height};
+                    SDL_RenderCopy(app.ren, textTexture, nullptr, &textRect);
+                    SDL_DestroyTexture(textTexture);
+
+                    if (i == cur_dim && dim->mini_win.size()>0 && showMinimizedMenu) {
+                            drawMinimizedMenu(app, button_x, button_y, button_width);
+                    }
+
+                    if(dim->name != "Dashboard") {
+                        int square_size = 20;
+                        int square_x = button_x + button_width - square_size - 5;
+                        int square_y = button_y + (button_height - square_size) / 2;
+
+                        SDL_SetRenderDrawColor(app.ren, 200, 200, 200, 255);
+                        SDL_Rect closeButtonRect = {square_x, square_y, square_size, square_size};
+                        if (dim->hoveringX) {
+                            SDL_SetRenderDrawColor(app.ren, 0xBD, 0, 0, 255);  
+                            tcursor = true;
+                        } 
+                        SDL_RenderFillRect(app.ren, &closeButtonRect);
 
                         SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
-                        SDL_RenderDrawRect(app.ren, &buttonRect);
+                        SDL_RenderDrawRect(app.ren, &closeButtonRect);
 
                         
-                        SDL_Rect textRect = {button_x + 10, button_y + (button_height - text_height) / 2, text_width, text_height};
-                        SDL_RenderCopy(app.ren, textTexture, nullptr, &textRect);
-                        SDL_DestroyTexture(textTexture);
+                        SDL_Color black = {0, 0, 0, 255};
+                        SDL_Surface* xSurface = TTF_RenderText_Solid(font, "X", black);
+                        if (xSurface != nullptr) {
+                            SDL_Texture* xTexture = SDL_CreateTextureFromSurface(app.ren, xSurface);
+                            int x_width = xSurface->w;
+                            int x_height = xSurface->h;
+                            SDL_FreeSurface(xSurface);
 
-                        if (i == cur_dim && dim->mini_win.size()>0 && showMinimizedMenu) {
-                                drawMinimizedMenu(app, button_x, button_y, button_width);
-                        }
-
-                        if(dim->name != "Dashboard") {
-                            int square_size = 20;
-                            int square_x = button_x + button_width - square_size - 5;
-                            int square_y = button_y + (button_height - square_size) / 2;
-
-                            SDL_SetRenderDrawColor(app.ren, 200, 200, 200, 255);
-                            SDL_Rect closeButtonRect = {square_x, square_y, square_size, square_size};
-                            if (dim->hoveringX) {
-                                SDL_SetRenderDrawColor(app.ren, 0xBD, 0, 0, 255);  
-                                tcursor = true;
-                            } 
-                            SDL_RenderFillRect(app.ren, &closeButtonRect);
-
-                            SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
-                            SDL_RenderDrawRect(app.ren, &closeButtonRect);
-
-                            
-                            SDL_Color black = {0, 0, 0, 255};
-                            SDL_Surface* xSurface = TTF_RenderText_Solid(font, "X", black);
-                            if (xSurface != nullptr) {
-                                SDL_Texture* xTexture = SDL_CreateTextureFromSurface(app.ren, xSurface);
-                                int x_width = xSurface->w;
-                                int x_height = xSurface->h;
-                                SDL_FreeSurface(xSurface);
-
-                                SDL_Rect xRect = {square_x + (square_size - x_width) / 2, square_y + (square_size - x_height) / 2, x_width, x_height};
-                                SDL_RenderCopy(app.ren, xTexture, nullptr, &xRect);
-                                SDL_DestroyTexture(xTexture);
-                            }
+                            SDL_Rect xRect = {square_x + (square_size - x_width) / 2, square_y + (square_size - x_height) / 2, x_width, x_height};
+                            SDL_RenderCopy(app.ren, xTexture, nullptr, &xRect);
+                            SDL_DestroyTexture(xTexture);
                         }
                     }
                 }
@@ -357,11 +355,7 @@ namespace mx {
             int button_y = app.height - 50;
 
             for (size_t j = 0; j < activeDimensionsStack.size(); ++j) {
-                if(static_cast<int>(j) != cur_dim)
-                    continue;
-                int button_x = 10 + j * (button_width + 10);
-
-
+               int button_x = 10 + j * (button_width + 10);
                 SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
                 SDL_Point mousePoint = {mouseX, mouseY};
 
@@ -780,7 +774,7 @@ namespace mx {
     void Window::draw(mxApp &app) {
       
         if(shown == false || (minimized == true && isMinimizing == false)) return;
-
+        
         if (isMinimizing) {
             x += (minTargetX - x) / minAnimationStep;
             y += (minTargetY - y) / minAnimationStep;
@@ -944,7 +938,12 @@ namespace mx {
     }
 
     bool Window::isVisible() const {
-        return shown;
+       return shown;
+    }
+
+    bool Window::isDraw() const {
+        if(shown == false || (minimized == true && isMinimizing == false)) return false;
+        return true;
     }
 
     void Window::show(bool b) {
@@ -1175,6 +1174,8 @@ namespace mx {
             SDL_DestroyTexture(wallpaper);
         }
     }
+
+    bool DimensionContainer::isVisible() const { return visible; }
 
     void DimensionContainer::init(const std::string &name_, SDL_Texture *wallpaperx) {
         name = name_;

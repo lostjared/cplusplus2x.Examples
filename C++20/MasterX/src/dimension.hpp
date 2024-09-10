@@ -107,17 +107,19 @@ namespace mx {
         Control *getControl();
         Control *getControl(int index);
         bool isVisible() const;
+        bool isDraw() const;
         bool reload() const;
         void setReload(bool r);
         void setCanResize(bool r);
         bool canResize() const;
         void setSystemBar(SystemBar *s);
         SystemBar *systemBar = nullptr;
+        bool minimized = false;
     private:
         int x,y,w,h;
         int dim_w = 0, dim_h = 0;
         bool shown = false;
-        bool minimized = false;
+        
         bool maximized = false;
         bool dragging = false;
         int dragOffsetX = 0, dragOffsetY = 0;
@@ -161,6 +163,7 @@ namespace mx {
         void setActive(bool a);
         bool isActive() const;
         void setVisible(bool v);
+        bool isVisible() const;
         bool hoveringX = false;
         void startTransition(SDL_Texture *);
         void updateTransition();

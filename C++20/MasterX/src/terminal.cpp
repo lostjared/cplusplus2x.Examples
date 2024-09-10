@@ -13,9 +13,17 @@ namespace mx {
     }
 
     void Terminal::draw(mxApp &app) {
-        if(Window::isVisible() == false)
-            return;
+
+         if(!Window::isVisible())
+                return;
+
+
+    
         Window::draw(app);
+
+        if(Window::isDraw() == false)
+            return;
+
         SDL_SetRenderDrawColor(app.ren, 0, 0, 0, 255);
         SDL_Rect rc;
         Window::getRect(rc);
@@ -141,9 +149,7 @@ namespace mx {
     }
 
     bool Terminal::event(mxApp &app, SDL_Event &e) {
-        if(Window::isVisible() == false)
-            return false;
-
+        
         if(Window::event(app, e))
             return true;
 
@@ -172,7 +178,6 @@ namespace mx {
             handleScrolling(e.wheel.y);
             return true;
         }
-
         return false; 
     }
 
