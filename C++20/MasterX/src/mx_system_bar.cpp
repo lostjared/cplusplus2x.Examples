@@ -761,11 +761,15 @@ namespace mx {
         SDL_Rect rightSideRect = {menuX + menuWidth, currentY, 20, menuHeight};
         SDL_RenderFillRect(app.ren, &rightSideRect);
 
-        SDL_SetRenderDrawColor(app.ren, 192, 192, 192, 255);
-        SDL_Rect menuRect = {menuX, currentY, menuWidth, menuHeight};
-        SDL_RenderFillRect(app.ren, &menuRect);
+        int gradientHeight = menuHeight;
+        for (int i = 0; i < gradientHeight; i++) {
+            int grayValue = 192 - (64 * i / gradientHeight);  
+            SDL_SetRenderDrawColor(app.ren, grayValue, grayValue, grayValue, 255);
+            SDL_RenderDrawLine(app.ren, menuX, currentY + i, menuX + menuWidth, currentY + i);
+        }
 
         SDL_SetRenderDrawColor(app.ren, 128, 128, 128, 255);
+        SDL_Rect menuRect = {menuX, currentY, menuWidth, menuHeight};
         SDL_RenderDrawRect(app.ren, &menuRect);
 
         SDL_Color black = {0, 0, 0, 255};
@@ -793,7 +797,6 @@ namespace mx {
             } else {
                 SDL_SetRenderDrawColor(app.ren, 192, 192, 192, 255);
                 SDL_RenderFillRect(app.ren, &itemRect);
-                
             }
 
             SDL_SetRenderDrawColor(app.ren, 128, 128, 128, 255);
@@ -816,8 +819,7 @@ namespace mx {
         }
 
         SDL_SetRenderTarget(app.ren, nullptr);
- 
-    }   
+    }
     int MenuBar::itemClicked(mxApp &app, int x, int y) {
         int menuX = app.width - (app.width / 6) - 20; 
         int menuY = currentY;
