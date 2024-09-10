@@ -103,8 +103,9 @@ void quit() {
 
 int main(int argc, char **argv) {
     Argz<std::string> argz(argc, argv);
-    argz.addOptionSingleValue('p', "path to assets").addOptionDoubleValue('p', "path", "path to assets").addOptionSingleValue('v', "info").addOptionSingle('h', "info");
+    argz.addOptionSingleValue('p', "path to assets").addOptionDoubleValue('P', "path", "path to assets").addOptionSingleValue('v', "info").addOptionSingle('h', "info").addOptionSingle('f', "set fullscreen").addOptionDouble('F',"fullscreen", "set fullscreen");
     std::string path;
+    bool full = false;
     int value = 0;
     Argument<std::string> arg;
     try {
@@ -116,7 +117,12 @@ int main(int argc, char **argv) {
                     exit(EXIT_SUCCESS);
                     break;
                 case 'p':
+                case 'P':
                     path = arg.arg_value;
+                    break;
+                case 'f':
+                case 'F':
+                    full = true;
                     break;
             }
         }
@@ -158,6 +164,11 @@ int main(int argc, char **argv) {
         return 1;
     }
     init(app);
+
+    if(full) {
+        app.set_fullscreen(app.win, true);
+    }
+
 #ifndef FOR_WASM
     while(active == true) {
         eventProc();

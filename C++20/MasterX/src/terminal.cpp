@@ -83,7 +83,7 @@ namespace mx {
     }
 
     void Terminal::renderText(mxApp &app, const std::string &text, int x, int y) {
-        SDL_Surface* surface = TTF_RenderText_Solid(app.font, text.c_str(), text_color);
+        SDL_Surface* surface = TTF_RenderText_Blended(app.font, text.c_str(), text_color);
         SDL_Texture* texture = SDL_CreateTextureFromSurface(app.ren, surface);
 
         SDL_Rect dstRect = {x, y, surface->w, surface->h};

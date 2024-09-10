@@ -27,6 +27,7 @@ namespace mx {
         TTF_Font *font;
         SDL_Texture *icon;
         SDL_Texture* convertToStreamingTexture(SDL_Texture* originalTexture);
+        void set_fullscreen(SDL_Window* window, bool fullscreen);
     };
 
     class Screen {

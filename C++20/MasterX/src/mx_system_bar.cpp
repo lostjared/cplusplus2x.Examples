@@ -100,7 +100,7 @@ namespace mx {
             Window *win = con->mini_win[i];
             if(menuHover == true && hoverIndex == static_cast<int>(i))
                 TTF_SetFontStyle(font, TTF_STYLE_UNDERLINE);
-            SDL_Surface *textSurface = TTF_RenderText_Solid(font, win->title.c_str(), white);
+            SDL_Surface *textSurface = TTF_RenderText_Blended(font, win->title.c_str(), white);
             TTF_SetFontStyle(font, TTF_STYLE_NORMAL);
             SDL_Texture *textTexture = SDL_CreateTextureFromSurface(app.ren, textSurface);
             int text_width = textSurface->w;
@@ -145,7 +145,7 @@ namespace mx {
 
                 const std::string &name = dim->name;
                 SDL_Color white = {255, 255, 255, 255};
-                SDL_Surface* textSurface = TTF_RenderText_Solid(font, name.c_str(), white);
+                SDL_Surface* textSurface = TTF_RenderText_Blended(font, name.c_str(), white);
                 if (textSurface == nullptr) {
                     continue;
                 }
@@ -218,7 +218,7 @@ namespace mx {
                     SDL_RenderDrawRect(app.ren, &closeButtonRect);
 
                     SDL_Color black = {0, 0, 0, 255};
-                    SDL_Surface* xSurface = TTF_RenderText_Solid(font, "X", black);
+                    SDL_Surface* xSurface = TTF_RenderText_Blended(font, "X", black);
                     if (xSurface != nullptr) {
                         SDL_Texture* xTexture = SDL_CreateTextureFromSurface(app.ren, xSurface);
                         int x_width = xSurface->w;

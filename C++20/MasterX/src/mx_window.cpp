@@ -161,7 +161,7 @@ namespace mx {
         SDL_SetRenderDrawColor(app.ren, 128, 128, 128, 255);
         SDL_RenderDrawLine(app.ren, closeButton.x + buttonSize, closeButton.y, closeButton.x + buttonSize, closeButton.y + buttonSize);
         SDL_RenderDrawLine(app.ren, closeButton.x, closeButton.y + buttonSize, closeButton.x + buttonSize, closeButton.y + buttonSize);
-        SDL_Surface* closeSurface = TTF_RenderText_Solid(app.font, "X", {255, 255, 255});
+        SDL_Surface* closeSurface = TTF_RenderText_Blended(app.font, "X", {255, 255, 255});
         SDL_Texture* closeTexture = SDL_CreateTextureFromSurface(app.ren, closeSurface);
         int closeTextW = 0, closeTextH = 0;
         SDL_QueryTexture(closeTexture, nullptr, nullptr, &closeTextW, &closeTextH);
@@ -170,7 +170,7 @@ namespace mx {
         SDL_DestroyTexture(closeTexture);
         SDL_FreeSurface(closeSurface);
 
-        SDL_Surface* minimizeSurface = TTF_RenderText_Solid(app.font, "_", {255, 255, 255});
+        SDL_Surface* minimizeSurface = TTF_RenderText_Blended(app.font, "_", {255, 255, 255});
         SDL_Texture* minimizeTexture = SDL_CreateTextureFromSurface(app.ren, minimizeSurface);
         int minimizeTextW = 0, minimizeTextH = 0;
         SDL_QueryTexture(minimizeTexture, nullptr, nullptr, &minimizeTextW, &minimizeTextH);
@@ -198,7 +198,7 @@ namespace mx {
 
 
 
-        SDL_Surface* surface = TTF_RenderText_Solid(app.font, title.c_str(), {255, 255, 255});
+        SDL_Surface* surface = TTF_RenderText_Blended(app.font, title.c_str(), {255, 255, 255});
         SDL_Texture* texture = SDL_CreateTextureFromSurface(app.ren, surface);
         int textW = 0, textH = 0;
         SDL_QueryTexture(texture, nullptr, nullptr, &textW, &textH);

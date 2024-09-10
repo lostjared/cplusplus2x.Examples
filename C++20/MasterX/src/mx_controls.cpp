@@ -30,7 +30,7 @@ namespace mx {
                 TTF_SetFontStyle(font_, TTF_STYLE_UNDERLINE);
             }
 
-            SDL_Surface *surf = TTF_RenderText_Solid(font_, text_.c_str(), color_);
+            SDL_Surface *surf = TTF_RenderText_Blended(font_, text_.c_str(), color_);
             if(surf == nullptr) {
                 std::cerr << "MasterX System: Error creating surface.\n";
                 exit(EXIT_FAILURE);
@@ -56,7 +56,7 @@ namespace mx {
                 
             for(int i = 0; i < static_cast<int>(multi_text.size()); ++i) {
                 if(multi_text[i].length()==0) continue;
-                SDL_Surface *surf = TTF_RenderText_Solid(font_, multi_text[i].c_str(), color_);
+                SDL_Surface *surf = TTF_RenderText_Blended(font_, multi_text[i].c_str(), color_);
                 if(surf == nullptr) {
                     std::cerr << "MasterX System: Error creating surface.\n";
                     exit(EXIT_FAILURE);
