@@ -4,7 +4,7 @@
 #include "window.hpp"
 #include "SDL_rect.h"
 #include"mx_window.hpp"
-#include"mx_System_bar.hpp"
+#include"mx_system_bar.hpp"
 #include"mx_abstract_control.hpp"
 #include<algorithm>
 #include<unordered_set>
