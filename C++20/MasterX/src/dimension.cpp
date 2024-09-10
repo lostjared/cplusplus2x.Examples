@@ -68,23 +68,39 @@ namespace mx {
         if (!con) return;
 
         SDL_Color white = {0xBD, 0, 0, 255};
-        SDL_Color gray = {200, 200, 200, 255};
+        SDL_Color darkGray = {160, 160, 160, 255};
+        SDL_Color lightGray = {240, 240, 240, 255};
+        SDL_Color gradStart = {255, 255, 255, 255};
+        SDL_Color gradEnd = {180, 180, 180, 255};   
 
         int menu_width = 150;
-        int menu_height = 20 + con->mini_win.size() * 30;  
+        int menu_height = 20 + con->mini_win.size() * 30;
 
         int menu_x = button_x + (button_width - menu_width) / 2;
-        int menu_y = button_y - menu_height - 5;  
+        int menu_y = button_y - menu_height - 5;
+    
+        for (int y = 0; y < menu_height; ++y) {
+            float factor = static_cast<float>(y) / menu_height;
+            SDL_Color color;
+            color.r = gradStart.r + static_cast<Uint8>(factor * (gradEnd.r - gradStart.r));
+            color.g = gradStart.g + static_cast<Uint8>(factor * (gradEnd.g - gradStart.g));
+            color.b = gradStart.b + static_cast<Uint8>(factor * (gradEnd.b - gradStart.b));
+            color.a = 255;
 
-        SDL_Rect menuRect = {menu_x, menu_y, menu_width, menu_height};
+            SDL_SetRenderDrawColor(app.ren, color.r, color.g, color.b, color.a);
+            SDL_RenderDrawLine(app.ren, menu_x, menu_y + y, menu_x + menu_width, menu_y + y);
+        }
 
-        SDL_SetRenderDrawColor(app.ren, gray.r, gray.g, gray.b, 255);
-        SDL_RenderFillRect(app.ren, &menuRect);
+        SDL_SetRenderDrawColor(app.ren, lightGray.r, lightGray.g, lightGray.b, 255);
+        SDL_RenderDrawLine(app.ren, menu_x, menu_y, menu_x + menu_width, menu_y); // Top border
+        SDL_RenderDrawLine(app.ren, menu_x, menu_y, menu_x, menu_y + menu_height); // Left border
 
-        SDL_SetRenderDrawColor(app.ren, white.r, white.g, white.b, 255);
-        SDL_RenderDrawRect(app.ren, &menuRect);
+        SDL_SetRenderDrawColor(app.ren, darkGray.r, darkGray.g, darkGray.b, 255);
+        SDL_RenderDrawLine(app.ren, menu_x, menu_y + menu_height, menu_x + menu_width, menu_y + menu_height); // Bottom border
+        SDL_RenderDrawLine(app.ren, menu_x + menu_width, menu_y, menu_x + menu_width, menu_y + menu_height); // Right border
 
-        int yOffset = 20;  
+      
+        int yOffset = 20;
         for (size_t i = 0; i < con->mini_win.size(); ++i) {
             Window *win = con->mini_win[i];
             if(menuHover == true)
@@ -98,7 +114,7 @@ namespace mx {
             SDL_Rect textRect = {menu_x + 10, menu_y + yOffset, text_width, text_height};
             SDL_RenderCopy(app.ren, textTexture, nullptr, &textRect);
             SDL_DestroyTexture(textTexture);
-            yOffset += 30;  
+            yOffset += 30;
         }
     }
 
@@ -121,99 +137,111 @@ namespace mx {
             activeDimensionsStack.erase(it);
         }
     }
-    void SystemBar::drawDimensions(mxApp &app) {
+ 
+   void SystemBar::drawDimensions(mxApp &app) {
         if (dimensions != nullptr && animationComplete == true) {
             int activeIndex = 0;  
             bool tcursor = false;
             for (size_t j = 0; j < activeDimensionsStack.size(); ++j) {
-                int i = activeDimensionsStack[j];
-                DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](i).get());
-            
-                if (dim != nullptr && dim->isActive()) { 
+            int i = activeDimensionsStack[j];
+            DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](i).get());
+        
+            if (dim != nullptr && dim->isActive()) { 
 
-                    const std::string &name = dim->name;
-                    SDL_Color white = {255, 255, 255, 255};
-                    SDL_Surface* textSurface = TTF_RenderText_Solid(font, name.c_str(), white);
-                    if (textSurface == nullptr) {
-                        continue;
-                    }
+                const std::string &name = dim->name;
+                SDL_Color white = {255, 255, 255, 255};
+                SDL_Surface* textSurface = TTF_RenderText_Solid(font, name.c_str(), white);
+                if (textSurface == nullptr) {
+                    continue;
+                }
 
-                    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(app.ren, textSurface);
-                    int text_width = textSurface->w;
-                    int text_height = textSurface->h;
-                    SDL_FreeSurface(textSurface);
-                    if (textTexture == nullptr) {
-                        continue;
-                    }
+                SDL_Texture* textTexture = SDL_CreateTextureFromSurface(app.ren, textSurface);
+                int text_width = textSurface->w;
+                int text_height = textSurface->h;
+                SDL_FreeSurface(textSurface);
+                if (textTexture == nullptr) {
+                    continue;
+                }
 
-                    int button_width = 150; 
-                    int button_height = text_height + 20;
-                    int bar_height = 50;
-                    int button_y = (bar_height - button_height) / 2 + app.height - bar_height; 
-                    
-                    
-                    int button_x = 10 + activeIndex * (button_width + 10);  
-                    activeIndex++;  
+                int button_width = 150; 
+                int button_height = text_height + 20;
+                int bar_height = 50;
+                int button_y = (bar_height - button_height) / 2 + app.height - bar_height; 
+                
+                int button_x = 10 + activeIndex * (button_width + 10);  
+                activeIndex++;  
 
-                    
-                    if (static_cast<int>(i) == cur_dim) {
-                        SDL_SetRenderDrawColor(app.ren, 0, 0, 255, 255);  
-                    } else {
-                        SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255); 
-                    }
+                SDL_Color gradStart, gradEnd;
 
-                    SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
-                    SDL_RenderFillRect(app.ren, &buttonRect);
+                if (static_cast<int>(i) == cur_dim) {
+                    gradStart = {0, 0, 255, 255};  
+                    gradEnd = {0, 0, 139, 255};    
+                } else {
+                    gradStart = {192, 192, 192, 255}; 
+                    gradEnd = {128, 128, 128, 255};   
+                }
+
+                SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
+
+                for (int y = buttonRect.y; y < buttonRect.y + buttonRect.h; ++y) {
+                    float factor = static_cast<float>(y - buttonRect.y) / buttonRect.h;
+                    SDL_Color color;
+                    color.r = gradStart.r + static_cast<Uint8>(factor * (gradEnd.r - gradStart.r));
+                    color.g = gradStart.g + static_cast<Uint8>(factor * (gradEnd.g - gradStart.g));
+                    color.b = gradStart.b + static_cast<Uint8>(factor * (gradEnd.b - gradStart.b));
+                    color.a = 255;
+
+                    SDL_SetRenderDrawColor(app.ren, color.r, color.g, color.b, color.a);
+                    SDL_RenderDrawLine(app.ren, buttonRect.x, y, buttonRect.x + buttonRect.w, y);
+                }
+
+                SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
+                SDL_RenderDrawRect(app.ren, &buttonRect);
+
+                SDL_Rect textRect = {button_x + 10, button_y + (button_height - text_height) / 2, text_width, text_height};
+                SDL_RenderCopy(app.ren, textTexture, nullptr, &textRect);
+                SDL_DestroyTexture(textTexture);
+
+                if (i == cur_dim && dim->mini_win.size() > 0 && showMinimizedMenu) {
+                    drawMinimizedMenu(app, button_x, button_y, button_width);
+                }
+
+                if(dim->name != "Dashboard") {
+                    int square_size = 20;
+                    int square_x = button_x + button_width - square_size - 5;
+                    int square_y = button_y + (button_height - square_size) / 2;
+
+                    SDL_SetRenderDrawColor(app.ren, 200, 200, 200, 255);
+                    SDL_Rect closeButtonRect = {square_x, square_y, square_size, square_size};
+                    if (dim->hoveringX) {
+                        SDL_SetRenderDrawColor(app.ren, 0xBD, 0, 0, 255);  
+                        tcursor = true;
+                    } 
+                    SDL_RenderFillRect(app.ren, &closeButtonRect);
 
                     SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
-                    SDL_RenderDrawRect(app.ren, &buttonRect);
+                    SDL_RenderDrawRect(app.ren, &closeButtonRect);
 
-                    
-                    SDL_Rect textRect = {button_x + 10, button_y + (button_height - text_height) / 2, text_width, text_height};
-                    SDL_RenderCopy(app.ren, textTexture, nullptr, &textRect);
-                    SDL_DestroyTexture(textTexture);
+                    SDL_Color black = {0, 0, 0, 255};
+                    SDL_Surface* xSurface = TTF_RenderText_Solid(font, "X", black);
+                    if (xSurface != nullptr) {
+                        SDL_Texture* xTexture = SDL_CreateTextureFromSurface(app.ren, xSurface);
+                        int x_width = xSurface->w;
+                        int x_height = xSurface->h;
+                        SDL_FreeSurface(xSurface);
 
-                    if (i == cur_dim && dim->mini_win.size()>0 && showMinimizedMenu) {
-                            drawMinimizedMenu(app, button_x, button_y, button_width);
-                    }
-
-                    if(dim->name != "Dashboard") {
-                        int square_size = 20;
-                        int square_x = button_x + button_width - square_size - 5;
-                        int square_y = button_y + (button_height - square_size) / 2;
-
-                        SDL_SetRenderDrawColor(app.ren, 200, 200, 200, 255);
-                        SDL_Rect closeButtonRect = {square_x, square_y, square_size, square_size};
-                        if (dim->hoveringX) {
-                            SDL_SetRenderDrawColor(app.ren, 0xBD, 0, 0, 255);  
-                            tcursor = true;
-                        } 
-                        SDL_RenderFillRect(app.ren, &closeButtonRect);
-
-                        SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
-                        SDL_RenderDrawRect(app.ren, &closeButtonRect);
-
-                        
-                        SDL_Color black = {0, 0, 0, 255};
-                        SDL_Surface* xSurface = TTF_RenderText_Solid(font, "X", black);
-                        if (xSurface != nullptr) {
-                            SDL_Texture* xTexture = SDL_CreateTextureFromSurface(app.ren, xSurface);
-                            int x_width = xSurface->w;
-                            int x_height = xSurface->h;
-                            SDL_FreeSurface(xSurface);
-
-                            SDL_Rect xRect = {square_x + (square_size - x_width) / 2, square_y + (square_size - x_height) / 2, x_width, x_height};
-                            SDL_RenderCopy(app.ren, xTexture, nullptr, &xRect);
-                            SDL_DestroyTexture(xTexture);
-                        }
+                        SDL_Rect xRect = {square_x + (square_size - x_width) / 2, square_y + (square_size - x_height) / 2, x_width, x_height};
+                        SDL_RenderCopy(app.ren, xTexture, nullptr, &xRect);
+                        SDL_DestroyTexture(xTexture);
                     }
                 }
             }
-            if(tcursor == true) {
-                cursor_shown = true;
-            } 
         }
+        if(tcursor == true) {
+            cursor_shown = true;
+        } 
     }
+}
     void SystemBar::setCurrentDimension(int dim) {
         if(dim != cur_dim) {
             DimensionContainer *old, *setv;
@@ -252,39 +280,88 @@ namespace mx {
 
         if(menuHover) {
             cursor_shown = true;
+                }
+        SDL_Color gradBarStart = {240, 240, 240, 255}; 
+        SDL_Color gradBarEnd = {200, 200, 200, 255};   
+        SDL_Rect barRect = {0, yPos, windowWidth, barHeight};
+        for (int y = 0; y < barHeight; ++y) {
+            float factor = static_cast<float>(y) / barHeight;
+            SDL_Color color;
+            color.r = gradBarStart.r + static_cast<Uint8>(factor * (gradBarEnd.r - gradBarStart.r));
+            color.g = gradBarStart.g + static_cast<Uint8>(factor * (gradBarEnd.g - gradBarStart.g));
+            color.b = gradBarStart.b + static_cast<Uint8>(factor * (gradBarEnd.b - gradBarStart.b));
+            color.a = 255;
+
+            SDL_SetRenderDrawColor(app.ren, color.r, color.g, color.b, color.a);
+            SDL_RenderDrawLine(app.ren, barRect.x, barRect.y + y, barRect.x + barRect.w, barRect.y + y);
         }
 
-        SDL_SetRenderTarget(app.ren, app.tex);
-        SDL_SetRenderDrawColor(app.ren, 192, 192, 192, 255);
-        SDL_Rect barRect = {0, yPos, windowWidth, barHeight};
-        SDL_RenderFillRect(app.ren, &barRect);
-        SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);  
-        SDL_RenderDrawLine(app.ren, barRect.x, barRect.y, barRect.x + barRect.w - 1, barRect.y);  
-        SDL_RenderDrawLine(app.ren, barRect.x, barRect.y, barRect.x, barRect.y + barRect.h - 1);  
-        SDL_SetRenderDrawColor(app.ren, 128, 128, 128, 255);  
+        SDL_Color lightBevel = {255, 255, 255, 255}; 
+        SDL_Color darkBevel = {128, 128, 128, 255};  
+
+        
+        SDL_SetRenderDrawColor(app.ren, lightBevel.r, lightBevel.g, lightBevel.b, lightBevel.a);
+        SDL_RenderDrawLine(app.ren, barRect.x, barRect.y, barRect.x + barRect.w, barRect.y); 
+        SDL_RenderDrawLine(app.ren, barRect.x, barRect.y, barRect.x, barRect.y + barRect.h); 
+
+        
+        SDL_SetRenderDrawColor(app.ren, darkBevel.r, darkBevel.g, darkBevel.b, darkBevel.a);
         SDL_RenderDrawLine(app.ren, barRect.x, barRect.y + barRect.h - 1, barRect.x + barRect.w - 1, barRect.y + barRect.h - 1); 
         SDL_RenderDrawLine(app.ren, barRect.x + barRect.w - 1, barRect.y, barRect.x + barRect.w - 1, barRect.y + barRect.h - 1); 
+                        
         SDL_Color buttonColor = {169, 169, 169, 255};
-        SDL_Color textColor = {255, 255, 255};
+        SDL_Color textColor = {0, 0, 0, 255};       
 
         if (isHovering) {
-            buttonColor = {0, 0, 139, 255};
-            textColor = {255, 255, 255};
+            buttonColor = {0, 0, 139, 255}; 
+            textColor = {255, 255, 255, 255}; 
             cursor_shown = true;
-        } 
-
-        SDL_SetRenderDrawColor(app.ren, buttonColor.r, buttonColor.g, buttonColor.b, buttonColor.a);
+        }
         SDL_Rect startButton = {windowWidth - startButtonSize, yPos, startButtonSize, barHeight};
-        SDL_RenderFillRect(app.ren, &startButton);
+        
+        if (isHovering) {
+            SDL_Color gradStart = {0, 0, 255, 255}; 
+            SDL_Color gradEnd = {0, 0, 139, 255};   
 
-        SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);  // White bevel color
+            for (int y = 0; y < startButton.h; ++y) {
+
+                float factor = static_cast<float>(y) / startButton.h;
+                SDL_Color color;
+                color.r = gradStart.r + static_cast<Uint8>(factor * (gradEnd.r - gradStart.r));
+                color.g = gradStart.g + static_cast<Uint8>(factor * (gradEnd.g - gradStart.g));
+                color.b = gradStart.b + static_cast<Uint8>(factor * (gradEnd.b - gradStart.b));
+                color.a = 255;
+
+                SDL_SetRenderDrawColor(app.ren, color.r, color.g, color.b, color.a);
+                SDL_RenderDrawLine(app.ren, startButton.x, startButton.y + y, startButton.x + startButton.w, startButton.y + y);
+            }
+        } else {
+            SDL_Color gradStart = {192, 192, 192, 255}; 
+            SDL_Color gradEnd = {128, 128, 128, 255};   
+
+            for (int y = 0; y < startButton.h; ++y) {
+                float factor = static_cast<float>(y) / startButton.h;
+                SDL_Color color;
+                color.r = gradStart.r + static_cast<Uint8>(factor * (gradEnd.r - gradStart.r));
+                color.g = gradStart.g + static_cast<Uint8>(factor * (gradEnd.g - gradStart.g));
+                color.b = gradStart.b + static_cast<Uint8>(factor * (gradEnd.b - gradStart.b));
+                color.a = 255;
+
+                SDL_SetRenderDrawColor(app.ren, color.r, color.g, color.b, color.a);
+                SDL_RenderDrawLine(app.ren, startButton.x, startButton.y + y, startButton.x + startButton.w, startButton.y + y);
+            }
+        }
+
+        
+        SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);  
         SDL_RenderDrawLine(app.ren, startButton.x, startButton.y, startButton.x + startButton.w - 1, startButton.y);  
         SDL_RenderDrawLine(app.ren, startButton.x, startButton.y, startButton.x, startButton.y + startButton.h - 1);  
+
         SDL_SetRenderDrawColor(app.ren, 128, 128, 128, 255);  
         SDL_RenderDrawLine(app.ren, startButton.x, startButton.y + startButton.h - 1, startButton.x + startButton.w - 1, startButton.y + startButton.h - 1);  
         SDL_RenderDrawLine(app.ren, startButton.x + startButton.w - 1, startButton.y, startButton.x + startButton.w - 1, startButton.y + startButton.h - 1);  
 
-
+        
         SDL_Surface* textSurface = TTF_RenderText_Blended(font, "Launch", textColor);
         SDL_Texture* textTexture = SDL_CreateTextureFromSurface(app.ren, textSurface);
 
@@ -293,14 +370,16 @@ namespace mx {
         SDL_FreeSurface(textSurface);
 
         SDL_Rect textRect = {
-            windowWidth - startButtonSize + (startButtonSize - textWidth) / 2,
-            yPos + (barHeight - textHeight) / 2,
+            startButton.x + (startButton.w - textWidth) / 2,
+            startButton.y + (startButton.h - textHeight) / 2,
             textWidth,
             textHeight
         };
 
         SDL_RenderCopy(app.ren, textTexture, nullptr, &textRect);
         SDL_DestroyTexture(textTexture);
+
+        
         drawDimensions(app);
         SDL_SetRenderTarget(app.ren, nullptr);
 
