@@ -1,11 +1,14 @@
 #ifndef __MX_WINDOW_H_
 #define __MX_WINDOW_H_
 
-#include "dimension.hpp"
+#include "window.hpp"
+#include<vector>
+#include<string>
 
 namespace mx {
 
   class Control;
+  class SystemBar;
 
   class Window : public Screen {
     public:

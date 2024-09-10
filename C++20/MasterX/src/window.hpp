@@ -6,6 +6,8 @@
 
 #include<string>
 #include<iostream>
+#include<memory>
+#include<vector>
 
 extern std::string getPath(const std::string &name);
 enum { ID_LOAD=0, ID_DIM };

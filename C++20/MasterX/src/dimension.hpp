@@ -7,6 +7,7 @@
 #include<string>
 #include<iostream>
 #include<functional>
+#include"mx_event.hpp"
 
 namespace mx {
 
@@ -33,7 +34,9 @@ namespace mx {
         bool hoveringX = false;
         void startTransition(SDL_Texture *);
         void updateTransition();
+        Window *createWindow(mxApp &app);
         SDL_Texture *wallpaper, *nextWallpaper;
+        EventHandler events;
     private:
         bool active = false;
         bool visible = false;
@@ -42,6 +45,7 @@ namespace mx {
         int nextDimension = -1;
         int transitionAlpha = 255;
         int transitionSpeed = 3;
+        
     };
     
     class Terminal;

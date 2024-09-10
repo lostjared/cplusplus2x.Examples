@@ -7,6 +7,8 @@
 
 namespace mx {
 
+    extern bool cursor_shown;
+
     class Label : public Control {
     public:
         Label(mxApp &app);

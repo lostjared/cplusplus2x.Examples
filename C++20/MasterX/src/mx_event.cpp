@@ -1,50 +1,42 @@
 #include"mx_event.hpp"
 #include<vector>
+#include"mx_window.hpp"
 
 namespace mx {
 
-        void EventHandler::pumpEvent(SDL_Event &e) {
-
-            if(window_stack.size()>0 && cur_focus >= 0 && cur_focus< static_cast<int>(window_stack.size())) {
-                window_stack[cur_focus]->event(app_, e);
-            }    
-        
-        }
-
-        void  EventHandler::setFocus(int index){       
-        }
-        
-        Window *EventHandler::currentWindow() {
-            if(cur_focus >= 0 && cur_focus < static_cast<int>(window_stack.size())) {
-                 return window_stack[cur_focus];
+    bool EventHandler::pumpEvent(SDL_Event &e) {
+        for (auto it = window_stack.rbegin(); it != window_stack.rend(); ++it) {
+            Window *window = *it;
+            if (window->event(app_, e)) {
+                return true;
             }
-            return nullptr;
         }
-        void EventHandler::addWindow(Window *window) {
-            window_stack.push_back(window);
+        return false;
+    }
+
+    void EventHandler::sendDrawMessage() {
+        for (auto &window : window_stack) {
+            window->draw(app_);
         }
+    }
 
+    void EventHandler::setFocus(int index) {
+        if (index >= 0 && index < window_stack.size()) {
+            cur_focus = index;
+            Window *focused_window = window_stack[index];
+            window_stack.erase(window_stack.begin() + index);
+            window_stack.push_back(focused_window);
+        }
+    }
 
+    Window *EventHandler::currentWindow() {
+        if (!window_stack.empty()) {
+            return window_stack.back();
+        }
+        return nullptr;
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    void EventHandler::addWindow(Window *window) {
+        window_stack.push_back(window);
+    }
 }

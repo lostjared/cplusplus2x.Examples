@@ -1,8 +1,10 @@
-#include"Mx_Window.hpp"
+#include"mx_window.hpp"
 #include"mx_abstract_control.hpp"
 #include"mx_system_bar.hpp"
 
 namespace mx {
+
+    extern bool cursor_shown;
 
     Window::Window(mxApp &app) : x{0}, y{0}, w{320}, h{240}, shown{false}, minimizeHovered(SDL_FALSE), closeHovered(SDL_FALSE), maximizeHovered(SDL_FALSE), title{"windwow"} {
         dim_w = app.width;

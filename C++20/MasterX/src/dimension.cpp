@@ -13,13 +13,18 @@ namespace mx {
 
     bool cursor_shown = false;
   
-    DimensionContainer::DimensionContainer(mxApp &app) : wallpaper{nullptr} , active{false} {}
+    DimensionContainer::DimensionContainer(mxApp &app) : wallpaper{nullptr} , events{app}, active{false} {}
 
     DimensionContainer::~DimensionContainer() {
         std::cout << "MasterX: Releasing DImension: " << name << "\n";
         if(wallpaper) {
             SDL_DestroyTexture(wallpaper);
         }
+    }
+
+    Window *DimensionContainer::createWindow(mxApp &app) {
+        objects.push_back(std::make_unique<Window>(app));
+        return dynamic_cast<Window *>(objects[objects.size()-1].get());
     }
 
     bool DimensionContainer::isVisible() const { return visible; }
@@ -71,9 +76,7 @@ namespace mx {
         }
 
         if (visible) {
-            for (auto &i : objects) {
-                i->draw(app);
-            }
+            events.sendDrawMessage();
         }
     }
     
@@ -95,11 +98,9 @@ namespace mx {
     bool DimensionContainer::event(mxApp &app, SDL_Event &e) {
 
         if(active == false || visible == false) return false;
+        if(events.pumpEvent(e))
+            return true;
 
-        for(auto &i : objects) {
-            if(i->event(app, e) == true)
-                return true;
-        }
         return false;
     }
 
@@ -123,8 +124,7 @@ namespace mx {
         welcome->init("Welcome", loadTexture(app, "images/wallpaper.bmp"));
         welcome->setActive(false);
         welcome->setVisible(false);
-        welcome->objects.push_back(std::make_unique<Window>(app));
-        welcome_window = dynamic_cast<Window *>(welcome->objects[0].get());
+        welcome_window = welcome->createWindow(app);
         welcome_window->create("Welcome", 45, 25, 640, 480);
         welcome_window->show(true);
         welcome_window->setReload(false);
@@ -156,8 +156,7 @@ namespace mx {
         about->init("About", loadTexture(app, "images/about.bmp"));
         about->setActive(false);
         about->setVisible(false);
-        about->objects.push_back(std::make_unique<Window>(app));
-        about_window = dynamic_cast<Window *>(about->objects[0].get());
+        about_window = about->createWindow(app);
         int centered_x = (app.width - 800) / 2;
         int centered_y = (app.height - 600) / 2;
         about_window->create("About", centered_x, centered_y-35, 800, 600);
@@ -195,6 +194,7 @@ namespace mx {
         system_bar->activateDimension(0);
         term->objects.push_back(std::make_unique<Terminal>(app)); 
         termx = dynamic_cast<Terminal*>(term->objects[0].get());
+        term->events.addWindow(termx);
         termx->create("mXTerm", 25, 25, 640, 480);
         termx->show(true);
         termx->setReload(true);
