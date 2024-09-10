@@ -127,7 +127,7 @@ namespace mx {
                 int i = activeDimensionsStack[j];
                 DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](i).get());
             
-                if (dim != nullptr && dim->isVisible() || dim->isActive()) { 
+                if (dim != nullptr && dim->isActive()) { 
 
                     const std::string &name = dim->name;
                     SDL_Color white = {255, 255, 255, 255};
@@ -313,12 +313,17 @@ namespace mx {
         if (!con) {
             return false;  
         }
-        
-        int mouseX = e.motion.x;
-        int mouseY = e.motion.y;
+
+        int dpos = 0;
+
+        for(auto &i : activeDimensionsStack) {
+            if(i == cur_dim) break;
+            dpos ++;
+        }
+
         int button_width = 150;  
         int button_y = app.height - 50;  
-        int button_x = 10 + cur_dim * (button_width + 10);  
+        int button_x = 10 + dpos * (button_width + 10);  
         int menu_width = 150;
         int menu_height = 20 + con->mini_win.size() * 30;  
 
@@ -336,6 +341,7 @@ namespace mx {
                     SDL_Rect textRect = {menu_x + 10, menu_y + yOffset, 180, 20};  
                     if (SDL_PointInRect(&rc, &textRect)) {
                         restoreWindow(con->mini_win[i]);  
+                        std::cout << "MasterX System: Restored Window\n";
                         showMinimizedMenu = false;
                         return true;
                     }
@@ -394,9 +400,9 @@ namespace mx {
                 }
             }
 
+            SDL_Point mousePoint = {mouseX, mouseY};
             SDL_Rect menuRect = {menu_x, menu_y, menu_width, menu_height};
-            if (mouseX >= menuRect.x && mouseX <= menuRect.x + menuRect.w &&
-                mouseY >= menuRect.y && mouseY <= menuRect.y + menuRect.h) {
+            if (SDL_PointInRect(&mousePoint, &menuRect)) {
                 clickedOutside = false;
             }
 
@@ -406,6 +412,9 @@ namespace mx {
         }
         
         if (e.type == SDL_MOUSEMOTION) {  
+            
+            int mouseX = e.motion.x;
+            int mouseY = e.motion.y;
             int barHeight = 50;
             int button_height = 30;  
             int button_y = app.height - barHeight;
@@ -432,7 +441,9 @@ namespace mx {
             }
         }
 
-        if (e.type == SDL_MOUSEMOTION) {
+        if (e.type == SDL_MOUSEMOTION) {    
+            int mouseX = e.motion.x;
+            int mouseY = e.motion.y;
             int barHeight = 50;
             int startButtonSize = 100;
             int windowWidth = app.width;
@@ -475,9 +486,8 @@ namespace mx {
             int targetYPos = app.height - barHeight;
 
             SDL_Rect startButtonRect = {windowWidth - startButtonSize, targetYPos, startButtonSize, barHeight};
-
-            if (mouseX >= startButtonRect.x && mouseX <= (startButtonRect.x + startButtonRect.w) &&
-                mouseY >= startButtonRect.y && mouseY <= (startButtonRect.y + startButtonRect.h)) {
+            SDL_Point mousePos = {mouseX, mouseY};
+            if (SDL_PointInRect(&mousePos, &startButtonRect)) {
                 menu->menuOpen = !menu->menuOpen;
                 menu->animating = true;
                 if (menu->menuOpen) {
