@@ -26,6 +26,10 @@ namespace mx {
         orig_y = y;
     }
 
+    bool Window::isPointInside(int xx, int yy) {
+        return (xx >= x && xx <= x + w &&
+                yy >= y && yy <= y + h);
+    }
 
     void Window::draw(mxApp &app) {
       
@@ -351,6 +355,12 @@ namespace mx {
     }
 
     void Window::minimize(bool m) {
+
+        if(!systemBar) {
+            std::cerr << "MasterX: Window " << this->title << " missing system bar link\n";
+            return;
+        }
+
         if (m) {
            if (!minimized) {  
                 originalX = x;

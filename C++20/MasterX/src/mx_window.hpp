@@ -34,6 +34,7 @@ namespace mx {
         bool canResize() const;
         void setSystemBar(SystemBar *s);
         void drawMenubar(mxApp &app);
+        bool isPointInside(int x, int y);
         SystemBar *systemBar = nullptr;
         bool minimized = false;
         bool dragging = false;

@@ -98,7 +98,7 @@ namespace mx {
         int yOffset = 20;
         for (size_t i = 0; i < con->mini_win.size(); ++i) {
             Window *win = con->mini_win[i];
-            if(menuHover == true)
+            if(menuHover == true && hoverIndex == static_cast<int>(i))
                 TTF_SetFontStyle(font, TTF_STYLE_UNDERLINE);
             SDL_Surface *textSurface = TTF_RenderText_Solid(font, win->title.c_str(), white);
             TTF_SetFontStyle(font, TTF_STYLE_NORMAL);
@@ -273,9 +273,6 @@ namespace mx {
             }
         }
 
-        if(menuHover) {
-            cursor_shown = true;
-                }
         SDL_Color gradBarStart = {240, 240, 240, 255}; 
         SDL_Color gradBarEnd = {200, 200, 200, 255};   
         SDL_Rect barRect = {0, yPos, windowWidth, barHeight};
@@ -378,9 +375,15 @@ namespace mx {
         drawDimensions(app);
         SDL_SetRenderTarget(app.ren, nullptr);
 
+
         for (auto &i : objects) {
             i->draw(app);
         }
+
+        if(menuHover) {
+            cursor_shown = true;
+        }
+        
     }
 
     bool SystemBar::empty() const {
@@ -406,11 +409,10 @@ namespace mx {
         int button_x = 10 + dpos * (button_width + 10);  
         int menu_width = 150;
         int menu_height = 20 + con->mini_win.size() * 30;  
-
         int menu_x = button_x + (button_width - menu_width) / 2;
         int menu_y = button_y - menu_height - 5;  
-
         bool chover = false;
+        hoverIndex = -1;
 
         if (showMinimizedMenu && e.type == SDL_MOUSEMOTION) {
             int mouseX = e.motion.x;  
@@ -422,13 +424,15 @@ namespace mx {
                 for (size_t i = 0; i < con->mini_win.size(); ++i) {
                     SDL_Rect textRect = {menu_x + 10, menu_y + yOffset, 180, 20};  
                     if (SDL_PointInRect(&rc, &textRect)) {
-                       chover = true;  
+                       chover = true;
+                       hoverIndex = static_cast<int>(i);
+                       break;
                     }
                     yOffset += 30;  
                 }
             }
         }
-
+        
         menuHover = chover;
 
         if (showMinimizedMenu && e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {

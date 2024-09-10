@@ -2,10 +2,10 @@
 #define __MX_EVENT_H_X
 
 #include"window.hpp"
-#include"mx_window.hpp"
 
 namespace mx {
 
+    class Window;
 
     class EventHandler {
     public:
@@ -16,6 +16,7 @@ namespace mx {
         Window *currentWindow();
         void addWindow(Window *window);
         std::vector<Window *> window_stack;
+        bool checkWindowClick(int x, int y);
     private:
         mxApp &app_;
         int cur_focus = 0;

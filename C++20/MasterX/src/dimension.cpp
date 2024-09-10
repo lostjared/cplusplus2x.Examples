@@ -155,6 +155,21 @@ namespace mx {
             welcome_image->setGeometry(src.x, src.y, rc.w-10, rc.h-35);    
             welcome_image->setWindowPos(rc.x, rc.y);
         });
+
+        welcome_help = welcome->createWindow(app);
+        welcome_help->create("Info", 1280-360, 25, 320, 240);
+        welcome_help->show(true);
+        welcome_help->setReload(false);
+        welcome_help->setCanResize(false);
+
+        welcome_help->children.push_back(std::make_unique<Label>(app));
+        welcome_help_info = dynamic_cast<Label *>(welcome_help->getControl());
+        std::vector<std::string> info_help {"MasterX System", "Created by Jared Bruni", "Virtual Environment written in C++20", "https://lostsidedead.biz"};
+        welcome_help_info->create_multi(welcome_help, info_help, { 0, 0, 0, 255}, 25, 25);
+        welcome_help_info->loadFont("fonts/arial.ttf", 16);
+        welcome_help_info->linkMode(false);
+        
+
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         about = dynamic_cast<DimensionContainer *>(getDimension());
         about->init("About", loadTexture(app, "images/about.bmp"));
@@ -205,6 +220,7 @@ namespace mx {
         termx->setWallpaper(term_tex);
         system_bar->setDimensions(&dimensions);
         welcome_window->setSystemBar(system_bar);
+        welcome_help->setSystemBar(system_bar);
         about_window->setSystemBar(system_bar);
         termx->setSystemBar(system_bar);
         setCurrentDimension(1);

@@ -72,11 +72,11 @@ namespace mx {
         DimensionContainer *about;
         DimensionContainer *term;
         SystemBar *system_bar;
-        Window *welcome_window;
+        Window *welcome_window, *welcome_help;
         Window *about_window;
         Button *about_window_ok, *welcome_ok;
         Image *welcome_image;
-        Label *about_window_info;
+        Label *about_window_info, *welcome_help_info;
         Image *about_window_logo;
         int current_dim;
         SDL_Texture *hand_cursor, *reg_cursor;

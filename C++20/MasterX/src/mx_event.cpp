@@ -5,6 +5,13 @@
 namespace mx {
 
     bool EventHandler::pumpEvent(SDL_Event &e) {
+
+         if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
+            int x = e.button.x;
+            int y = e.button.y;
+            checkWindowClick(x, y);
+        }
+
         for (auto it = window_stack.rbegin(); it != window_stack.rend(); ++it) {
             Window *window = *it;
             if (window->event(app_, e)) {
@@ -20,8 +27,20 @@ namespace mx {
         }
     }
 
+    bool EventHandler::checkWindowClick(int x, int y) {
+        for (auto it = window_stack.rbegin(); it != window_stack.rend(); ++it) {
+            Window *window = *it;
+            if (window->isPointInside(x, y)) {
+                int index = std::distance(it, window_stack.rend()) - 1;
+                setFocus(index);
+                return true;
+            }
+        }
+        return false;
+    }
+
     void EventHandler::setFocus(int index) {
-        if (index >= 0 && index < window_stack.size()) {
+        if (index >= 0 && index < static_cast<int>(window_stack.size())) {
             cur_focus = index;
             Window *focused_window = window_stack[index];
             window_stack.erase(window_stack.begin() + index);
