@@ -13,6 +13,7 @@ namespace mx {
         void print(const std::string &s);
         void scroll();
         void stateChanged(bool min, bool max, bool closed);
+        void setWallpaper(SDL_Texture *tex);
       private:
         std::string inputText;
         std::vector<std::string> outputLines;
@@ -28,6 +29,7 @@ namespace mx {
         SDL_Color text_color;
         bool isMaximized = false;
         TTF_Font *font;
+        SDL_Texture *wallpaper;
 
     };
 

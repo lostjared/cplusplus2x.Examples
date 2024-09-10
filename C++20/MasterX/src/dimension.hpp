@@ -114,6 +114,7 @@ namespace mx {
         void setCanResize(bool r);
         bool canResize() const;
         void setSystemBar(SystemBar *s);
+        void drawMenubar(mxApp &app);
         SystemBar *systemBar = nullptr;
         bool minimized = false;
     private:

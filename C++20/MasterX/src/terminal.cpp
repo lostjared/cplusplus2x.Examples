@@ -12,28 +12,34 @@ namespace mx {
         Window::setCanResize(true);
     }
 
-    void Terminal::draw(mxApp &app) {
+     void Terminal::setWallpaper(SDL_Texture *tex) {
+        wallpaper = tex;
+     }
 
-         if(!Window::isVisible())
-                return;
+    void Terminal::draw(mxApp &app) {        
 
-
-    
-        Window::draw(app);
-
-        if(Window::isDraw() == false)
+        if(!isVisible())
             return;
 
-        SDL_SetRenderDrawColor(app.ren, 0, 0, 0, 255);
+        Window::draw(app);
+
+        if(isDraw() == false)
+            return;
+
         SDL_Rect rc;
         Window::getRect(rc);
         rc.x += 5;  
         rc.y += 28; 
         rc.w -= 10; 
         rc.h -= 33; 
+
+        SDL_SetRenderDrawBlendMode(app.ren, SDL_BLENDMODE_BLEND);
+        SDL_SetRenderDrawColor(app.ren, 0, 0, 0, 128);
+        SDL_RenderCopy(app.ren, wallpaper, nullptr, nullptr);
         SDL_RenderFillRect(app.ren, &rc);
-
-
+        SDL_SetRenderDrawBlendMode(app.ren, SDL_BLENDMODE_NONE);
+        Window::drawMenubar(app);
+        
         int lineHeight = TTF_FontHeight(app.font);
         maxVisibleLines = ((rc.h - 1) / lineHeight) - 1;
         if (scrollOffset > static_cast<int>(outputLines.size()) - maxVisibleLines) {
@@ -150,8 +156,8 @@ namespace mx {
 
     bool Terminal::event(mxApp &app, SDL_Event &e) {
         
-        if(Window::event(app, e))
-            return true;
+        if(!Window::isVisible())
+            return false;
 
         if (e.type == SDL_TEXTINPUT) {
             inputText += e.text.text;
@@ -178,6 +184,10 @@ namespace mx {
             handleScrolling(e.wheel.y);
             return true;
         }
+        
+        if(Window::event(app, e))
+            return true;
+
         return false; 
     }
 

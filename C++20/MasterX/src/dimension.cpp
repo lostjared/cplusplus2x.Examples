@@ -943,6 +943,25 @@ namespace mx {
         SDL_Rect rc = {x, y, w, h};
         SDL_SetRenderDrawColor(app.ren, 205, 205, 205, 255);
         SDL_RenderFillRect(app.ren, &rc);
+
+        drawMenubar(app);
+
+        for (auto &c : children) {
+            c->setWindowPos(x, y);
+            c->draw(app);
+        }
+    }
+
+    bool Window::isVisible() const {
+       return shown;
+    }
+
+    bool Window::isDraw() const {
+        if(shown == false || (minimized == true && isMinimizing == false)) return false;
+        return true;
+    }
+
+   void Window::drawMenubar(mxApp &app) {
         SDL_Color lightBlue = {173, 216, 230}; 
         SDL_Color darkBlue = {0, 0, 139};     
         int titleBarHeight = 30;
@@ -993,7 +1012,7 @@ namespace mx {
         SDL_RenderDrawLine(app.ren, maximizeButton.x + 2, maximizeButton.y + 2, maximizeButton.x + 2, maximizeButton.y + buttonSize - 2);
         SDL_RenderDrawLine(app.ren, maximizeButton.x + 2, maximizeButton.y + buttonSize - 2, maximizeButton.x + buttonSize - 2, maximizeButton.y + buttonSize - 2);
         SDL_RenderDrawLine(app.ren, maximizeButton.x + buttonSize - 2, maximizeButton.y + 2, maximizeButton.x + buttonSize - 2, maximizeButton.y + buttonSize - 2);
- 
+
         SDL_RenderDrawLine(app.ren, closeButton.x, closeButton.y, closeButton.x + buttonSize, closeButton.y);
         SDL_RenderDrawLine(app.ren, closeButton.x, closeButton.y, closeButton.x, closeButton.y + buttonSize);
         SDL_SetRenderDrawColor(app.ren, 128, 128, 128, 255);
@@ -1022,17 +1041,19 @@ namespace mx {
         SDL_RenderDrawLine(app.ren, x, y, x + w - 1, y);
         SDL_RenderDrawLine(app.ren, x, y, x, y + h - 1);
 
-        SDL_SetRenderDrawColor(app.ren, 128, 128, 128, 255);
-        SDL_RenderDrawLine(app.ren, x + w - 1, y, x + w - 1, y + h - 1);
-        SDL_RenderDrawLine(app.ren, x, y + h - 1, x + w - 1, y + h - 1);
+        SDL_SetRenderDrawColor(app.ren, 192, 192, 192, 255);
+        SDL_RenderDrawLine(app.ren, x + w - 1, y, x + w + 1, y + h - 1);
+        SDL_RenderDrawLine(app.ren, x, y + h - 1, x + w + 1, y + h - 1);
 
         SDL_SetRenderDrawColor(app.ren, 192, 192, 192, 255);
         SDL_RenderDrawLine(app.ren, x + 1, y + titleBarHeight + 1, x + w - 2, y + titleBarHeight + 1);
-        SDL_RenderDrawLine(app.ren, x + 1, y + titleBarHeight + 1, x + 1, y + h - 2);
+        SDL_RenderDrawLine(app.ren, x + w - 1, y + titleBarHeight + 1, x + w - 1, y + h - 2); 
 
         SDL_SetRenderDrawColor(app.ren, 64, 64, 64, 255);
         SDL_RenderDrawLine(app.ren, x + w - 2, y + titleBarHeight + 1, x + w - 2, y + h - 2);
         SDL_RenderDrawLine(app.ren, x + 1, y + h - 2, x + w - 2, y + h - 2);
+
+
 
         SDL_Surface* surface = TTF_RenderText_Solid(app.font, title.c_str(), {255, 255, 255});
         SDL_Texture* texture = SDL_CreateTextureFromSurface(app.ren, surface);
@@ -1048,19 +1069,6 @@ namespace mx {
         int iconY = y + (titleBarHeight - iconHeight) / 2;  
         SDL_Rect iconRect = { iconX, iconY, iconWidth, iconHeight };
         SDL_RenderCopy(app.ren, app.icon, nullptr, &iconRect);
-        for (auto &c : children) {
-            c->setWindowPos(x, y);
-            c->draw(app);
-        }
-    }
-
-    bool Window::isVisible() const {
-       return shown;
-    }
-
-    bool Window::isDraw() const {
-        if(shown == false || (minimized == true && isMinimizing == false)) return false;
-        return true;
     }
 
     void Window::show(bool b) {
@@ -1457,7 +1465,8 @@ namespace mx {
         about_window->setCanResize(false);
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         term = dynamic_cast<DimensionContainer *>(getDimension());
-        term->init("Terminal", loadTexture(app, "images/terminal.bmp"));
+        SDL_Texture *term_tex = loadTexture(app, "images/terminal.bmp");
+        term->init("Terminal", term_tex);
         term->setActive(false);
         term->setVisible(false);
         system_bar->activateDimension(1);
@@ -1467,6 +1476,7 @@ namespace mx {
         termx->create("mXTerm", 25, 25, 640, 480);
         termx->show(true);
         termx->setReload(true);
+        termx->setWallpaper(term_tex);
         system_bar->setDimensions(&dimensions);
         welcome_window->setSystemBar(system_bar);
         about_window->setSystemBar(system_bar);
