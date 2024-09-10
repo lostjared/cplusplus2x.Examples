@@ -30,7 +30,11 @@ namespace mx {
         bool isMaximized = false;
         TTF_Font *font;
         SDL_Texture *wallpaper;
-
+        bool isScrolling = false;
+        int scrollBarWidth = 10;
+        int scrollBarHeight = 0;
+        int scrollBarPosY = 0;
+        int scrollBarDragOffset = 0;
     };
 
 

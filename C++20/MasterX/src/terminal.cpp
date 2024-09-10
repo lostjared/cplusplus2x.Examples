@@ -68,6 +68,16 @@ namespace mx {
            SDL_SetRenderDrawColor(app.ren, text_color.r, text_color.g, text_color.b, 255);  
            SDL_RenderDrawLine(app.ren, rc.x + 5 + textWidth, cursorY + textHeight - 2, rc.x + 5 + textWidth + 10, cursorY + textHeight - 2);
         }
+        int totalLines = outputLines.size();
+        if (totalLines > maxVisibleLines) {
+            int offx = rc.x + rc.w;    
+            int offy = rc.y+10;           
+            scrollBarHeight = (maxVisibleLines * rc.h) / totalLines;
+            scrollBarPosY = offy + (scrollOffset * (rc.h - scrollBarHeight)) / (totalLines - maxVisibleLines);
+            SDL_Rect scrollBarRect = {offx - scrollBarWidth, scrollBarPosY, scrollBarWidth, scrollBarHeight-10};
+            SDL_SetRenderDrawColor(app.ren, 100, 100, 100, 255);  // Scroll bar color
+            SDL_RenderFillRect(app.ren, &scrollBarRect);
+        }
     }
 
     void Terminal::renderText(mxApp &app, const std::string &text, int x, int y) {
@@ -178,6 +188,28 @@ namespace mx {
                     break;
             }
             return true;
+        }
+        SDL_Rect rc;
+        Window::getRect(rc);
+        if (e.type == SDL_MOUSEBUTTONDOWN) {
+            int mouseX = e.button.x;
+            int mouseY = e.button.y;
+            
+            if (mouseX >= rc.x+rc.w - scrollBarWidth && mouseY >= scrollBarPosY && mouseY <= scrollBarPosY + scrollBarHeight) {
+                isScrolling = true;
+                scrollBarDragOffset = mouseY - scrollBarPosY;
+            }
+        }
+
+        if (e.type == SDL_MOUSEBUTTONUP) {
+            isScrolling = false;
+        }
+
+        if (e.type == SDL_MOUSEMOTION && isScrolling) {
+            int mouseY = e.motion.y;
+            int newScrollPosY = mouseY - scrollBarDragOffset;
+            scrollOffset = (newScrollPosY * (outputLines.size() - maxVisibleLines)) / (rc.y+rc.h- scrollBarHeight);
+            scrollOffset = std::max(0, std::min(scrollOffset, (int)(outputLines.size() - maxVisibleLines)));
         }
 
         if (e.type == SDL_MOUSEWHEEL) {
