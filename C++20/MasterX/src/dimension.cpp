@@ -24,7 +24,11 @@ namespace mx {
 
     Window *DimensionContainer::createWindow(mxApp &app) {
         objects.push_back(std::make_unique<Window>(app));
-        return dynamic_cast<Window *>(objects[objects.size()-1].get());
+        Window *win = dynamic_cast<Window *>(objects[objects.size()-1].get());
+        if(win != nullptr) {
+            events.addWindow(win);
+        }
+        return win;
     }
 
     bool DimensionContainer::isVisible() const { return visible; }
