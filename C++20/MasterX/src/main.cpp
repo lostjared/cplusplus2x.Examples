@@ -1,3 +1,11 @@
+/* 
+
+    MasterX System written by Jared Bruni
+    (C) 2024 LostSideDead Software
+    https://lostsidedead.biz
+
+*/
+
 #include"SDL.h"
 #include<iostream>
 #include"window.hpp"
