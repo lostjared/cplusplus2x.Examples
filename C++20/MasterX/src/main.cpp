@@ -120,8 +120,10 @@ int main(int argc, char **argv) {
         std::cout << "MasterX System: path set to: " << path << "\n";
         cur_path = path;
     } else {
+    #ifndef FOR_WASM
         argz.help(std::cout);
         exit(EXIT_FAILURE);
+    #endif
     }
 
     mx::mxApp app;  
