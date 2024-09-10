@@ -20,7 +20,7 @@
 #include <emscripten/emscripten.h>
 #endif
 
-bool active = true;
+
 std::vector<std::unique_ptr<mx::Screen>> *screens;
 int cur_screen = 0;
 mx::mxApp *p_app = nullptr;
@@ -51,7 +51,7 @@ void draw(mx::mxApp &app) {
     static SDL_Event e;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)) {
-            active = false;
+            p_app->active = false;
         }
         (*screens)[cur_screen]->event(*p_app, e);
     }
@@ -169,8 +169,10 @@ int main(int argc, char **argv) {
         app.set_fullscreen(app.win, true);
     }
 
+    app.active = true;
+
 #ifndef FOR_WASM
-    while(active == true) {
+    while(app.active == true) {
         eventProc();
     }
 #else

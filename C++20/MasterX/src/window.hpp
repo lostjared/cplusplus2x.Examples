@@ -19,6 +19,7 @@ namespace mx {
         SDL_Renderer *ren;
         SDL_Texture *tex;
         bool init_ = false;
+        bool active = false;
         mxApp() = default;
         ~mxApp();
         bool init(const std::string &name, int w, int h);
@@ -28,6 +29,8 @@ namespace mx {
         SDL_Texture *icon;
         SDL_Texture* convertToStreamingTexture(SDL_Texture* originalTexture);
         void set_fullscreen(SDL_Window* window, bool fullscreen);
+        void shutdown();
+        
     };
 
     class Screen {

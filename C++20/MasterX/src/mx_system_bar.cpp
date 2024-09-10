@@ -645,7 +645,7 @@ namespace mx {
             }
             int action = menu->itemClicked(app, mouseX, mouseY);
             if(action != -1) {
-                performAction(action);
+                performAction(app,action);
                 menu->menuOpen = false;
                 menu->animating = true;
                 menu->targetY = app.height;
@@ -676,7 +676,7 @@ namespace mx {
         return false;
     }
 
-    void SystemBar::performAction(int action) {
+    void SystemBar::performAction(mxApp &app, int action) {
         switch (action) {
             case 1: {
                     DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](0).get());
@@ -708,6 +708,10 @@ namespace mx {
             case 6:
                 std::cout << "Run clicked\n";
                 break;
+            case 7:
+                std::cout << "MasterX System: Shutdown signal sent...\n";
+                app.shutdown();
+                break;    
             default:
                 std::cout << "No valid action\n";
                 break;
@@ -775,7 +779,7 @@ namespace mx {
         SDL_Color black = {0, 0, 0, 255};
         SDL_Color white = {255, 255, 255, 255};
 
-        const char* items[] = {"Welcome", "Terminal", "Settings", "Find", "About", "Run"};
+        const char* items[] = {"Welcome", "Terminal", "Settings", "Find", "About", "Run", "Shutdown"};
         int numItems = sizeof(items) / sizeof(items[0]);
         int itemHeight = 30;
         SDL_Rect itemRect;
@@ -832,24 +836,26 @@ namespace mx {
         SDL_Rect menuItem4 = {menuX, menuY + 10 + 3 * (itemHeight + 5), menuWidth, itemHeight};  
         SDL_Rect menuItem5 = {menuX, menuY + 10 + 4 * (itemHeight + 5), menuWidth, itemHeight};  
         SDL_Rect menuItem6 = {menuX, menuY + 10 + 5 * (itemHeight + 5), menuWidth, itemHeight};  
+        SDL_Rect menuItem7 = {menuX, menuY + 10 + 6 * (itemHeight + 5), menuWidth, itemHeight};  
 
         SDL_Point cursor_pos = {x, y};
 
         if (SDL_PointInRect(&cursor_pos, &menuItem1)) {
-            return 1;  // Action for "Programs"
+            return 1;  
         } else if (SDL_PointInRect(&cursor_pos, &menuItem2)) {
-            return 2;  // Action for "Documents"
+            return 2;  
         } else if (SDL_PointInRect(&cursor_pos, &menuItem3)) {
-            return 3;  // Action for "Settings"
+            return 3;  
         } else if (SDL_PointInRect(&cursor_pos, &menuItem4)) {
-            return 4;  // Action for "Find"
+            return 4;  
         } else if (SDL_PointInRect(&cursor_pos, &menuItem5)) {
-            return 5;  // Action for "Help"
+            return 5;  
         } else if (SDL_PointInRect(&cursor_pos, &menuItem6)) {
-            return 6;  // Action for "Run"
+            return 6;  
+        } else if(SDL_PointInRect(&cursor_pos, &menuItem7)) {
+            return 7;
         }
-
-        return -1;  // No item clicked
+        return -1;  
     }
     
     bool MenuBar::event(mxApp &app, SDL_Event &e) {
