@@ -159,7 +159,7 @@ namespace mx {
         welcome_window->children.push_back(std::make_unique<Image>(app));
         welcome_image = dynamic_cast<Image *>(welcome_window->getControl());
         welcome_image->create(app, welcome_window, "images/welcome_logo.bmp", 45, 45);
-        welcome_image->setGeometry(5, 5, 640-10, 480-35);
+        welcome_image->setGeometry(5, 8, 640-10, 480-38);
         welcome_window->children.push_back(std::make_unique<Button>(app));
         welcome_ok = dynamic_cast<Button *>(welcome_window->getControl());
         SDL_Rect i_rc;
@@ -175,7 +175,7 @@ namespace mx {
             parent->getRect(rc);
             welcome_ok->setGeometry(rc.w - 110, rc.h - 40, 100, 30);
             welcome_image->getRect(src);
-            welcome_image->setGeometry(src.x, src.y, rc.w-10, rc.h-35);    
+            welcome_image->setGeometry(src.x, src.y, rc.w-10, rc.h-38);    
             welcome_image->setWindowPos(rc.x, rc.y);
         });
 
@@ -209,7 +209,7 @@ namespace mx {
         about_window->children.push_back(std::make_unique<Image>(app));
         Image *image = dynamic_cast<Image *>(about_window->getControl());
         image->create(app, about_window, "images/logo.bmp", 0, 0);
-        image->setGeometry(5, 5, 800-10, 600-35);
+        image->setGeometry(5, 8, 800-10, 600-38);
 
         about_window->children.push_back(std::make_unique<Button>(app));
         about_window_ok = dynamic_cast<Button *>(about_window->getControl());
