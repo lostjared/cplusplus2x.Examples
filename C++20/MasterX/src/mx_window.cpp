@@ -82,11 +82,18 @@ namespace mx {
                 isRestoring = false; 
                 dragging = false;
         }
-
         SDL_Rect rc = {x, y, w, h};
+
         SDL_SetRenderDrawColor(app.ren, 205, 205, 205, 255);
         SDL_RenderFillRect(app.ren, &rc);
 
+        int startGray = 165;
+        int endGray = 205;
+        for (int i = 0; i < h; ++i) {
+            int grayValue = startGray + (endGray - startGray) * i / h;
+            SDL_SetRenderDrawColor(app.ren, grayValue, grayValue, grayValue, 255);
+            SDL_RenderDrawLine(app.ren, x, y + i, x + w, y + i);
+        }
         drawMenubar(app);
 
         for (auto &c : children) {
@@ -108,6 +115,7 @@ namespace mx {
         SDL_Color lightBlue = {173, 216, 230}; 
         SDL_Color darkBlue = {0, 0, 139};     
         int titleBarHeight = 30;
+
         for (int i = 0; i < titleBarHeight; ++i) {
             int red = lightBlue.r + (darkBlue.r - lightBlue.r) * i / titleBarHeight;
             int green = lightBlue.g + (darkBlue.g - lightBlue.g) * i / titleBarHeight;
@@ -116,59 +124,41 @@ namespace mx {
             SDL_RenderDrawLine(app.ren, x, y + i, x + w, y + i);
         }
 
-        int buttonSize = 20;
+        int buttonSize = 19;
         int buttonPadding = 5;
 
         minimizeButton = {x + w - 3 * (buttonSize + buttonPadding), y + 5, buttonSize, buttonSize};
         maximizeButton = {x + w - 2 * (buttonSize + buttonPadding), y + 5, buttonSize, buttonSize};
         closeButton = {x + w - (buttonSize + buttonPadding), y + 5, buttonSize, buttonSize};
 
-        SDL_RenderDrawLine(app.ren, minimizeButton.x, minimizeButton.y, minimizeButton.x + buttonSize, minimizeButton.y);
-        SDL_RenderDrawLine(app.ren, minimizeButton.x, minimizeButton.y, minimizeButton.x, minimizeButton.y + buttonSize);
-        SDL_SetRenderDrawColor(app.ren, 128, 128, 128, 255);
-        SDL_RenderDrawLine(app.ren, minimizeButton.x + buttonSize, minimizeButton.y, minimizeButton.x + buttonSize, minimizeButton.y + buttonSize);
-        SDL_RenderDrawLine(app.ren, minimizeButton.x, minimizeButton.y + buttonSize, minimizeButton.x + buttonSize, minimizeButton.y + buttonSize);
-        if (minimizeHovered) {
-            SDL_SetRenderDrawColor(app.ren, 255, 0, 0, 255);  
-            cursor_shown = true;
-        } else {
-            SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255); 
-        }
-        SDL_RenderFillRect(app.ren, &minimizeButton);
-        if (closeHovered) {
-            cursor_shown = true;
-            SDL_SetRenderDrawColor(app.ren, 255, 0, 0, 255);  
-        } else {
-            SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255);  
-        }
-        SDL_RenderFillRect(app.ren, &closeButton);
-        if (maximizeHovered) {
-            cursor_shown = true;
-            SDL_SetRenderDrawColor(app.ren, 255, 0, 0, 255);  
-        } else {
-            SDL_SetRenderDrawColor(app.ren, 150, 150, 150, 255);  
-        }
-        SDL_RenderFillRect(app.ren, &maximizeButton);
+        
+        auto drawButtonWithBevel = [&](SDL_Rect button, bool hovered) {
+            for (int i = 0; i < button.h; ++i) {
+                int gray = 200 - i * 4; 
+                SDL_SetRenderDrawColor(app.ren, gray, gray, gray, 255);
+                SDL_RenderDrawLine(app.ren, button.x, button.y + i, button.x + button.w, button.y + i);
+            }
+            SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255); 
+            SDL_RenderDrawLine(app.ren, button.x, button.y, button.x + button.w - 1, button.y);       
+            SDL_RenderDrawLine(app.ren, button.x, button.y, button.x, button.y + button.h - 1);       
+            SDL_SetRenderDrawColor(app.ren, 100, 100, 100, 255); 
+            SDL_RenderDrawLine(app.ren, button.x, button.y + button.h - 1, button.x + button.w - 1, button.y + button.h - 1); 
+            SDL_RenderDrawLine(app.ren, button.x + button.w - 1, button.y, button.x + button.w - 1, button.y + button.h - 1); 
+            if (hovered) {
+                SDL_SetRenderDrawColor(app.ren, 255, 0, 0, 255); 
+                SDL_RenderDrawRect(app.ren, &button);
+            }
+        };
 
-        SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
-        SDL_RenderDrawLine(app.ren, maximizeButton.x + 2, maximizeButton.y + 2, maximizeButton.x + buttonSize - 2, maximizeButton.y + 2);
-        SDL_RenderDrawLine(app.ren, maximizeButton.x + 2, maximizeButton.y + 2, maximizeButton.x + 2, maximizeButton.y + buttonSize - 2);
-        SDL_RenderDrawLine(app.ren, maximizeButton.x + 2, maximizeButton.y + buttonSize - 2, maximizeButton.x + buttonSize - 2, maximizeButton.y + buttonSize - 2);
-        SDL_RenderDrawLine(app.ren, maximizeButton.x + buttonSize - 2, maximizeButton.y + 2, maximizeButton.x + buttonSize - 2, maximizeButton.y + buttonSize - 2);
-
-        SDL_RenderDrawLine(app.ren, closeButton.x, closeButton.y, closeButton.x + buttonSize, closeButton.y);
-        SDL_RenderDrawLine(app.ren, closeButton.x, closeButton.y, closeButton.x, closeButton.y + buttonSize);
-        SDL_SetRenderDrawColor(app.ren, 128, 128, 128, 255);
-        SDL_RenderDrawLine(app.ren, closeButton.x + buttonSize, closeButton.y, closeButton.x + buttonSize, closeButton.y + buttonSize);
-        SDL_RenderDrawLine(app.ren, closeButton.x, closeButton.y + buttonSize, closeButton.x + buttonSize, closeButton.y + buttonSize);
-        SDL_Surface* closeSurface = TTF_RenderText_Blended(app.font, "X", {255, 255, 255});
-        SDL_Texture* closeTexture = SDL_CreateTextureFromSurface(app.ren, closeSurface);
-        int closeTextW = 0, closeTextH = 0;
-        SDL_QueryTexture(closeTexture, nullptr, nullptr, &closeTextW, &closeTextH);
-        SDL_Rect closeTextRect = {closeButton.x + (buttonSize - closeTextW) / 2, closeButton.y + (buttonSize - closeTextH) / 2, closeTextW, closeTextH};
-        SDL_RenderCopy(app.ren, closeTexture, nullptr, &closeTextRect);
-        SDL_DestroyTexture(closeTexture);
-        SDL_FreeSurface(closeSurface);
+        drawButtonWithBevel(minimizeButton, minimizeHovered);
+        drawButtonWithBevel(maximizeButton, maximizeHovered);
+        drawButtonWithBevel(closeButton, closeHovered);
+        SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);  
+        int padding = 4; 
+        SDL_RenderDrawLine(app.ren, maximizeButton.x + padding - 1, maximizeButton.y + padding, maximizeButton.x + buttonSize - padding, maximizeButton.y + padding);
+        SDL_RenderDrawLine(app.ren, maximizeButton.x + padding - 1, maximizeButton.y + padding, maximizeButton.x + padding - 1, maximizeButton.y + buttonSize - padding);
+        SDL_RenderDrawLine(app.ren, maximizeButton.x + padding - 1, maximizeButton.y + buttonSize - padding, maximizeButton.x + buttonSize - padding, maximizeButton.y + buttonSize - padding);
+        SDL_RenderDrawLine(app.ren, maximizeButton.x + buttonSize - padding, maximizeButton.y + padding, maximizeButton.x + buttonSize - padding, maximizeButton.y + buttonSize - padding);
 
         SDL_Surface* minimizeSurface = TTF_RenderText_Blended(app.font, "_", {255, 255, 255});
         SDL_Texture* minimizeTexture = SDL_CreateTextureFromSurface(app.ren, minimizeSurface);
@@ -179,25 +169,32 @@ namespace mx {
         SDL_DestroyTexture(minimizeTexture);
         SDL_FreeSurface(minimizeSurface);
 
+        SDL_Surface* closeSurface = TTF_RenderText_Blended(app.font, "X", {255, 255, 255});
+        SDL_Texture* closeTexture = SDL_CreateTextureFromSurface(app.ren, closeSurface);
+        int closeTextW = 0, closeTextH = 0;
+        SDL_QueryTexture(closeTexture, nullptr, nullptr, &closeTextW, &closeTextH);
+        SDL_Rect closeTextRect = {closeButton.x + (buttonSize - closeTextW) / 2, closeButton.y + (buttonSize - closeTextH) / 2, closeTextW, closeTextH};
+        SDL_RenderCopy(app.ren, closeTexture, nullptr, &closeTextRect);
+        SDL_DestroyTexture(closeTexture);
+        SDL_FreeSurface(closeSurface);
+        
         SDL_SetRenderDrawColor(app.ren, 255, 255, 255, 255);
         SDL_RenderDrawLine(app.ren, x, y + titleBarHeight, x + w - 1, y + titleBarHeight);
         SDL_RenderDrawLine(app.ren, x, y, x + w - 1, y);
         SDL_RenderDrawLine(app.ren, x, y, x, y + h - 1);
 
-        SDL_SetRenderDrawColor(app.ren, 192, 192, 192, 255);
-        SDL_RenderDrawLine(app.ren, x + w - 1, y, x + w + 1, y + h - 1);
-        SDL_RenderDrawLine(app.ren, x, y + h - 1, x + w + 1, y + h - 1);
 
         SDL_SetRenderDrawColor(app.ren, 192, 192, 192, 255);
+        SDL_RenderDrawLine(app.ren, x + w , y, x + w , y + h - 1);
+        SDL_RenderDrawLine(app.ren, x, y + h - 1, x + w , y + h - 1);
+
+        SDL_SetRenderDrawColor(app.ren, 192, 192, 192, 255);
+
+
         SDL_RenderDrawLine(app.ren, x + 1, y + titleBarHeight + 1, x + w - 2, y + titleBarHeight + 1);
         SDL_RenderDrawLine(app.ren, x + w - 1, y + titleBarHeight + 1, x + w - 1, y + h - 2); 
 
         SDL_SetRenderDrawColor(app.ren, 64, 64, 64, 255);
-        SDL_RenderDrawLine(app.ren, x + w - 2, y + titleBarHeight + 1, x + w - 2, y + h - 2);
-        SDL_RenderDrawLine(app.ren, x + 1, y + h - 2, x + w - 2, y + h - 2);
-
-
-
         SDL_Surface* surface = TTF_RenderText_Blended(app.font, title.c_str(), {255, 255, 255});
         SDL_Texture* texture = SDL_CreateTextureFromSurface(app.ren, surface);
         int textW = 0, textH = 0;
