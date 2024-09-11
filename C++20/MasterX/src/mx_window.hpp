@@ -9,6 +9,7 @@ namespace mx {
 
   class Control;
   class SystemBar;
+  class DimensionContainer;
 
   class Window : public Screen {
     public:
@@ -18,7 +19,9 @@ namespace mx {
         virtual void draw(mxApp &app) override;
         virtual bool event(mxApp &app, SDL_Event &e) override;
         virtual void stateChanged(bool min, bool max, bool close) {}
-        void create(const std::string &name, const int x, const int y, const int w, const int h);
+        void create(DimensionContainer *dim, const std::string &name, const int x, const int y, const int w, const int h);
+        void destroyWindow();
+        void removeAtClose(bool b);
         void show(bool b);
         void minimize(bool m);
         void maximize(bool m);
@@ -36,13 +39,14 @@ namespace mx {
         void drawMenubar(mxApp &app);
         bool isPointInside(int x, int y);
         SystemBar *systemBar = nullptr;
+        DimensionContainer *dim = nullptr;
         bool minimized = false;
         bool dragging = false;
     private:
         int x,y,w,h;
         int dim_w = 0, dim_h = 0;
         bool shown = false;
-        
+        bool remove_on = false;
         bool maximized = false;
           int dragOffsetX = 0, dragOffsetY = 0;
         int oldX = 0, oldY = 0, oldW = 0, oldH = 0;

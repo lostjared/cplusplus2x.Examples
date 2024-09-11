@@ -22,7 +22,7 @@ namespace mx {
         std::string name = "Default";
         DimensionContainer(mxApp &app);
         virtual ~DimensionContainer();
-        void init(const std::string &name, SDL_Texture *wallpaperx);
+        void init(SystemBar *sysbar, const std::string &name, SDL_Texture *wallpaperx);
         virtual void draw(mxApp &app) override;
         virtual bool event(mxApp &app, SDL_Event &e) override;
         std::vector<std::unique_ptr<Screen>> objects;
@@ -31,13 +31,15 @@ namespace mx {
         bool isActive() const;
         void setVisible(bool v);
         bool isVisible() const;
-        bool hoveringX = false;
         void startTransition(SDL_Texture *);
         void updateTransition();
+        void destroyWindow(Window *win);
         Window *createWindow(mxApp &app);
+        bool hoveringX = false;
         SDL_Texture *wallpaper, *nextWallpaper;
         EventHandler events;
     private:
+        SystemBar *system_bar;
         bool active = false;
         bool visible = false;
         bool transitioning = false;

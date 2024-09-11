@@ -21,6 +21,22 @@ namespace mx {
         return false;
     }
 
+    void EventHandler::removeWindow(Window *window) {
+        for(auto it = window_stack.begin(); it != window_stack.end(); ++it) {
+            Window *win = *it;
+            if(win == window) {
+                std::cout << "MasterX: Removing Window: " << window->title << "\n";
+                window_stack.erase(it);
+                if(!window_stack.empty()) {
+                    setFocus(window_stack.back());
+                } else {
+                    clearFocus();
+                }
+                return;
+            }
+        }
+    }
+
     void EventHandler::sendDrawMessage() {
         for (auto &window : window_stack) {
             window->draw(app_);
@@ -45,6 +61,24 @@ namespace mx {
             Window *focused_window = window_stack[index];
             window_stack.erase(window_stack.begin() + index);
             window_stack.push_back(focused_window);
+        }
+    }
+
+    void EventHandler::setFocus(Window *window) {
+        int index = 0;
+        for(auto it = window_stack.begin(); it != window_stack.end(); ++it) {
+            Window *win = *it;
+            if(win == window) {
+                window_stack.erase(window_stack.begin() + index);
+                window_stack.push_back(window);
+            }
+            index ++;
+        }
+    }
+
+    void EventHandler::clearFocus() {
+        if(window_stack.empty()) {
+            cur_focus = 0;
         }
     }
 

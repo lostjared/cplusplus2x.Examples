@@ -13,8 +13,11 @@ namespace mx {
         bool pumpEvent(SDL_Event &e);
         void sendDrawMessage();
         void setFocus(int index);
+        void setFocus(Window *window);
+        void clearFocus();
         Window *currentWindow();
         void addWindow(Window *window);
+        void removeWindow(Window *window);
         std::vector<Window *> window_stack;
         bool checkWindowClick(int x, int y);
     private:

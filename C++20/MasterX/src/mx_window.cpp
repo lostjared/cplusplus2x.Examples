@@ -1,6 +1,7 @@
 #include"mx_window.hpp"
 #include"mx_abstract_control.hpp"
 #include"mx_system_bar.hpp"
+#include"dimension.hpp"
 
 namespace mx {
 
@@ -16,7 +17,7 @@ namespace mx {
     }
 
 
-    void Window::create(const std::string &n, const int xx, const int yy, const int ww, const int hh) {
+    void Window::create(DimensionContainer *dim, const std::string &n, const int xx, const int yy, const int ww, const int hh) {
         title = n;
         x = xx;
         y = yy;
@@ -24,6 +25,11 @@ namespace mx {
         h = hh;
         orig_x = x;
         orig_y = y;
+        this->dim = dim;
+    }
+
+    void Window::destroyWindow() {
+        dim->destroyWindow(this);
     }
 
     bool Window::isPointInside(int xx, int yy) {
@@ -229,6 +235,11 @@ namespace mx {
         w = rc.w;
         h = rc.h;
     }
+
+    void Window::removeAtClose(bool value) {
+        remove_on = value;
+    }
+
    bool Window::event(mxApp &app, SDL_Event &e) {
         
         static Uint32 lastClickTime = 0;   
@@ -262,6 +273,10 @@ namespace mx {
 
             if (SDL_PointInRect(&mousePoint, &closeButton)) {
                 show(false);
+                if(remove_on) { 
+                    destroyWindow();
+                    return true;
+                }
             }
 
             if (SDL_PointInRect(&mousePoint, &minimizeButton)) {

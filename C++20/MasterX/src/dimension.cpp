@@ -22,6 +22,27 @@ namespace mx {
         }
     }
 
+    void DimensionContainer::destroyWindow(Window *win) {
+        events.removeWindow(win);
+        for(auto it = mini_win.begin(); it != mini_win.end(); ++it) {
+            Window *window = *it;
+            if(window == win) {
+                mini_win.erase(it);
+                break;
+            }
+        }
+
+        for(auto r = objects.begin(); r != objects.end(); ++r) {
+            if(auto w = dynamic_cast<Window *>(r->get())) {
+                if(w == win) {
+                    objects.erase(r);
+                    std::cout << "MasterX System: Destroyed Window..\n";
+                    return;
+                }
+            }
+        }
+    }
+
     Window *DimensionContainer::createWindow(mxApp &app) {
         objects.push_back(std::make_unique<Window>(app));
         Window *win = dynamic_cast<Window *>(objects[objects.size()-1].get());
@@ -33,9 +54,10 @@ namespace mx {
 
     bool DimensionContainer::isVisible() const { return visible; }
 
-    void DimensionContainer::init(const std::string &name_, SDL_Texture *wallpaperx) {
+    void DimensionContainer::init(SystemBar *sbar, const std::string &name_, SDL_Texture *wallpaperx) {
         name = name_;
         wallpaper = wallpaperx;
+        system_bar = sbar;
     }
     
     void DimensionContainer::setActive(bool a) {
@@ -119,20 +141,21 @@ namespace mx {
 
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         dash = dynamic_cast<DimensionContainer *>(getDimension());
-        dash->init("Dashboard", loadTexture(app, "images/desktop.bmp"));
+        dash->init(system_bar, "Dashboard", loadTexture(app, "images/desktop.bmp"));
         dash->setActive(true);
         dash->setVisible(false);
 
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         welcome = dynamic_cast<DimensionContainer *>(getDimension());
-        welcome->init("Welcome", loadTexture(app, "images/wallpaper.bmp"));
+        welcome->init(system_bar, "Welcome", loadTexture(app, "images/wallpaper.bmp"));
         welcome->setActive(false);
         welcome->setVisible(false);
         welcome_window = welcome->createWindow(app);
-        welcome_window->create("Welcome", 45, 25, 640, 480);
+        welcome_window->create(welcome, "Welcome", 45, 25, 640, 480);
         welcome_window->show(true);
         welcome_window->setReload(false);
         welcome_window->setCanResize(true);
+        welcome_window->removeAtClose(true);
         welcome_window->children.push_back(std::make_unique<Image>(app));
         welcome_image = dynamic_cast<Image *>(welcome_window->getControl());
         welcome_image->create(app, welcome_window, "images/welcome_logo.bmp", 45, 45);
@@ -157,10 +180,11 @@ namespace mx {
         });
 
         welcome_help = welcome->createWindow(app);
-        welcome_help->create("Info", 1280-360, 25, 320, 240);
+        welcome_help->create(welcome, "Info", 1280-360, 25, 320, 240);
         welcome_help->show(true);
         welcome_help->setReload(false);
         welcome_help->setCanResize(false);
+        welcome_help->removeAtClose(true);
 
         welcome_help->children.push_back(std::make_unique<Label>(app));
         welcome_help_info = dynamic_cast<Label *>(welcome_help->getControl());
@@ -172,16 +196,16 @@ namespace mx {
 
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         about = dynamic_cast<DimensionContainer *>(getDimension());
-        about->init("About", loadTexture(app, "images/about.bmp"));
+        about->init(system_bar, "About", loadTexture(app, "images/about.bmp"));
         about->setActive(false);
         about->setVisible(false);
         about_window = about->createWindow(app);
         int centered_x = (app.width - 800) / 2;
         int centered_y = (app.height - 600) / 2;
-        about_window->create("About", centered_x, centered_y-35, 800, 600);
+        about_window->create(about, "About", centered_x, centered_y-35, 800, 600);
         about_window->show(true);
         about_window->setReload(false);
-
+        about_window->removeAtClose(true);
         about_window->children.push_back(std::make_unique<Image>(app));
         Image *image = dynamic_cast<Image *>(about_window->getControl());
         image->create(app, about_window, "images/logo.bmp", 0, 0);
@@ -206,7 +230,7 @@ namespace mx {
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         term = dynamic_cast<DimensionContainer *>(getDimension());
         SDL_Texture *term_tex = loadTexture(app, "images/terminal.bmp");
-        term->init("Terminal", term_tex);
+        term->init(system_bar, "Terminal", term_tex);
         term->setActive(false);
         term->setVisible(false);
         system_bar->activateDimension(1);
@@ -214,7 +238,7 @@ namespace mx {
         term->objects.push_back(std::make_unique<Terminal>(app)); 
         termx = dynamic_cast<Terminal*>(term->objects[0].get());
         term->events.addWindow(termx);
-        termx->create("mXTerm", 25, 25, 640, 480);
+        termx->create(term, "mXTerm", 25, 25, 640, 480);
         termx->show(true);
         termx->setReload(true);
         termx->setWallpaper(term_tex);
