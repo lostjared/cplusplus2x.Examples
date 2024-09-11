@@ -268,7 +268,7 @@ namespace mx {
             std::cerr << "MasterX: Error loading cursor..\n";
             exit(EXIT_FAILURE);
         }
-        SDL_SetColorKey(hand_cursor_surf, SDL_TRUE, SDL_MapRGB(hand_cursor_surf->format, 0, 0, 0));
+        SDL_SetColorKey(hand_cursor_surf, SDL_TRUE, SDL_MapRGB(hand_cursor_surf->format, 0, 128, 128));
         hand_cursor = SDL_CreateTextureFromSurface(app.ren, hand_cursor_surf);
         SDL_FreeSurface(hand_cursor_surf);
         if(hand_cursor == nullptr) {
@@ -280,7 +280,7 @@ namespace mx {
             std::cerr << "MasterX: Error loading cursor..\n";
             exit(EXIT_FAILURE);
         }
-        SDL_SetColorKey(cursor_surf, SDL_TRUE, SDL_MapRGB(cursor_surf->format, 0, 0, 0));
+        SDL_SetColorKey(cursor_surf, SDL_TRUE, SDL_MapRGB(cursor_surf->format, 0, 128, 128));
         reg_cursor = SDL_CreateTextureFromSurface(app.ren, cursor_surf);
         SDL_FreeSurface(cursor_surf);
         if(reg_cursor == nullptr) {
