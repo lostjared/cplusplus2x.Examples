@@ -47,7 +47,7 @@ namespace mx {
         for (auto it = window_stack.rbegin(); it != window_stack.rend(); ++it) {
             Window *window = *it;
             if (window->isPointInside(x, y)) {
-                int index = std::distance(it, window_stack.rend()) - 1;
+                int index = static_cast<int>(std::distance(it, window_stack.rend())) - 1;
                 setFocus(index);
                 return true;
             }

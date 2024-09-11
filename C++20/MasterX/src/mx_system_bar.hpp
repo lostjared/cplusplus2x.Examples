@@ -22,7 +22,7 @@ namespace mx {
         TTF_Font *font;
         SDL_Surface *itemSurface;
         SDL_Texture *itemTexture;
-        SDL_Rect itemRect;
+        SDL_Rect itemRect = { 0,0,0,0 };
         SDL_Color white;
     };
 
@@ -52,7 +52,7 @@ namespace mx {
         int yPos = 0;
         bool animationComplete = false;
         TTF_Font  *font;
-        SDL_Color start_bg;
+        SDL_Color start_bg = { 0,0,0,225 };
         bool isHovering = false;
         std::vector<std::unique_ptr<Screen>> objects;
         std::vector<std::unique_ptr<Screen>> *dimensions;
@@ -60,7 +60,7 @@ namespace mx {
         int cur_dim = 0;
         int prev_dim = 0;
         int hoverIndex = 0;
-        bool menuHover;
+        bool menuHover = false;
         void drawDimensions(mxApp &app);
         std::vector<int> activeDimensionsStack;
         std::vector<Window *> minimizedWindows;

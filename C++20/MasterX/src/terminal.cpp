@@ -68,7 +68,7 @@ namespace mx {
            SDL_SetRenderDrawColor(app.ren, text_color.r, text_color.g, text_color.b, 255);  
            SDL_RenderDrawLine(app.ren, rc.x + 5 + textWidth, cursorY + textHeight - 2, rc.x + 5 + textWidth + 10, cursorY + textHeight - 2);
         }
-        int totalLines = outputLines.size();
+        int totalLines = static_cast<int>(outputLines.size());
         if (totalLines > maxVisibleLines) {
             int offx = rc.x + rc.w;    
             int offy = rc.y+10;           
@@ -208,7 +208,7 @@ namespace mx {
         if (e.type == SDL_MOUSEMOTION && isScrolling) {
             int mouseY = e.motion.y;
             int newScrollPosY = mouseY - scrollBarDragOffset;
-            scrollOffset = (newScrollPosY * (outputLines.size() - maxVisibleLines)) / (rc.y+rc.h- scrollBarHeight);
+            scrollOffset = (newScrollPosY * (static_cast<int>(outputLines.size()) - maxVisibleLines)) / (rc.y+rc.h- scrollBarHeight);
             scrollOffset = std::max(0, std::min(scrollOffset, (int)(outputLines.size() - maxVisibleLines)));
         }
 

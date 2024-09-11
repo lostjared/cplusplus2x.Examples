@@ -69,7 +69,7 @@ namespace mx {
         SDL_Color gradEnd = {180, 180, 180, 255};   
 
         int menu_width = 150;
-        int menu_height = 20 + con->mini_win.size() * 30;
+        int menu_height = 20 + static_cast<int>(con->mini_win.size()) * 30;
 
         int menu_x = button_x + (button_width - menu_width) / 2;
         int menu_y = button_y - menu_height - 5;
@@ -408,7 +408,7 @@ namespace mx {
         int button_y = app.height - 50;  
         int button_x = 10 + dpos * (button_width + 10);  
         int menu_width = 150;
-        int menu_height = 20 + con->mini_win.size() * 30;  
+        int menu_height = 20 + static_cast<int>(con->mini_win.size()) * 30;  
         int menu_x = button_x + (button_width - menu_width) / 2;
         int menu_y = button_y - menu_height - 5;  
         bool chover = false;
@@ -465,7 +465,7 @@ namespace mx {
             int button_height = 30;
             int button_y = app.height - 50;
 
-            for (size_t j = 0; j < activeDimensionsStack.size(); ++j) {
+            for (int j = 0; j < static_cast<int>(activeDimensionsStack.size()); ++j) {
                int button_x = 10 + j * (button_width + 10);
                 SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
                 SDL_Point mousePoint = {mouseX, mouseY};
@@ -494,7 +494,7 @@ namespace mx {
             int button_height = 30;
             int button_y = app.height - 50;
 
-            for (size_t j = 0; j < activeDimensionsStack.size(); ++j) {
+            for (int j = 0; j < static_cast<int>(activeDimensionsStack.size()); ++j) {
                 int button_x = 10 + j * (button_width + 10);
                 SDL_Rect buttonRect = {button_x, button_y, button_width, button_height};
                 SDL_Point mousePoint = {mouseX, mouseY};
@@ -727,6 +727,12 @@ namespace mx {
             std::cerr << "Error opening font: " << getPath("fonts/arial.ttf") << "\n";
             exit(EXIT_FAILURE);
         }
+        white = { 255,255,255,255 };
+        itemTexture = nullptr;
+        itemSurface = nullptr;
+        animating = false;
+        
+        
     }
 
     MenuBar::~MenuBar() {
