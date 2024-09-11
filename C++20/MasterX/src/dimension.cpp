@@ -144,7 +144,21 @@ namespace mx {
         dash->init(system_bar, "Dashboard", loadTexture(app, "images/desktop.bmp"));
         dash->setActive(true);
         dash->setVisible(false);
+        settings_window = dash->createWindow(app);
+        settings_window->create(dash, "Settings", 25, 25, 320, 240);   
+        settings_window->show(true);
+        settings_window->setReload(true);
+        settings_window->setCanResize(false);
+        settings_window->removeAtClose(true);
 
+        settings_window->children.push_back(std::make_unique<Button>(app));
+        toggle_fullscreen = dynamic_cast<Button *>(settings_window->getControl());
+        toggle_fullscreen->create(settings_window, "Toggle Fullscreen", 25, 50, 150, 20);
+        toggle_fullscreen->setShow(true);
+        toggle_fullscreen->setCallback([](mxApp &app, Window *parent, SDL_Event &e) -> bool {
+                app.set_fullscreen(app.win, !app.full);
+                return true;
+        });
         dimensions.push_back(std::make_unique<DimensionContainer>(app));
         welcome = dynamic_cast<DimensionContainer *>(getDimension());
         welcome->init(system_bar, "Welcome", loadTexture(app, "images/wallpaper.bmp"));

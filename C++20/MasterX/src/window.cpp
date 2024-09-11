@@ -79,6 +79,7 @@ namespace mx {
         } else {
             SDL_SetWindowFullscreen(window, 0);
         }
+        full = fullscreen;
     }
 
     mxApp::~mxApp() {

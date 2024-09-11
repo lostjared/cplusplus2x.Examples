@@ -75,8 +75,8 @@ namespace mx {
         DimensionContainer *term;
         SystemBar *system_bar;
         Window *welcome_window, *welcome_help;
-        Window *about_window;
-        Button *about_window_ok, *welcome_ok;
+        Window *about_window, *settings_window;
+        Button *about_window_ok, *welcome_ok, *toggle_fullscreen;
         Image *welcome_image;
         Label *about_window_info, *welcome_help_info;
         Image *about_window_logo;

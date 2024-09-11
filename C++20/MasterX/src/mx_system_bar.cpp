@@ -119,7 +119,7 @@ namespace mx {
     }
 
     void SystemBar::activateDimension(int dim) {
-        auto it = std::find(activeDimensionsStack.begin(), activeDimensionsStack.end(), dim);
+        auto it = std::find(activeDimensionsStack.begin(), activeDimensionsStack.end(), dim);;
         if (it != activeDimensionsStack.end()) {
             activeDimensionsStack.erase(it);
         }
@@ -676,33 +676,38 @@ namespace mx {
         return false;
     }
 
+    void SystemBar::loadDimension(int id) {
+        DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](id).get());
+        if(std::find(activeDimensionsStack.begin(), activeDimensionsStack.end(), id) == activeDimensionsStack.end()) {
+            dim->setActive(true);
+            setCurrentDimension(id);
+            activateDimension(id);
+        } else {
+            dim->setActive(true);
+            setCurrentDimension(id);
+        }
+    }
+
     void SystemBar::performAction(mxApp &app, int action) {
         switch (action) {
             case 1: {
-                    DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](0).get());
-                    dim->setActive(true);
-                    setCurrentDimension(1);
-                    activateDimension(1);
+                     loadDimension(1);
                 }
                 break;
             case 2: {
-                    DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](2).get());
-                    dim->setActive(true);
-                    setCurrentDimension(3);
-                    activateDimension(3);
+                loadDimension(3);
             }
                 break;
-            case 3:
-                std::cout << "Settings clicked\n";
+            case 3: {
+                loadDimension(0);
+                    
+            }
                 break;
             case 4:
                 std::cout << "Find clicked\n";
                 break;
             case 5: {
-                DimensionContainer *dim = dynamic_cast<DimensionContainer *>(dimensions->operator[](1).get());
-                dim->setActive(true);
-                setCurrentDimension(2);
-                activateDimension(2);
+                loadDimension(2);
             }
                 break;
             case 6:

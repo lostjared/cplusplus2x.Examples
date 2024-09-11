@@ -42,6 +42,7 @@ namespace mx {
         bool empty() const;
         void addMinimizedWindow(Window *win);
         void performAction(mxApp &app, int action);
+        void loadDimension(int id);
         void restoreWindow(Window *window);
         void drawMinimizedMenu(mxApp &app, int button_x, int button_y, int button_width);
         friend class Window;
