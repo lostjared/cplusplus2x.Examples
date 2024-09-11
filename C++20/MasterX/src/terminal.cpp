@@ -29,11 +29,9 @@ namespace mx {
             return;
 
         SDL_Rect rc;
-        Window::getRect(rc);
-        rc.x += 5;  
+        Window::getRect(rc);  
         rc.y += 28; 
-        rc.w -= 10; 
-        rc.h -= 33; 
+        rc.h -= 29; 
 
         SDL_SetRenderDrawBlendMode(app.ren, SDL_BLENDMODE_BLEND);
         SDL_SetRenderDrawColor(app.ren, 0, 0, 0, 128);
