@@ -244,7 +244,16 @@ namespace mx {
             }
         } else if(command == "about") {
             print("MasterX System - written by Jared Bruni\n(c) 2024 LostSideDead Software\nsite: lostsidedead.biz");
-        } 
+        } else if(words.size()==2 && words[0] == "setfull" && words[1] == "true") {
+            app.set_fullscreen(app.win, true);
+
+        } else if(words.size()==2 && words[0] == "setfull" && words[1] == "false") {
+            app.set_fullscreen(app.win, false);
+        } else if(command == "exit") {
+            app.shutdown();
+        } else {
+            print("- command not found");
+        }
         scroll();
     }
 
