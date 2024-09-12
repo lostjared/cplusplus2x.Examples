@@ -3,25 +3,34 @@
 
 #include"window.hpp"
 #include"mx_window.hpp"
-
+#ifdef _WIN32
+#include <windows.h>
+#elif !defined(FOR_WASM)
+#include <unistd.h>
+#include <sys/wait.h>
+#endif
+#include<thread>
+#include<mutex>
 
 namespace mx {
 
   class Terminal :  public Window {
     public:
         Terminal(mxApp  &app);
+        virtual ~Terminal();
         void draw(mxApp  &app);
         bool event(mxApp &app, SDL_Event  &e);
         void print(const std::string &s);
         void scroll();
         void stateChanged(bool min, bool max, bool closed);
         void setWallpaper(SDL_Texture *tex);
+        void drawCursor(mxApp &, int, int, bool);
       private:
         std::string inputText;
         std::vector<std::string> outputLines;
         void renderText(mxApp &app, const std::string &text, int x, int y);
-        void renderTextWrapped(mxApp &app, const std::string &text, int x, int &y, int maxWidth);
-        void processCommand(mxApp &app, const std::string &cmd);
+        void renderTextWrapped(mxApp &app, const std::string &prompt, const std::string &text, int &x, int &y, int maxWidth);
+        void processCommand(mxApp &app, std::string cmd);
         void handleScrolling(int);
         std::vector<std::string> splitText(const std::string &text);
         int scrollOffset = 0; 
@@ -37,6 +46,25 @@ namespace mx {
         int scrollBarHeight = 0;
         int scrollBarPosY = 0;
         int scrollBarDragOffset = 0;
+        int calculateTotalWrappedLines();
+        int calculateWrappedLinesForText(mxApp &app, const std::string &text, int maxWidth);
+
+
+#ifdef _WIN32
+        HANDLE hChildStdinRd, hChildStdinWr;  // Pipe for bash input
+        HANDLE hChildStdoutRd, hChildStdoutWr;  // Pipe for bash output
+        PROCESS_INFORMATION procInfo;  // Process information for bash
+        HANDLE bashThread;
+        static DWORD WINAPI bashReaderThread(LPVOID param);
+        std::mutex outputMutex;
+#elif !defined(FOR_WASM)
+        pid_t bashPID;
+        int pipe_in[2];  // Pipe for sending input to bash
+        int pipe_out[2]; // Pipe for reading output from bash
+        SDL_Thread *bashThread;
+        static int bashReaderThread(void *ptr);
+        std::mutex outputMutex;
+#endif
     };
 
 
