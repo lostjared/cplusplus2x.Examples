@@ -551,10 +551,10 @@ namespace mx {
             lineCount++;
 
         }
-
+#ifndef _WIN32
         if(inputText.empty())
             lineCount++;
-
+#endif
         return lineCount;
     }
 
