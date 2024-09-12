@@ -20,6 +20,7 @@ T my_min(const T& a, const T& b) {
 namespace mx {
 
     Terminal::Terminal(mxApp  &app) : Window(app) {
+        active = true;
         text_color = { 255, 255, 255 };
         font = app.font;
         Window::setCanResize(true);
@@ -52,21 +53,19 @@ namespace mx {
 
         CloseHandle(hChildStdinRd);
         CloseHandle(hChildStdoutWr);
-bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
+    bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
 
  #elif !defined(FOR_WASM)
         if (pipe(pipe_in) == -1 || pipe(pipe_out) == -1) {
-            print("Error creating pipes for bash");
+            std::cout << "Error creating pipes for bash\n ";
             return;
         }
         bashPID = fork();
         if (bashPID == -1) {
-            print("Failed to fork bash process");
+            std::cout << "Failed to fork bash process"; 
         } else if (bashPID == 0) {
             close(pipe_in[1]);  
             close(pipe_out[0]); 
-
-            
             dup2(pipe_in[0], STDIN_FILENO);
             dup2(pipe_out[1], STDOUT_FILENO);
             dup2(pipe_out[1], STDERR_FILENO);
@@ -74,13 +73,10 @@ bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
             execl("/bin/bash", "bash", NULL);
             exit(1);  
         } else {
-            
             close(pipe_in[0]);
             close(pipe_out[1]);
-
-            
-            bashThread = SDL_CreateThread(bashReaderThread, "bashReaderThread", this);
         }
+             bashThread = SDL_CreateThread(bashReaderThread, "bashReaderThread", this);
     #endif
     }
 
@@ -89,6 +85,7 @@ bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
      }
 
     Terminal::~Terminal() {
+        active = false;
 #ifdef _WIN32
         TerminateProcess(procInfo.hProcess, 0);
         CloseHandle(procInfo.hProcess);
@@ -133,10 +130,21 @@ bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
 #ifndef FOR_WASM        
         std::lock_guard<std::mutex> lock(outputMutex);
 #endif
+
+        int offsetLine = 0;
+            if(scrollOffset > maxVisibleLines-static_cast<int>(outputLines.size()) ){
+                if (!(scrollOffset >= total_Lines() - maxVisibleLines)) {
+                    offsetLine = 1; 
+                } 
+                
+            }
+
         for (int i = scrollOffset; i < static_cast<int>(outputLines.size()); ++i) {
             if(y + lineHeight+lineHeight > rc.y+rc.h) {
                 break;
             } 
+
+            
             renderText(app, outputLines[i], rc.x + 5, y);
             y += lineHeight;
        
@@ -147,26 +155,38 @@ bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
 
             
             TTF_SizeText(app.font, lastLine.c_str(), &textWidth, &textHeight);
-
             
             int cy = y - textHeight;  
             int cx = rc.x + 5;  
 
-            
-            renderText(app, lastLine, cx, cy);
-
-            renderTextWrapped(app, outputLines.empty() ? std::string() : outputLines.back(),  inputText, cx, cy, maxWidth);
-
-            Uint32 currentTime = SDL_GetTicks();
-            if (currentTime - cursorTimer >= cursorBlinkInterval) {
-                showCursor = !showCursor;
-                cursorTimer = currentTime;
+            if(offsetLine != 1) {
+                renderText(app, lastLine, cx, cy);
             }
+           
+            #ifndef _WIN32
+                cx -= 5;
+                cy += lineHeight;
+                renderTextWrapped(app, "$ ",  inputText, cx, cy, maxWidth);
+            #else
+                renderTextWrapped(app, outputLines.empty() ? std::string() : outputLines.back(),  inputText, cx, cy, maxWidth);
+            #endif
         }
 
 
-
         int totalLines = static_cast<int>(outputLines.size());
+        std::string prompt;
+        #ifdef _WIN32
+
+        if(!outputLines.empty())
+            prompt = outputLines.back();
+        #else
+            prompt = "$ ";
+        #endif
+        int promptWidth;
+        TTF_SizeText(font,prompt.c_str(), &promptWidth, nullptr);
+        int total = calculateWrappedLinesForText(inputText, rc.w - 20, promptWidth);
+        totalLines += total;
+    
 
         if (totalLines > maxVisibleLines) {
             int offx = rc.x + rc.w;    
@@ -230,53 +250,60 @@ bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
             SDL_RenderDrawLine(app.ren, x, y, x, y + textHeight);  
         }
     }
-
+            
     void Terminal::renderTextWrapped(mxApp &app, const std::string &prompt, const std::string &inputText, int &x, int &y, int maxWidth) {
+        
+                
         SDL_Rect rc;
         Window::getRect(rc);
-        
-        int lineHeight = TTF_FontHeight(app.font);  
-        int h = 0;  
 
-        std::string currentLine = prompt;  
+        int margin = 5;
+        int availableWidth = maxWidth - margin * 2;  
+        x = rc.x + margin;
+
         int promptWidth;
-        
-        TTF_SizeText(app.font, prompt.c_str(), &promptWidth, &h);
-        x = rc.x + 5 + promptWidth;
-        int availableWidth = maxWidth - (rc.x + 10);
+    #ifdef _WIN32
+        TTF_SizeText(app.font, prompt.c_str(), &promptWidth, nullptr);
+        x += promptWidth;
+        availableWidth -= promptWidth;
+    #else
+        std::string nprompt = "$ ";
+        TTF_SizeText(app.font, nprompt.c_str(), &promptWidth, nullptr);
+        renderText(app, nprompt, x, y);
+        x += promptWidth;
+        availableWidth -= promptWidth;
+    #endif
 
-        std::string remainingText = inputText;  
-
-        
+        std::string remainingText = inputText;
+        int lineHeight = TTF_FontHeight(app.font);
         int cursorX = x;
         int cursorY = y;
+        bool firstLine = true;
 
-        
         while (!remainingText.empty()) {
             std::string lineToRender;
             int currentWidth = 0;
-
-        
             size_t i = 0;
+            int thisLineWidth = firstLine ? availableWidth-20 : (maxWidth-31);
+            firstLine = false;
+
             while (i < remainingText.length()) {
                 std::string testLine = lineToRender + remainingText[i];
-                TTF_SizeText(app.font, testLine.c_str(), &currentWidth, &h);
+                TTF_SizeText(app.font, testLine.c_str(), &currentWidth, nullptr);
 
-        
-                if (currentWidth > (availableWidth - (x - rc.x))) {
+                if (currentWidth > thisLineWidth) {
                     if (!lineToRender.empty()) {
-                        break;  
+                        break;
                     } else {
-                        while (currentWidth > (availableWidth - (x - rc.x))) {
+                        while (currentWidth > thisLineWidth) {
                             lineToRender += remainingText[i++];
-                            TTF_SizeText(app.font, lineToRender.c_str(), &currentWidth, &h);
+                            TTF_SizeText(app.font, lineToRender.c_str(), &currentWidth, nullptr);
 
-                            if (currentWidth > (availableWidth - (x - rc.x))) {
+                            if (currentWidth > thisLineWidth) {
                                 renderText(app, lineToRender, x, y);
-                                y += lineHeight;  
-                                x = rc.x + 5;     
-
-                        
+                                y += lineHeight;
+                                x = rc.x + margin;
+                                thisLineWidth = maxWidth - (margin * 2);
                                 lineToRender.clear();
                             }
                         }
@@ -285,24 +312,23 @@ bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
                     lineToRender += remainingText[i++];
                 }
             }
-            if (currentLine == prompt) {
-                renderText(app, prompt, rc.x + 5, y);
-                currentLine = ""; 
-            }
             renderText(app, lineToRender, x, y);
             cursorX = x + currentWidth;
             cursorY = y;
             y += lineHeight;
-            x = rc.x + 5;  
+            x = rc.x + margin;
             remainingText = remainingText.substr(i);
         }
+
         Uint32 currentTime = SDL_GetTicks();
         if (currentTime - cursorTimer >= cursorBlinkInterval) {
             showCursor = !showCursor;
             cursorTimer = currentTime;
         }
+
         drawCursor(app, cursorX, cursorY, showCursor);
     }
+
     bool Terminal::event(mxApp &app, SDL_Event &e) {
         
         if(!Window::isVisible())
@@ -310,6 +336,7 @@ bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
 
         if (e.type == SDL_TEXTINPUT) {
             inputText += e.text.text;
+            scroll();
             return true;
         }
 
@@ -348,15 +375,19 @@ bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
             isScrolling = false;
         }
 
+        int totalLines = total_Lines();
+
         if (e.type == SDL_MOUSEMOTION && isScrolling) {
             int mouseY = e.motion.y;
             int newScrollPosY = mouseY - scrollBarDragOffset;
-            scrollOffset = (newScrollPosY * (static_cast<int>(outputLines.size()) - maxVisibleLines)) / (rc.y+rc.h- scrollBarHeight);
-            scrollOffset = my_max(0, my_min(scrollOffset, (int)(outputLines.size() - maxVisibleLines)));
+            scrollOffset = (newScrollPosY * totalLines - maxVisibleLines) / (rc.y+rc.h- scrollBarHeight);
+            scrollOffset = my_max(0, my_min(scrollOffset, (totalLines - maxVisibleLines)));
+            render_text = false;
         }
 
         if (e.type == SDL_MOUSEWHEEL) {
             handleScrolling(e.wheel.y);
+            render_text = false;
             return true;
         }
         
@@ -368,9 +399,8 @@ bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
 
     void Terminal::handleScrolling(int direction) {
         scrollOffset -= direction;
-
-        
-        scrollOffset = my_max(0, my_min(scrollOffset, (int)(outputLines.size() - maxVisibleLines)));
+        int totalLines = static_cast<int>(outputLines.size());
+         scrollOffset = my_max(0, my_min(scrollOffset, (totalLines - maxVisibleLines)));
     }
 
     void Terminal::processCommand(mxApp &app, std::string command) {
@@ -417,10 +447,11 @@ bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
         std::cerr << "MasterX System: Error wrote zero bytes..\n";
     } 
 #elif !defined(FOR_WASM)
-    std::lock_guard<std::mutex> lock(outputMutex);
+    
     // Write the command to bash's stdin
     std::string cmd = command + "\n";
     write(pipe_in[1], cmd.c_str(), cmd.size());
+    print("$ " + cmd);
 #else
         if (command == "clear") {
             outputLines.clear();
@@ -431,7 +462,7 @@ bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
                 int g = atoi(words[2].c_str());
                 int b = atoi(words[3].c_str());
                 text_color.r = r;
-                text_color.g = g;
+                 text_color.g = g;
                 text_color.b = b;
                 text_color.a = 255;
                 print("MasterX System: Terminal color set.");
@@ -496,52 +527,35 @@ bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
                 scroll();  
             } 
         }
-}
-    int Terminal::calculateWrappedLinesForText(mxApp &app, const std::string &text, int maxWidth) {
-        std::vector<std::string> words = splitText(text);
-        std::string currentLine;
-        int wrappedLineCount = 0;
-     
-        for (const auto &word : words) {
-            std::string testLine = currentLine.empty() ? word : currentLine + " " + word;
+        scroll();
+    }
 
-            int w, h;
-            TTF_SizeText(app.font, testLine.c_str(), &w, &h);
-
-            if (w > maxWidth) {
-                if (!currentLine.empty()) {
-                    wrappedLineCount++;  
-                    currentLine.clear();
-                }
-
-                
-                std::string remainingWord = word;
-                while (!remainingWord.empty()) {
-                    std::string part;
-                    int partW;
-
-                    for (size_t i = 0; i < remainingWord.length(); ++i) {
-                        std::string tmp = part + remainingWord[i];
-                        TTF_SizeText(app.font, tmp.c_str(), &partW, &h);
-                        if (partW > maxWidth) {
-                            break;  
-                        }
-                        part = tmp;
-                    }
-
-                    wrappedLineCount++;  
-                    remainingWord = remainingWord.substr(part.length());
-                }
-            } else {
-                currentLine = testLine;
+    int Terminal::calculateWrappedLinesForText(const std::string &text, int maxWidth, int promptWidth) {
+        int lineCount = 0;  
+        std::string lineToRender;
+        int currentWidth = 0;
+        bool isFirstLine = true;
+        for (size_t i = 0; i < text.length(); ++i) {
+            lineToRender += text[i];
+            TTF_SizeText(font, lineToRender.c_str(), &currentWidth, nullptr);
+            int currentMaxWidth = isFirstLine ? maxWidth - promptWidth : maxWidth;
+            if (currentWidth > currentMaxWidth) {
+                lineCount++;  
+                lineToRender.clear();  
+                lineToRender += text[i]; 
+                TTF_SizeText(font, lineToRender.c_str(), &currentWidth, nullptr);
+                isFirstLine = false; 
             }
         }
+        if (!lineToRender.empty()) {
+            lineCount++;
 
-        if (!currentLine.empty()) {
-            wrappedLineCount++;  
         }
 
-        return wrappedLineCount; 
+        if(inputText.empty())
+            lineCount++;
+
+        return lineCount;
     }
 
     int Terminal::calculateTotalWrappedLines() {
@@ -566,20 +580,50 @@ bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
 
         return totalWrappedLines;
     }
-    void Terminal::scroll() {
+
+    int Terminal::total_Lines() {
         int totalLines = static_cast<int>(outputLines.size());
+        SDL_Rect rc;
+        Window::getRect(rc);
+
+        std::string prompt;
+        #ifdef _WIN32
+
+        if(!outputLines.empty())
+            prompt = outputLines.back();
+        #else
+            prompt = "$ ";
+        #endif
+        int promptWidth;
+        TTF_SizeText(font,prompt.c_str(), &promptWidth, nullptr);
+        int total = calculateWrappedLinesForText(inputText, rc.w - 20, promptWidth);
+        total += totalLines;
+        return total;
+    }
+
+    void Terminal::scroll() {
+        int totalLines = total_Lines();  
         SDL_Rect rc;
         Window::getRect(rc);
 
         int lineHeight = TTF_FontHeight(font);
         maxVisibleLines = (rc.h - 28) / lineHeight;
 
+        if(!inputText.empty()) {
+            #ifdef _WIN32
+            maxVisibleLines += 1;
+            #endif
+        }
+
         if (totalLines > maxVisibleLines) {
-            scrollOffset = totalLines - maxVisibleLines;
+            if (scrollOffset < totalLines - maxVisibleLines) {
+                scrollOffset = my_max(0, totalLines - maxVisibleLines);
+            }
         } else {
             scrollOffset = 0;
         }
     }
+
 
     void Terminal::stateChanged(bool min, bool max, bool closed) {
         isMaximized = max;
@@ -594,11 +638,11 @@ bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
         char buffer[1024];
         DWORD bytesRead;
 
-        while (true) {
+        while (terminal->active == true) {
             if (ReadFile(terminal->hChildStdoutRd, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && bytesRead > 0) {
                 buffer[bytesRead] = '\0';
                 if(bytesRead > 0) {
-                    terminal->print(std::string(buffer));
+                    terminal->print(buffer);
                 }
             }
         }
@@ -609,11 +653,10 @@ bashThread = CreateThread(NULL, 0, bashReaderThread, this, 0, NULL);
         Terminal *terminal = static_cast<Terminal *>(ptr);
         char buffer[1024];
 
-        while (true) {
+        while (terminal->active == true) {
             ssize_t count = read(terminal->pipe_out[0], buffer, sizeof(buffer) - 1);
             if (count > 0) {
                 buffer[count] = '\0';
-                std::lock_guard<std::mutex> lock(terminal->outputMutex);
                 terminal->print(buffer);
             }
         }

@@ -11,6 +11,7 @@
 #endif
 #include<thread>
 #include<mutex>
+#include<atomic>
 
 namespace mx {
 
@@ -47,9 +48,10 @@ namespace mx {
         int scrollBarPosY = 0;
         int scrollBarDragOffset = 0;
         int calculateTotalWrappedLines();
-        int calculateWrappedLinesForText(mxApp &app, const std::string &text, int maxWidth);
-
-
+        int calculateWrappedLinesForText(const std::string &text, int, int);
+        std::atomic<bool> active;
+        int total_Lines();
+        bool render_text = true;
 #ifdef _WIN32
         HANDLE hChildStdinRd, hChildStdinWr;  // Pipe for bash input
         HANDLE hChildStdoutRd, hChildStdoutWr;  // Pipe for bash output
