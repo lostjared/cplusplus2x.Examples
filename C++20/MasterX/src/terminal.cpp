@@ -627,9 +627,7 @@ namespace mx {
 
     void Terminal::stateChanged(bool min, bool max, bool closed) {
         isMaximized = max;
-        scroll();
         Window::dragging = false;
-
     }
 
 #ifdef _WIN32
