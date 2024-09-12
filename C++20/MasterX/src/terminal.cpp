@@ -405,6 +405,11 @@ namespace mx {
 
     void Terminal::processCommand(mxApp &app, std::string command) {
         if(command.empty()) return;
+
+    #ifdef FOR_WASM
+        print("$ " + command + "\n");
+    #endif
+
         std::vector<std::string> words;
         words = splitText(command);
 
@@ -434,8 +439,10 @@ namespace mx {
 #ifdef _WIN32
     std::lock_guard<std::mutex> lock(outputMutex);
     std::string cmd = command + "\n";
-    DWORD written;
 
+
+
+    DWORD written;
     if (hChildStdinWr == INVALID_HANDLE_VALUE) {
         std::cerr << "MasterX System: Invalid handle for stdin.\n";
     }
