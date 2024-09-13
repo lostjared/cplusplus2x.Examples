@@ -74,7 +74,7 @@ namespace mx {
             dup2(pipe_out[1], STDOUT_FILENO);
             dup2(pipe_out[1], STDERR_FILENO);
 
-            execl("/bin/bash", "bash", NULL);
+            execlp("stdbuf", "stdbuf", "-o0", "bash", NULL);
             exit(1);  
         } else {
             close(pipe_in[0]);
