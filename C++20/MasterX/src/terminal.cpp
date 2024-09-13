@@ -156,8 +156,6 @@ namespace mx {
         if (!outputLines.empty()) {
             std::string lastLine = outputLines.back(); 
             int textWidth = 0, textHeight = 0;
-
-            
             TTF_SizeText(font, lastLine.c_str(), &textWidth, &textHeight);
             
             int cy = y - textHeight;  
@@ -173,6 +171,17 @@ namespace mx {
                 renderTextWrapped(app, "$ ",  inputText, cx, cy, maxWidth);
             #else
                 renderTextWrapped(app, outputLines.empty() ? std::string() : outputLines.back(),  inputText, cx, cy, maxWidth);
+            #endif
+        } else {
+            #ifndef _WIN32
+            std::string lastLine = " ";
+            int textWidth = 0, textHeight = 0;
+            TTF_SizeText(font, lastLine.c_str(), &textWidth, &textHeight);
+            int cy = y - textHeight;  
+            int cx = rc.x + 5;             
+            cx -= 5;
+            cy += lineHeight;
+            renderTextWrapped(app, "$ ",  inputText, cx, cy, maxWidth);
             #endif
         }
 
@@ -409,10 +418,12 @@ namespace mx {
 
     void Terminal::processCommand(mxApp &app, std::string command) {
         if(command.empty()) return;
-
-    #ifdef FOR_WASM
+#ifdef FOR_WASM        
+        bool clear = false;
+#endif
+    #ifndef _WIN32
         print("\n$ " + command + "\n");
-    #elif defined(_WIN32)
+    #else
         std::string s;
         if(!outputLines.empty()) {
             s = outputLines.back();
@@ -446,6 +457,16 @@ namespace mx {
         } else if(words.size() == 1 && words[0] == "about") {
             print("MasterX System written by Jared Bruni\n(C) 2024 LostSideDead Software.\nhttps://lostsidedead.biz\n");
             command.clear();
+        } else if(words.size() == 1  && words[0] == "clear") {
+            orig_text = "";    
+#ifdef FOR_WASM
+        clear = true;
+#endif
+#ifndef _WIN32
+            print("");
+#else
+             command.clear();
+#endif
         }
         
 #ifdef _WIN32
@@ -468,11 +489,10 @@ namespace mx {
 #elif !defined(FOR_WASM) 
     // Write the command to bash's stdin
     std::string cmd = command + "\n";
-    write(pipe_in[1], cmd.c_str(), cmd.size());
-    print("$ " + cmd);
-
+    if(command != "clear")
+        write(pipe_in[1], cmd.c_str(), cmd.size());
 #else
-    if(command.length()>0) {
+    if(command.length()>0 && clear == false) {
         print(" - command not found\n");
     }
 #endif
