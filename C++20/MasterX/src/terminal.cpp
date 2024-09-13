@@ -490,6 +490,17 @@ namespace mx {
         scroll();
     }
 
+std::string trimR(const std::string &s) {
+    std::string temp;
+    temp.reserve(s.length());
+    for(char c : s) {
+        if((c == '\t' || c == ' ' || c == '\v' || c == '\f' || c == '\u00A0') || 
+            !std::isspace(static_cast<unsigned char>(c))) {
+            temp += c;
+        }
+    }
+    return temp;
+}
     void Terminal::print(const std::string &s) {
 #ifndef FOR_WASM
         std::lock_guard<std::mutex> lock(outputMutex);
@@ -516,12 +527,12 @@ namespace mx {
                     
                             std::string part = currentLine.substr(0, lastSpace);
                             if(!part.empty())
-                            outputLines.push_back(part);
+                            outputLines.push_back(trimR(part));
                             currentLine = currentLine.substr(lastSpace + 1);  
                         } else {
                     
                             if(!currentLine.empty())
-                            outputLines.push_back(currentLine);
+                            outputLines.push_back(trimR(currentLine));
                             currentLine.clear();
                         }
                     }
@@ -529,7 +540,7 @@ namespace mx {
 
                 
                 if (!currentLine.empty()) {
-                    outputLines.push_back(currentLine);
+                    outputLines.push_back(trimR(currentLine));
                 }
                 scroll();  
             } 
