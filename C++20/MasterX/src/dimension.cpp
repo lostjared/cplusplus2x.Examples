@@ -252,7 +252,7 @@ namespace mx {
         term->objects.push_back(std::make_unique<Terminal>(app)); 
         termx = dynamic_cast<Terminal*>(term->objects[0].get());
         term->events.addWindow(termx);
-        termx->create(term, "mXTerm", 25, 25, 640, 480);
+        termx->create(term, "mXTerm", (1280 - 800) / 2, (720 - 600) / 2, 800, 505);
         termx->show(true);
         termx->setReload(true);
         termx->setWallpaper(term_tex);

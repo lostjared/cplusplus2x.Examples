@@ -502,59 +502,71 @@ namespace mx {
         scroll();
     }
 
-std::string trimR(const std::string &s) {
-    std::string temp;
-    temp.reserve(s.length());
-    for(char c : s) {
-        if((c == '\t' || c == ' ' || c == '\v' || c == '\f')  || 
-            !std::isspace(static_cast<unsigned char>(c))) {
-            temp += c;
+
+
+    std::string trimR(const std::string &s) {
+        std::string temp;
+        temp.reserve(s.length());
+        for(char c : s) {
+            if((c == '\t' || c == ' ' || c == '\v' || c == '\f')  || 
+                !std::isspace(static_cast<unsigned char>(c))) {
+                temp += c;
+            }
         }
+        return temp;
     }
-    return temp;
-}
+
+    void Terminal::updateText(const std::string &text) {
+        if(!text.empty()) 
+            orig_text.push_back(text);
+
+        
+    }
+
     void Terminal::print(const std::string &s) {
 #ifndef FOR_WASM
         std::lock_guard<std::mutex> lock(outputMutex);
 #endif
-        std::istringstream stream(s);
+        updateText(s);
+        
         std::string line;
         SDL_Rect rc;
         Window::getRect(rc);
         int maxWidth = rc.w - 10;  
         int w, h;
-        while (std::getline(stream, line)) {
-            if (line.length() > 0) {
-                std::string currentLine;
+        outputLines.clear();
+        for(int i = 0; i < static_cast<int>(orig_text.size()); ++i) {
+            std::istringstream stream(orig_text[i]);
+            while(std::getline(stream, line)) {
+                if (line.length() > 0) {
+                    std::string currentLine;
+                    for (size_t i = 0; i < line.length(); ++i) {
+                        currentLine += line[i];
+                        TTF_SizeText(font, currentLine.c_str(), &w, &h);
 
-                for (size_t i = 0; i < line.length(); ++i) {
-                    currentLine += line[i];
-                    TTF_SizeText(font, currentLine.c_str(), &w, &h);
-
-                    
-                    if (w > maxWidth) {
-                    
-                        size_t lastSpace = currentLine.find_last_of(' ');
-                        if (lastSpace != std::string::npos) {
-                    
-                            std::string part = currentLine.substr(0, lastSpace);
-                            if(!part.empty())
-                            outputLines.push_back(trimR(part));
-                            currentLine = currentLine.substr(lastSpace + 1);  
-                        } else {
-                    
-                            if(!currentLine.empty())
-                            outputLines.push_back(trimR(currentLine));
-                            currentLine.clear();
+                        
+                        if (w > maxWidth) {
+                        
+                            size_t lastSpace = currentLine.find_last_of(' ');
+                            if (lastSpace != std::string::npos) {
+                        
+                                std::string part = currentLine.substr(0, lastSpace);
+                                if(!part.empty())
+                                outputLines.push_back(trimR(part));
+                                currentLine = currentLine.substr(lastSpace + 1);  
+                            } else {
+                        
+                                if(!currentLine.empty())
+                                outputLines.push_back(trimR(currentLine));
+                                currentLine.clear();
+                            }
                         }
                     }
+                    if (!currentLine.empty()) {
+                        outputLines.push_back(trimR(currentLine));
+                    }
+                    scroll();  
                 }
-
-                
-                if (!currentLine.empty()) {
-                    outputLines.push_back(trimR(currentLine));
-                }
-                scroll();  
             } 
         }
         scroll();
@@ -657,6 +669,7 @@ std::string trimR(const std::string &s) {
 
     void Terminal::stateChanged(bool min, bool max, bool closed) {
         isMaximized = max;
+        print("");
         Window::dragging = false;
     }
 
