@@ -536,40 +536,39 @@ namespace mx {
         int maxWidth = rc.w - 10;  
         int w, h;
         outputLines.clear();
-	std::string total = orig_text;
+	    std::string total = orig_text;
+        std::istringstream stream(total);
+        while(std::getline(stream, line)) {
+            if (line.length() > 0) {
+                std::string currentLine;
+                for (size_t i = 0; i < line.length(); ++i) {
+                    currentLine += line[i];
+                    TTF_SizeText(font, currentLine.c_str(), &w, &h);
 
-            std::istringstream stream(total);
-            while(std::getline(stream, line)) {
-                if (line.length() > 0) {
-                    std::string currentLine;
-                    for (size_t i = 0; i < line.length(); ++i) {
-                        currentLine += line[i];
-                        TTF_SizeText(font, currentLine.c_str(), &w, &h);
-
-                        
-                        if (w > maxWidth) {
-                        
-                            size_t lastSpace = currentLine.find_last_of(' ');
-                            if (lastSpace != std::string::npos) {
-                        
-                                std::string part = currentLine.substr(0, lastSpace);
-                                if(!part.empty())
-                                outputLines.push_back(trimR(part));
-                                currentLine = currentLine.substr(lastSpace + 1);  
-                            } else {
-                        
-                                if(!currentLine.empty())
-                                outputLines.push_back(trimR(currentLine));
-                                currentLine.clear();
-                            }
+                    
+                    if (w > maxWidth) {
+                    
+                        size_t lastSpace = currentLine.find_last_of(' ');
+                        if (lastSpace != std::string::npos) {
+                    
+                            std::string part = currentLine.substr(0, lastSpace);
+                            if(!part.empty())
+                            outputLines.push_back(trimR(part));
+                            currentLine = currentLine.substr(lastSpace + 1);  
+                        } else {
+                    
+                            if(!currentLine.empty())
+                            outputLines.push_back(trimR(currentLine));
+                            currentLine.clear();
                         }
                     }
-                    if (!currentLine.empty()) {
-                        outputLines.push_back(trimR(currentLine));
-                    }
-                    scroll();  
                 }
-          
+                if (!currentLine.empty()) {
+                    outputLines.push_back(trimR(currentLine));
+                }
+                scroll();  
+            }
+        
         }
         scroll();
     }
