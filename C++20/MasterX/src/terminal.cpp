@@ -506,7 +506,7 @@ std::string trimR(const std::string &s) {
     std::string temp;
     temp.reserve(s.length());
     for(char c : s) {
-        if((c == '\t' || c == ' ' || c == '\v' || c == '\f' || c == '\u00A0') || 
+        if((c == '\t' || c == ' ' || c == '\v' || c == '\f')  || 
             !std::isspace(static_cast<unsigned char>(c))) {
             temp += c;
         }
