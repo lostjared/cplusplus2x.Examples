@@ -202,7 +202,7 @@ namespace mx {
 
         welcome_help->children.push_back(std::make_unique<Label>(app));
         welcome_help_info = dynamic_cast<Label *>(welcome_help->getControl());
-        std::vector<std::string> info_help {"MasterX System", "Created by Jared Bruni", "Virtual Environment written in C++20", "https://lostsidedead.biz"};
+        std::vector<std::string> info_help {"MasterX System", "Created by Jared Bruni", "Virtual Environment", "written in C++20", "https://lostsidedead.biz"};
         welcome_help_info->create_multi(welcome_help, info_help, { 0, 0, 0, 255}, 25, 25);
         welcome_help_info->loadFont("fonts/arial.ttf", 16);
         welcome_help_info->linkMode(false);
