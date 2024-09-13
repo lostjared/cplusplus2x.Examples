@@ -16,7 +16,7 @@ namespace mx {
     DimensionContainer::DimensionContainer(mxApp &app) : wallpaper{nullptr} , events{app}, active{false} {}
 
     DimensionContainer::~DimensionContainer() {
-        std::cout << "MasterX: Releasing DImension: " << name << "\n";
+        std::cout << "MasterX: Releasing Dimension: " << name << "\n";
         if(wallpaper) {
             SDL_DestroyTexture(wallpaper);
         }
