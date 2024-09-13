@@ -8,6 +8,7 @@
 #elif !defined(FOR_WASM)
 #include <unistd.h>
 #include <sys/wait.h>
+#include <signal.h>
 #endif
 #include<thread>
 #include<mutex>
