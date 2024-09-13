@@ -411,7 +411,7 @@ namespace mx {
         if(command.empty()) return;
 
     #ifdef FOR_WASM
-        print("$ " + command + "\n");
+        print("\n$ " + command + "\n");
     #elif defined(_WIN32)
         std::string s;
         if(!outputLines.empty()) {
@@ -420,8 +420,6 @@ namespace mx {
         outputLines.pop_back();
         print(s + command + "\n");
     #endif
-
-
         std::vector<std::string> words;
         words = splitText(command);
 
@@ -430,7 +428,6 @@ namespace mx {
 
         if(command == "exit") {
             app.shutdown();
-            return;
         } else if (words.size()==2 && words[0] == "setfull" && words[1] == "true") {
             app.set_fullscreen(app.win, true);
             print("MasterX System: full screen is true\n");
@@ -445,6 +442,9 @@ namespace mx {
             text_color.b = atoi(words[3].c_str());
             text_color.a = 255;
             print("MasterX System: - set text color\n");
+            command.clear();
+        } else if(words.size() == 1 && words[0] == "about") {
+            print("MasterX System written by Jared Bruni\n(C) 2024 LostSideDead Software.\nhttps://lostsidedead.biz\n");
             command.clear();
         }
         
@@ -465,39 +465,16 @@ namespace mx {
     if(written == 0) {
         std::cerr << "MasterX System: Error wrote zero bytes..\n";
     } 
-#elif !defined(FOR_WASM)
-    
+#elif !defined(FOR_WASM) 
     // Write the command to bash's stdin
     std::string cmd = command + "\n";
     write(pipe_in[1], cmd.c_str(), cmd.size());
     print("$ " + cmd);
-#else
-        if (command == "clear") {
-            outputLines.clear();
-            scrollOffset = 0; 
-        } else if(words.size()>0 && words[0] == "settextcolor") {
-            if(words.size()==4) {
-                int r = atoi(words[1].c_str());
-                int g = atoi(words[2].c_str());
-                int b = atoi(words[3].c_str());
-                text_color.r = r;
-                 text_color.g = g;
-                text_color.b = b;
-                text_color.a = 255;
-                print("MasterX System: Terminal color set.");
-            }
-        } else if(command == "about") {
-            print("MasterX System - written by Jared Bruni\n(c) 2024 LostSideDead Software\nsite: lostsidedead.biz");
-        } else if(words.size()==2 && words[0] == "setfull" && words[1] == "true") {
-            app.set_fullscreen(app.win, true);
 
-        } else if(words.size()==2 && words[0] == "setfull" && words[1] == "false") {
-            app.set_fullscreen(app.win, false);
-        } else if(command == "exit") {
-            app.shutdown();
-        } else {
-            print("- command not found");
-        }
+#else
+    if(command.length()>0) {
+        print(" - command not found\n");
+    }
 #endif
         scroll();
     }
