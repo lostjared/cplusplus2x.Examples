@@ -502,16 +502,18 @@ namespace mx {
         scroll();
     }
 
-
+    bool isAscii(char c) {
+        if(c == ' ' || c == '\t')
+            return true;
+        return isprint(static_cast<unsigned char>(c)) && c >= 32 && c <= 126;
+    }
 
     std::string trimR(const std::string &s) {
         std::string temp;
         temp.reserve(s.length());
         for(char c : s) {
-            if((c == '\t' || c == ' ' || c == '\v' || c == '\f')  || 
-                !std::isspace(static_cast<unsigned char>(c))) {
+            if(isAscii(c))
                 temp += c;
-            }
         }
         return temp;
     }
