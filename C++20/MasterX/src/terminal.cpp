@@ -6,7 +6,6 @@
 #include<mutex>
 #include"mx_window.hpp"
 #include"mx_system_bar.hpp"
-
 template<typename T>
 T my_max(const T& a, const T& b) {
     return a > b ? a : b;
@@ -22,7 +21,12 @@ namespace mx {
     Terminal::Terminal(mxApp  &app) : Window(app) {
         active = true;
         text_color = { 255, 255, 255 };
-        font = app.font;
+        font = TTF_OpenFont(getPath("fonts/consolas.ttf").c_str(), 16);
+        if(!font) {
+            std::cerr << "MasterX System Error: could not load system font.\n";
+            exit(EXIT_FAILURE);
+        }
+
         Window::setCanResize(true);
         print("MasterX System - Logged in...");
         SDL_Rect rc;
@@ -124,7 +128,7 @@ namespace mx {
         SDL_RenderFillRect(app.ren, &rc);
         SDL_SetRenderDrawBlendMode(app.ren, SDL_BLENDMODE_NONE);
         Window::drawMenubar(app);
-        int lineHeight = TTF_FontHeight(app.font);
+        int lineHeight = TTF_FontHeight(font);
         int maxWidth = rc.x+rc.w - 10;
         int y = rc.y + 5;
 #ifndef FOR_WASM        
@@ -154,7 +158,7 @@ namespace mx {
             int textWidth = 0, textHeight = 0;
 
             
-            TTF_SizeText(app.font, lastLine.c_str(), &textWidth, &textHeight);
+            TTF_SizeText(font, lastLine.c_str(), &textWidth, &textHeight);
             
             int cy = y - textHeight;  
             int cx = rc.x + 5;  
@@ -213,7 +217,7 @@ namespace mx {
 
     void Terminal::renderText(mxApp &app, const std::string &text, int x, int y) {
         if(!text.empty()) {
-            SDL_Surface* surface = TTF_RenderText_Blended(app.font, text.c_str(), text_color);
+            SDL_Surface* surface = TTF_RenderText_Blended(font, text.c_str(), text_color);
             if(surface == nullptr) {
                 std::cerr << "MasterX System Error: Render Text failed.\n";
                 exit(EXIT_FAILURE);
@@ -263,19 +267,19 @@ namespace mx {
 
         int promptWidth;
     #ifdef _WIN32
-        TTF_SizeText(app.font, prompt.c_str(), &promptWidth, nullptr);
+        TTF_SizeText(font, prompt.c_str(), &promptWidth, nullptr);
         x += promptWidth;
         availableWidth -= promptWidth;
     #else
         std::string nprompt = "$ ";
-        TTF_SizeText(app.font, nprompt.c_str(), &promptWidth, nullptr);
+        TTF_SizeText(font, nprompt.c_str(), &promptWidth, nullptr);
         renderText(app, nprompt, x, y);
         x += promptWidth;
         availableWidth -= promptWidth;
     #endif
 
         std::string remainingText = inputText;
-        int lineHeight = TTF_FontHeight(app.font);
+        int lineHeight = TTF_FontHeight(font);
         int cursorX = x;
         int cursorY = y;
         bool firstLine = true;
@@ -289,7 +293,7 @@ namespace mx {
 
             while (i < remainingText.length()) {
                 std::string testLine = lineToRender + remainingText[i];
-                TTF_SizeText(app.font, testLine.c_str(), &currentWidth, nullptr);
+                TTF_SizeText(font, testLine.c_str(), &currentWidth, nullptr);
 
                 if (currentWidth > thisLineWidth) {
                     if (!lineToRender.empty()) {
@@ -297,7 +301,7 @@ namespace mx {
                     } else {
                         while (currentWidth > thisLineWidth) {
                             lineToRender += remainingText[i++];
-                            TTF_SizeText(app.font, lineToRender.c_str(), &currentWidth, nullptr);
+                            TTF_SizeText(font, lineToRender.c_str(), &currentWidth, nullptr);
 
                             if (currentWidth > thisLineWidth) {
                                 renderText(app, lineToRender, x, y);
@@ -408,7 +412,15 @@ namespace mx {
 
     #ifdef FOR_WASM
         print("$ " + command + "\n");
+    #elif defined(_WIN32)
+        std::string s;
+        if(!outputLines.empty()) {
+            s = outputLines.back();
+        }
+        outputLines.pop_back();
+        print(s + command + "\n");
     #endif
+
 
         std::vector<std::string> words;
         words = splitText(command);
