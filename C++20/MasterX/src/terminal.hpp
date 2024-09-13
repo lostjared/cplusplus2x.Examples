@@ -35,7 +35,7 @@ namespace mx {
         void processCommand(mxApp &app, std::string cmd);
         void handleScrolling(int);
         void updateText(const std::string &text);
-        std::vector<std::string> orig_text;
+        std::string orig_text;
         std::vector<std::string> splitText(const std::string &text);
         int scrollOffset = 0; 
         int maxVisibleLines = 10; 

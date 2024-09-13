@@ -28,7 +28,7 @@ namespace mx {
         }
 
         Window::setCanResize(true);
-        print("MasterX System - Logged in...");
+        print("MasterX System - Logged in...\n");
         SDL_Rect rc;
         Window::getRect(rc);
         scroll();  
@@ -520,8 +520,7 @@ namespace mx {
 
     void Terminal::updateText(const std::string &text) {
         if(!text.empty()) 
-            orig_text.push_back(text);
-
+            orig_text += text;
         
     }
 
@@ -537,8 +536,9 @@ namespace mx {
         int maxWidth = rc.w - 10;  
         int w, h;
         outputLines.clear();
-        for(int i = 0; i < static_cast<int>(orig_text.size()); ++i) {
-            std::istringstream stream(orig_text[i]);
+	std::string total = orig_text;
+
+            std::istringstream stream(total);
             while(std::getline(stream, line)) {
                 if (line.length() > 0) {
                     std::string currentLine;
@@ -569,7 +569,7 @@ namespace mx {
                     }
                     scroll();  
                 }
-            } 
+          
         }
         scroll();
     }
