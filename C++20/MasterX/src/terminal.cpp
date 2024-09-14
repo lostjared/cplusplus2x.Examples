@@ -436,11 +436,13 @@ namespace mx {
 #ifdef FOR_WASM        
         bool clear = false;
 #endif
-        if(currentDirectory.empty())
-            print("\n$ " + command + "\n");
-        else
-            print("\n[" + currentDirectory + "] $ " + command + "\n");
-
+        {
+            std::lock_guard<std::mutex> lock(directoryMutex);
+            if(currentDirectory.empty())
+                print("\n$ " + command + "\n");
+            else
+                print("\n[" + currentDirectory + "] $ " + command + "\n");
+        }
 
         std::vector<std::string> words;
         words = splitText(command);
@@ -452,8 +454,6 @@ namespace mx {
 
         if(command == "exit") {
             app.shutdown();
-        } else if(words.size()>=1 && words[0] == "pwd") {
-            print(completePath + "\n");
         } else if (words.size()==2 && words[0] == "setfull" && words[1] == "true") {
             app.set_fullscreen(app.win, true);
             print("MasterX System: full screen is true\n");
