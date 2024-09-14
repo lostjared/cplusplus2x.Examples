@@ -471,8 +471,10 @@ namespace mx {
     }
 
     bool isAscii(char c) {
-        if(c == ' ' || c == '\t')
+        if(c == ' ')    
             return true;
+        if(c == '\t')
+            return false;
         return isprint(static_cast<unsigned char>(c)) && c >= 32 && c <= 126;
     }
 
@@ -480,7 +482,9 @@ namespace mx {
         std::string temp;
         temp.reserve(s.length());
         for(char c : s) {
-            if(isAscii(c))
+            if(c == '\t') {
+                temp += "    ";
+            } else if(isAscii(c))
                 temp += c;
         }
         return temp;
@@ -497,6 +501,10 @@ namespace mx {
         std::lock_guard<std::mutex> lock(outputMutex);
 #endif
         updateText(s);
+        auto pos = s.find("DEF");
+        if(pos != std::string::npos) {
+            std::cout << "CHAR IS: " << s[pos-1] << ": -> " << (int) s[pos-1] << "\n";
+        }
         
         std::string line;
         SDL_Rect rc;
