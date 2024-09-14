@@ -501,11 +501,6 @@ namespace mx {
         std::lock_guard<std::mutex> lock(outputMutex);
 #endif
         updateText(s);
-        auto pos = s.find("DEF");
-        if(pos != std::string::npos) {
-            std::cout << "CHAR IS: " << s[pos-1] << ": -> " << (int) s[pos-1] << "\n";
-        }
-        
         std::string line;
         SDL_Rect rc;
         Window::getRect(rc);
