@@ -1,25 +1,18 @@
-# Compiler
+
 CXX = em++
-
-# Compiler flags
 CXXFLAGS = -std=c++20 -O2 -DFOR_WASM -s USE_SDL=2 -s USE_SDL_TTF=2 
-
-# Output files
 OUTPUT = MasterX.html
-
-# Source files
 SOURCES = src/dimension.cpp src/main.cpp src/splash.cpp src/window.cpp src/terminal.cpp src/mx_controls.cpp src/mx_window.cpp src/mx_system_bar.cpp src/mx_event.cpp
-
-# Preload assets
+OBJECTS = $(SOURCES:.cpp=.o)
 PRELOAD = --preload-file assets
 
-# Build target
 all: $(OUTPUT)
 
-# Rule to create the output (MasterX.html)
-$(OUTPUT): $(SOURCES)
-	$(CXX) $(CXXFLAGS) $(SOURCES) -o $(OUTPUT)  $(PRELOAD) -s USE_SDL=2 -s USE_SDL_TTF=2 -s ALLOW_MEMORY_GROWTH -s ASSERTIONS
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Clean target
+$(OUTPUT): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $(OUTPUT) $(PRELOAD) -s USE_SDL=2 -s USE_SDL_TTF=2 -s ALLOW_MEMORY_GROWTH -s ASSERTIONS
+
 clean:
-	rm -f $(OUTPUT)
+	rm -f $(OUTPUT) $(OBJECTS)
