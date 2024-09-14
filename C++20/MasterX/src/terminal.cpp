@@ -294,7 +294,6 @@ namespace mx {
         int lineHeight = TTF_FontHeight(font);
         int cursorX = x;
         int cursorY = y;
-        bool firstLine = true;
 
         while (!remainingText.empty()) {
             std::string lineToRender;
