@@ -6,6 +6,11 @@
 #include<mutex>
 #include"mx_window.hpp"
 #include"mx_system_bar.hpp"
+
+#ifdef FOR_WASM
+#include"./apps/ats/ats.h"
+#endif                                                                            
+
 template<typename T>
 T my_max(const T& a, const T& b) {
     return a > b ? a : b;
@@ -18,6 +23,7 @@ T my_min(const T& a, const T& b) {
 
 namespace mx {
 
+ 
     Terminal::Terminal(mxApp  &app) : Window(app) {
         active = true;
         text_color = { 255, 255, 255 };
@@ -29,6 +35,9 @@ namespace mx {
 
         Window::setCanResize(true);
         print("MasterX System - Logged in...\n");
+        #ifdef FOR_WASM
+        print("type help for instruction list\n");
+        #endif
         SDL_Rect rc;
         Window::getRect(rc);
         scroll();  
@@ -508,9 +517,9 @@ namespace mx {
         write(pipe_in[1], cmd.c_str(), cmd.size());
 
     requestCurrentDirectory();
-#else
+#elif defined(FOR_WASM)
     if(command.length()>0 && clear == false) {
-        print(" - command not found\n");
+        print(scanATS(command));
     }
 #endif
         
