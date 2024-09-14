@@ -85,7 +85,7 @@ std::optional<std::string> get_current_directory() {
     } else {
         return std::nullopt;
     }
-#else
+#elif !defined(FOR_WASM)
     char cwd[PATH_MAX];
     if (getcwd(cwd, sizeof(cwd)) != nullptr) {
         return std::string(cwd);
