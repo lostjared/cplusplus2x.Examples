@@ -28,6 +28,7 @@ namespace mx {
                 void stateChanged(bool min, bool max, bool closed);
                 void setWallpaper(SDL_Texture *tex);
                 void drawCursor(mxApp &, int, int, bool);
+                bool atBottom();
         private:
                 std::string inputText;
                 std::vector<std::string> outputLines;

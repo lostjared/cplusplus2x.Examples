@@ -152,29 +152,31 @@ namespace mx {
                 y += lineHeight;
             }
 
-            if (!outputLines.empty()) {
-                std::string lastLine = outputLines.back(); 
-                int textWidth = 0, textHeight = 0;
-                TTF_SizeText(font, lastLine.c_str(), &textWidth, &textHeight);
+            if(atBottom()) {
+                if (!outputLines.empty()) {
+                    std::string lastLine = outputLines.back(); 
+                    int textWidth = 0, textHeight = 0;
+                    TTF_SizeText(font, lastLine.c_str(), &textWidth, &textHeight);
 
-                int cy = y - textHeight;  
-                int cx = rc.x + 5;  
+                    int cy = y - textHeight;  
+                    int cx = rc.x + 5;  
 
-                if(offsetLine != 1) {
-                    renderText(app, lastLine, cx, cy);
-                }         
-                cx -= 5;
-                cy += lineHeight;
-                renderTextWrapped(app, "$ ", inputText, cx, cy, maxWidth);
-            } else {
-                std::string lastLine = " ";
-                int textWidth = 0, textHeight = 0;
-                TTF_SizeText(font, lastLine.c_str(), &textWidth, &textHeight);
-                int cy = y - textHeight;  
-                int cx = rc.x + 5;             
-                cx -= 5;
-                cy += lineHeight;
-                renderTextWrapped(app, "$ ", inputText, cx, cy, maxWidth);
+                    if(offsetLine != 1) {
+                        renderText(app, lastLine, cx, cy);
+                    }         
+                    cx -= 5;
+                    cy += lineHeight;
+                    renderTextWrapped(app, "$ ", inputText, cx, cy, maxWidth);
+                } else {
+                    std::string lastLine = " ";
+                    int textWidth = 0, textHeight = 0;
+                    TTF_SizeText(font, lastLine.c_str(), &textWidth, &textHeight);
+                    int cy = y - textHeight;  
+                    int cx = rc.x + 5;             
+                    cx -= 5;
+                    cy += lineHeight;
+                    renderTextWrapped(app, "$ ", inputText, cx, cy, maxWidth);
+                }
             }
         }
 
@@ -223,6 +225,12 @@ namespace mx {
 
     void Terminal::renderText(mxApp &app, const std::string &text, int x, int y) {
         if(!text.empty()) {
+
+            SDL_Rect rc;
+            Window::getRect(rc);
+            if(!atBottom() && y >= rc.y+(rc.h-28)) 
+                return;
+
             SDL_Surface* surface = TTF_RenderText_Blended(font, text.c_str(), text_color);
             if(surface == nullptr) {
                 std::cerr << "MasterX System Error: Render Text failed.\n";
@@ -270,6 +278,11 @@ namespace mx {
             std::string cmd = "echo BEGIN_PWD && pwd && echo END_PWD\n";
             write(pipe_in[1], cmd.c_str(), cmd.size());
         #endif
+    }
+
+    bool Terminal::atBottom() {
+        int totalLines = total_Lines();
+        return scrollOffset >= totalLines - maxVisibleLines;
     }
             
     void Terminal::renderTextWrapped(mxApp &app, const std::string &prompt, const std::string &inputText, int &x, int &y, int maxWidth) {
@@ -393,6 +406,8 @@ namespace mx {
             scrollOffset = (newScrollPosY * totalLines - maxVisibleLines) / (rc.y+rc.h- scrollBarHeight);
             scrollOffset = my_max(0, my_min(scrollOffset, (totalLines - maxVisibleLines)));
             render_text = false;
+            if(atBottom())
+                scroll();
         }
 
         if (e.type == SDL_MOUSEWHEEL) {
@@ -409,8 +424,11 @@ namespace mx {
 
     void Terminal::handleScrolling(int direction) {
         scrollOffset -= direction;
-        int totalLines = static_cast<int>(outputLines.size());
+        int totalLines = total_Lines();
          scrollOffset = my_max(0, my_min(scrollOffset, (totalLines - maxVisibleLines)));
+
+        if(atBottom()) 
+            scroll();
     }
 
     void Terminal::processCommand(mxApp &app, std::string command) {
@@ -543,9 +561,7 @@ namespace mx {
                 std::string currentLine;
                 for (size_t i = 0; i < line.length(); ++i) {
                     currentLine += line[i];
-                    TTF_SizeText(font, currentLine.c_str(), &w, &h);
-
-                    
+                    TTF_SizeText(font, currentLine.c_str(), &w, &h);                    
                     if (w > maxWidth) {
                     
                         size_t lastSpace = currentLine.find_last_of(' ');
@@ -596,6 +612,8 @@ namespace mx {
         }
         if(inputText.empty())
             lineCount++;
+
+
         return lineCount;
     }
 
@@ -652,6 +670,10 @@ namespace mx {
             }
         } else {
             scrollOffset = 0;
+        }
+
+        if(!atBottom()) {
+            maxVisibleLines -= 1;
         }
     }
 
