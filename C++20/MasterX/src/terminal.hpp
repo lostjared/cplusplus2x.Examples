@@ -58,6 +58,8 @@ namespace mx {
                 bool render_text = true;
                 void requestCurrentDirectory();
                 std::string currentDirectory;
+                std::string completePath;
+                std::mutex directoryMutex;
         #ifdef _WIN32
                 HANDLE hChildStdinRd, hChildStdinWr;  // Pipe for bash input
                 HANDLE hChildStdoutRd, hChildStdoutWr;  // Pipe for bash output

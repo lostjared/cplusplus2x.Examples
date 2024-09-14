@@ -113,7 +113,6 @@ namespace mx {
     }
 
     void Terminal::draw(mxApp &app) {        
-
         if(!isVisible())
             return;
 
@@ -134,66 +133,69 @@ namespace mx {
         int lineHeight = TTF_FontHeight(font);
         int maxWidth = rc.w - 10;
         int y = rc.y + 5;
-#ifndef FOR_WASM        
-        std::lock_guard<std::mutex> lock(outputMutex);
+        {
+#ifndef FOR_WASM
+            std::lock_guard<std::mutex> lock(outputMutex);
 #endif
-
-        int offsetLine = 0;
+            int offsetLine = 0;
             if(scrollOffset > maxVisibleLines-static_cast<int>(outputLines.size()) ){
                 if (!(scrollOffset >= total_Lines() - maxVisibleLines)) {
                     offsetLine = 1; 
-                } 
-                
+                }
             }
 
-        for (int i = scrollOffset; i < static_cast<int>(outputLines.size()); ++i) {
-            if(y + lineHeight+lineHeight > rc.y+rc.h) {
-                break;
-            } 
+            for (int i = scrollOffset; i < static_cast<int>(outputLines.size()); ++i) {
+                if(y + lineHeight + lineHeight > rc.y+rc.h) {
+                    break;
+                } 
+                renderText(app, outputLines[i], rc.x + 5, y);
+                y += lineHeight;
+            }
 
-            
-            renderText(app, outputLines[i], rc.x + 5, y);
-            y += lineHeight;
-       
-        }
-        if (!outputLines.empty()) {
-            std::string lastLine = outputLines.back(); 
-            int textWidth = 0, textHeight = 0;
-            TTF_SizeText(font, lastLine.c_str(), &textWidth, &textHeight);
-            
-            int cy = y - textHeight;  
-            int cx = rc.x + 5;  
+            if (!outputLines.empty()) {
+                std::string lastLine = outputLines.back(); 
+                int textWidth = 0, textHeight = 0;
+                TTF_SizeText(font, lastLine.c_str(), &textWidth, &textHeight);
 
-            if(offsetLine != 1) {
-                renderText(app, lastLine, cx, cy);
-            }         
+                int cy = y - textHeight;  
+                int cx = rc.x + 5;  
+
+                if(offsetLine != 1) {
+                    renderText(app, lastLine, cx, cy);
+                }         
                 cx -= 5;
                 cy += lineHeight;
-                renderTextWrapped(app, "$ ",  inputText, cx, cy, maxWidth);
-        } else {
-            std::string lastLine = " ";
-            int textWidth = 0, textHeight = 0;
-            TTF_SizeText(font, lastLine.c_str(), &textWidth, &textHeight);
-            int cy = y - textHeight;  
-            int cx = rc.x + 5;             
-            cx -= 5;
-            cy += lineHeight;
-            renderTextWrapped(app, "$ ",  inputText, cx, cy, maxWidth);
+                renderTextWrapped(app, "$ ", inputText, cx, cy, maxWidth);
+            } else {
+                std::string lastLine = " ";
+                int textWidth = 0, textHeight = 0;
+                TTF_SizeText(font, lastLine.c_str(), &textWidth, &textHeight);
+                int cy = y - textHeight;  
+                int cx = rc.x + 5;             
+                cx -= 5;
+                cy += lineHeight;
+                renderTextWrapped(app, "$ ", inputText, cx, cy, maxWidth);
+            }
         }
-
 
         int totalLines = static_cast<int>(outputLines.size());
         std::string prompt;
-         if(currentDirectory.empty()) {
-            prompt = "$ ";
-        } else {
-            prompt = "[" + currentDirectory + "] $ ";
+
+        {
+#ifndef FOR_WASM
+            std::lock_guard<std::mutex> dlock(directoryMutex);
+#endif
+            if(currentDirectory.empty()) {
+                prompt = "$ ";
+            } else {
+                prompt = "[" + currentDirectory + "] $ ";
+            }
         }
+
         int promptWidth;
         TTF_SizeText(font,prompt.c_str(), &promptWidth, nullptr);
         int total = calculateWrappedLinesForText(inputText, rc.w - 20, promptWidth);
         totalLines += total;
-    
 
         if (totalLines > maxVisibleLines) {
             int offx = rc.x + rc.w;    
@@ -217,6 +219,7 @@ namespace mx {
             SDL_RenderFillRect(app.ren, &scrollBarRect);
         }
     }
+
 
     void Terminal::renderText(mxApp &app, const std::string &text, int x, int y) {
         if(!text.empty()) {
@@ -279,12 +282,16 @@ namespace mx {
 
         int promptWidth;
         std::string nprompt;
-        if (currentDirectory.empty()) {
-            nprompt = "$ ";
-        } else {
-            nprompt = "[" + currentDirectory + "] $ ";
+        {      
+#ifndef FOR_WASM
+        std::lock_guard<std::mutex> dlock(directoryMutex);
+#endif
+            if (currentDirectory.empty()) {
+                nprompt = "$ ";
+            } else {
+                nprompt = "[" + currentDirectory + "] $ ";
+            }
         }
-
         TTF_SizeText(font, nprompt.c_str(), &promptWidth, nullptr);
         renderText(app, nprompt, x, y);
         x += promptWidth;
@@ -423,8 +430,12 @@ namespace mx {
         if(words.size()==0)
             return;
 
+
+
         if(command == "exit") {
             app.shutdown();
+        } else if(words.size()>=1 && words[0] == "pwd") {
+            print(completePath + "\n");
         } else if (words.size()==2 && words[0] == "setfull" && words[1] == "true") {
             app.set_fullscreen(app.win, true);
             print("MasterX System: full screen is true\n");
@@ -688,8 +699,12 @@ namespace mx {
                     if ((endPos = output.find("END_PWD")) != std::string::npos) {
                         inPwdBlock = false;
                         pwdOutput += output.substr(0, endPos);
-                        terminal->currentDirectory = getLastDirectory(pwdOutput);
-
+                        {
+                            std::lock_guard<std::mutex> lock(terminal->directoryMutex);
+                            terminal->currentDirectory = getLastDirectory(pwdOutput);
+                            terminal->completePath = trimR(pwdOutput);
+                        }
+    
                         output = output.substr(endPos + std::string("END_PWD").length());
                     } else {
                         pwdOutput += output;
@@ -739,8 +754,11 @@ namespace mx {
                         
                         inPwdBlock = false;
                         pwdOutput += output.substr(0, endPos);
-                        terminal->currentDirectory = getLastDirectory(pwdOutput); 
-
+                        {
+                            std::lock_guard<std::mutex> lock(terminal->directoryMutex);
+                            terminal->currentDirectory = getLastDirectory(pwdOutput);
+                            terminal->completePath = trimR(pwdOutput);
+                        }
                         
                         output = output.substr(endPos + std::string("END_PWD").length());
                     } else {
