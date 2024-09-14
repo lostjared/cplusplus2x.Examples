@@ -21,7 +21,7 @@ namespace mx {
     Terminal::Terminal(mxApp  &app) : Window(app) {
         active = true;
         text_color = { 255, 255, 255 };
-        font = TTF_OpenFont(getPath("fonts/consolas.ttf").c_str(), 16);
+        font = TTF_OpenFont(getPath("fonts/consolas.ttf").c_str(), 15);
         if(!font) {
             std::cerr << "MasterX System Error: could not load system font.\n";
             exit(EXIT_FAILURE);
@@ -48,7 +48,7 @@ namespace mx {
         siStartInfo.hStdInput = hChildStdinRd;
         siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
 
-        std::string command  = "cmd.exe /Q";
+        std::string command  = "wsl.exe bash";
         
         if (!CreateProcessA(NULL, (LPSTR)command.data(), NULL, NULL, TRUE, 0, NULL, NULL, &siStartInfo, &procInfo)) {
             print("Process creation failed");
@@ -163,17 +163,11 @@ namespace mx {
 
             if(offsetLine != 1) {
                 renderText(app, lastLine, cx, cy);
-            }
-           
-            #ifndef _WIN32
+            }         
                 cx -= 5;
                 cy += lineHeight;
                 renderTextWrapped(app, "$ ",  inputText, cx, cy, maxWidth);
-            #else
-                renderTextWrapped(app, outputLines.empty() ? std::string() : outputLines.back(),  inputText, cx, cy, maxWidth);
-            #endif
         } else {
-            #ifndef _WIN32
             std::string lastLine = " ";
             int textWidth = 0, textHeight = 0;
             TTF_SizeText(font, lastLine.c_str(), &textWidth, &textHeight);
@@ -182,19 +176,12 @@ namespace mx {
             cx -= 5;
             cy += lineHeight;
             renderTextWrapped(app, "$ ",  inputText, cx, cy, maxWidth);
-            #endif
         }
 
 
         int totalLines = static_cast<int>(outputLines.size());
         std::string prompt;
-        #ifdef _WIN32
-
-        if(!outputLines.empty())
-            prompt = outputLines.back();
-        #else
-            prompt = "$ ";
-        #endif
+        prompt = "$ ";
         int promptWidth;
         TTF_SizeText(font,prompt.c_str(), &promptWidth, nullptr);
         int total = calculateWrappedLinesForText(inputText, rc.w - 20, promptWidth);
@@ -275,18 +262,12 @@ namespace mx {
         x = rc.x + margin;
 
         int promptWidth;
-    #ifdef _WIN32
-        TTF_SizeText(font, prompt.c_str(), &promptWidth, nullptr);
-        x += promptWidth;
-        availableWidth -= promptWidth;
-    #else
         std::string nprompt = "$ ";
         TTF_SizeText(font, nprompt.c_str(), &promptWidth, nullptr);
         renderText(app, nprompt, x, y);
         x += promptWidth;
         availableWidth -= promptWidth;
-    #endif
-
+   
         std::string remainingText = inputText;
         int lineHeight = TTF_FontHeight(font);
         int cursorX = x;
@@ -421,16 +402,7 @@ namespace mx {
 #ifdef FOR_WASM        
         bool clear = false;
 #endif
-    #ifndef _WIN32
         print("\n$ " + command + "\n");
-    #else
-        std::string s;
-        if(!outputLines.empty()) {
-            s = outputLines.back();
-        }
-        outputLines.pop_back();
-        print(s + command + "\n");
-    #endif
         std::vector<std::string> words;
         words = splitText(command);
 
@@ -487,7 +459,6 @@ namespace mx {
         std::cerr << "MasterX System: Error wrote zero bytes..\n";
     } 
 #elif !defined(FOR_WASM) 
-    // Write the command to bash's stdin
     std::string cmd = command + "\n";
     if(command != "clear")
         write(pipe_in[1], cmd.c_str(), cmd.size());
@@ -591,10 +562,8 @@ namespace mx {
             lineCount++;
 
         }
-#ifndef _WIN32
         if(inputText.empty())
             lineCount++;
-#endif
         return lineCount;
     }
 
@@ -627,13 +596,7 @@ namespace mx {
         Window::getRect(rc);
 
         std::string prompt;
-        #ifdef _WIN32
-
-        if(!outputLines.empty())
-            prompt = outputLines.back();
-        #else
-            prompt = "$ ";
-        #endif
+        prompt = "$ ";
         int promptWidth;
         TTF_SizeText(font,prompt.c_str(), &promptWidth, nullptr);
         int total = calculateWrappedLinesForText(inputText, rc.w - 20, promptWidth);
@@ -645,16 +608,8 @@ namespace mx {
         int totalLines = total_Lines();  
         SDL_Rect rc;
         Window::getRect(rc);
-
         int lineHeight = TTF_FontHeight(font);
         maxVisibleLines = (rc.h - 28) / lineHeight;
-
-        if(!inputText.empty()) {
-            #ifdef _WIN32
-            maxVisibleLines += 1;
-            #endif
-        }
-
         if (totalLines > maxVisibleLines) {
             if (scrollOffset < totalLines - maxVisibleLines) {
                 scrollOffset = my_max(0, totalLines - maxVisibleLines);
@@ -701,7 +656,6 @@ namespace mx {
         }
         return 0;
     }
-#endif
-    
+#endif    
 }
  
