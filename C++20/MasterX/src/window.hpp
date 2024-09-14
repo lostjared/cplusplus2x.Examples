@@ -8,8 +8,10 @@
 #include<iostream>
 #include<memory>
 #include<vector>
+#include<optional>
 
 extern std::string getPath(const std::string &name);
+extern std::optional<std::string> get_current_directory();
 enum { ID_LOAD=0, ID_DIM };
 
 namespace mx {

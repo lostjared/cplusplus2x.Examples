@@ -14,7 +14,11 @@
 #include<vector>
 #include<memory>
 #include"argz.hpp"
+#include<limits.h>
 
+#ifdef _WIN32
+#include<windows.h>
+#endif
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
@@ -71,6 +75,25 @@ std::string cur_path = "assets";
 
 std::string getPath(const std::string &name) {
     return cur_path + "/" + name;
+}
+
+std::optional<std::string> get_current_directory() {
+ #ifdef _WIN32
+    char cwd[MAX_PATH];
+    if (GetCurrentDirectoryA(sizeof(cwd), cwd)) {
+        return std::string(cwd);
+    } else {
+        return std::nullopt;
+    }
+#else
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) != nullptr) {
+        return std::string(cwd);
+    } else {
+        return std::nullopt;
+    }
+ #endif
+    return std::nullopt;
 }
 
 SDL_Texture *loadTexture(mx::mxApp &app, const std::string &name) {
