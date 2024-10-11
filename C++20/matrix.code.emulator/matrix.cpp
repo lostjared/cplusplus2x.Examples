@@ -41,10 +41,7 @@ namespace mx {
         return utf8;
     }
 
-    std::vector<std::pair<int, int>> codepoint_ranges = {
-        {0x30, 0x39},       
-        {0x41, 0x5A},       
-        {0x61, 0x7A},       
+    std::vector<std::pair<int, int>> codepoint_ranges = {       
         {0x3041, 0x3096},   
         {0x30A0, 0x30FF},   
     };
