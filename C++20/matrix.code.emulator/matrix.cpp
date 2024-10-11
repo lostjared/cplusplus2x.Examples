@@ -139,9 +139,6 @@ namespace mx {
 
 
 int main(int argc, char **argv) {
-
-
-
     Argz<std::string> argz(argc, argv);
     argz.addOptionSingleValue('f', "input font")
     .addOptionSingleValue('s', "font size")
