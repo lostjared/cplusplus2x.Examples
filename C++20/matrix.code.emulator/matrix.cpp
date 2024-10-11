@@ -43,7 +43,7 @@ namespace mx {
 
     std::vector<std::pair<int, int>> codepoint_ranges = {       
         {0x3041, 0x3096},   
-        {0x30A0, 0x30FF},   
+        {0x30A0, 0x30FF}   
     };
 
     int getRandomCodepoint() {
