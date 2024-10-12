@@ -155,6 +155,7 @@ int main(int argc, char **argv) {
     bool fullscreen = false;
 
     if(argc == 1) {
+        std::cout << "Matrix v1.0\nhttps://lostsidedead.biz\nCoded by Jared Bruni\n";
         argz.help(std::cout);
         std::cout << "Press Escape to Quit..\n";
         std::cout.flush();
