@@ -1,5 +1,5 @@
 # Compiler and flags
-CC = g++
+#CXX = clang++
 CFLAGS = -Wall -std=c++20 `sdl2-config --cflags`
 LDFLAGS = `sdl2-config --libs` -lSDL2_ttf
 
@@ -17,11 +17,11 @@ all: $(TARGET)
 
 # Link object files to create executable
 $(TARGET): $(OBJ)
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
 
 # Compile .cpp files to .o files
 %.o: %.cpp
-	$(CC) -c $< -o $@ $(CFLAGS)
+	$(CXX) -c $< -o $@ $(CFLAGS)
 
 # Clean up
 clean:

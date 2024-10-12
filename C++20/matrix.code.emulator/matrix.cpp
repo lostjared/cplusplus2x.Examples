@@ -14,9 +14,8 @@
 #include "argz.hpp"
 
 namespace mx {
+    
     std::unordered_map<std::string, SDL_Texture*> char_textures;
-    SDL_Color bright_green = {180, 255, 180, 255};
-    SDL_Color dim_green = {0, 255, 0, 150};
 
     void releaseMatrix() {
         for(auto &i : char_textures) {
@@ -153,7 +152,7 @@ int main(int argc, char **argv) {
     Argument<std::string> arg;
     int value = 0;
     bool fullscreen = false;
-
+ 
     if(argc == 1) {
         std::cout << "Matrix v1.0\nhttps://lostsidedead.biz\nCoded by Jared Bruni\n";
         argz.help(std::cout);
