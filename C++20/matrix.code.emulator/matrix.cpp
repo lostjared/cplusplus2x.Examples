@@ -1,3 +1,8 @@
+/* 
+    Matrix Rain C++20 Demo
+    written by Jared Bruni
+    (C) 2024 
+*/
 #include<iostream>
 #include <cstdlib>
 #include <ctime>
@@ -66,7 +71,7 @@ namespace mx {
         return color;
     }
 
-    void createMatrixRainTexture(SDL_Renderer* renderer, TTF_Font* font, int screen_width, int screen_height) {
+    void createMatrixRain(SDL_Renderer* renderer, TTF_Font* font, int screen_width, int screen_height) {
         SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 50);  
         SDL_Rect screenRect = {0, 0, screen_width, screen_height};
@@ -220,7 +225,7 @@ int main(int argc, char **argv) {
             }
         }
         SDL_RenderClear(renderer);
-        mx::createMatrixRainTexture(renderer,font, window_width, window_height);
+        mx::createMatrixRain(renderer,font, window_width, window_height);
         SDL_RenderPresent(renderer);
     }
     mx::releaseMatrix();
