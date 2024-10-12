@@ -141,16 +141,25 @@ namespace mx {
 
 int main(int argc, char **argv) {
     Argz<std::string> argz(argc, argv);
-    argz.addOptionSingleValue('f', "input font")
+    argz.addOptionSingleValue('i', "input font")
     .addOptionSingleValue('s', "font size")
     .addOptionSingleValue('r', "window resolution")
-    .addOptionSingleValue('h', "help message");
+    .addOptionSingle('h', "help message")
+    .addOptionSingle('f', "Full screen");
 
     std::string font_name = "./keifont.ttf";
     int font_size = 24;
     int window_width = 1280, window_height = 720;
     Argument<std::string> arg;
     int value = 0;
+    bool fullscreen = false;
+
+    if(argc == 1) {
+        argz.help(std::cout);
+        std::cout << "Press Escape to Quit..\n";
+        std::cout.flush();
+    }
+
     try {
         while((value = argz.proc(arg)) != -1) {
             switch(value) {
@@ -161,7 +170,7 @@ int main(int argc, char **argv) {
                 case 's':
                     font_size = atoi(arg.arg_value.c_str());
                     break;
-                case 'f':
+                case 'i':
                     font_name = arg.arg_value;
                     break;
                 case 'r': {
@@ -176,6 +185,9 @@ int main(int argc, char **argv) {
                     window_width = atoi(left.c_str());
                     window_height = atoi(right.c_str());
                 }
+                    break;
+                case 'f':
+                    fullscreen = true;
                     break;
             }
         }
@@ -201,7 +213,7 @@ int main(int argc, char **argv) {
     }
     SDL_Window* window = SDL_CreateWindow("-[ Matrix Code Emulator ]-",
                                           SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                          window_width, window_height, SDL_WINDOW_SHOWN);
+                                          window_width, window_height, fullscreen ? SDL_WINDOW_FULLSCREEN | SDL_WINDOW_SHOWN : SDL_WINDOW_SHOWN);
     if (!window) {
         std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
         SDL_Quit();
