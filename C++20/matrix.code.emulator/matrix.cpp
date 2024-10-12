@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include "SDL.h"
 #include "SDL_ttf.h"
-#include"argz.hpp"
+#include "argz.hpp"
 
 namespace mx {
     std::unordered_map<std::string, SDL_Texture*> char_textures;
@@ -41,9 +41,9 @@ namespace mx {
         return utf8;
     }
 
-    std::vector<std::pair<int, int>> codepoint_ranges = {       
+    std::vector<std::pair<int, int>> codepoint_ranges = {
         {0x3041, 0x3096},   
-        {0x30A0, 0x30FF}   
+        {0x30A0, 0x30FF}
     };
 
     int getRandomCodepoint() {
@@ -66,7 +66,7 @@ namespace mx {
         return color;
     }
 
-    void createMatrixRainTexture(SDL_Renderer* renderer, SDL_Texture* texture, TTF_Font* font, int screen_width, int screen_height) {
+    void createMatrixRainTexture(SDL_Renderer* renderer, TTF_Font* font, int screen_width, int screen_height) {
         SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 50);  
         SDL_Rect screenRect = {0, 0, screen_width, screen_height};
@@ -130,7 +130,6 @@ namespace mx {
                 SDL_RenderCopy(renderer, char_texture, nullptr, &dst_rect);
             }
         }
-        SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_NONE);
     }
 }
 
@@ -221,7 +220,7 @@ int main(int argc, char **argv) {
             }
         }
         SDL_RenderClear(renderer);
-        mx::createMatrixRainTexture(renderer, nullptr, font, window_width, window_height);
+        mx::createMatrixRainTexture(renderer,font, window_width, window_height);
         SDL_RenderPresent(renderer);
     }
     mx::releaseMatrix();
