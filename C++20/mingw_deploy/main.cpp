@@ -5,6 +5,8 @@
 #include<cstdlib>
 #include<algorithm>
 #include<optional>
+#include"argz.hpp"
+
 
 std::optional<std::string> extractFilename(const std::string &path) {
     auto pos = path.find("=>");
