@@ -28,12 +28,10 @@ int main(int argc, char **argv) {
     .addOptionSingleValue('o', "output directory ")
     .addOptionDoubleValue('I', "input", "input filename")
     .addOptionDoubleValue('O', "output", "output directory");
-
-	int value = 0;
-	Argument<std::string> arg;
+    int value = 0;
+    Argument<std::string> arg;
     std::string input_exe;
     std::string output_dir = ".";
-
     try {
         while((value = argz.proc(arg)) != -1) {
             switch(value) {
@@ -53,14 +51,12 @@ int main(int argc, char **argv) {
      } catch(const ArgException<std::string> &e) {
         std::cerr << "Syntax Error: " << e.text() << "\n";
     }
-
     if(input_exe.empty()) {
         std::cerr << "Error requires input EXE path with -i.\n";
         argz.help(std::cout);
         std::cerr.flush();
         exit(EXIT_FAILURE);
     }
-
     std::ostringstream stream;
     stream << "ldd " << input_exe << " | grep mingw ";
 #ifdef _WIN32
@@ -80,7 +76,6 @@ int main(int argc, char **argv) {
         buf[bytes] = 0;
         output += buf;
     }
-
 #ifdef _WIN32
     _pclose(fptr);
 #else
