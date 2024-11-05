@@ -34,25 +34,25 @@ int main(int argc, char **argv) {
     std::string input_exe;
     std::string output_dir = ".";
 
-	try {
-		while((value = argz.proc(arg)) != -1) {
-			switch(value) {
-			case 'h':
-				argz.help(std::cout);
-				break;
-			case 'i':
+    try {
+        while((value = argz.proc(arg)) != -1) {
+            switch(value) {
+            case 'h':
+                argz.help(std::cout);
+                break;
+            case 'i':
             case 'I':
-				input_exe = arg.arg_value;
-				break;
+                input_exe = arg.arg_value;
+                break;
             case 'o':
             case 'O':
                 output_dir = arg.arg_value;
                 break;
-			}
-		}
-	} catch(const ArgException<std::string> &e) {
-		std::cerr << "Syntax Error: " << e.text() << "\n";
-	}
+            }
+        }
+     } catch(const ArgException<std::string> &e) {
+        std::cerr << "Syntax Error: " << e.text() << "\n";
+    }
 
     if(input_exe.empty()) {
         std::cerr << "Error requires input EXE path with -i.\n";
