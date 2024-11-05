@@ -23,7 +23,7 @@ std::optional<std::string> extractFilename(const std::string &path) {
 
 int main(int argc, char **argv) {
     Argz<std::string> argz(argc, argv);
-	argz.addOptionSingleValue('i', "input filename")
+    argz.addOptionSingleValue('i', "input filename")
     .addOptionSingle('h', "print out help")
     .addOptionSingleValue('o', "output directory ")
     .addOptionDoubleValue('I', "input", "input filename")
