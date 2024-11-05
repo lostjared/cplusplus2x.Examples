@@ -90,12 +90,14 @@ int main(int argc, char **argv) {
     while(!istream.eof()) {
         std::string line;
         std::getline(istream, line);
-        auto filename = extractFilename(line);
-        if(filename.has_value()) {
-            std::ostringstream stream;
-            stream << "cp " << filename.value() << " " << output_dir;
-            system(stream.str().c_str());
-            std::cout << stream.str() << "\n";
+        if(istream) {
+            auto filename = extractFilename(line);
+            if(filename.has_value()) {
+                std::ostringstream stream;
+                stream << "cp " << filename.value() << " " << output_dir;
+                system(stream.str().c_str());
+                std::cout << stream.str() << "\n";
+            }
         }
     }
     return 0;
