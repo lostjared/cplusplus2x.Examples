@@ -23,9 +23,11 @@ std::optional<std::string> extractFilename(const std::string &path) {
 
 int main(int argc, char **argv) {
     Argz<std::string> argz(argc, argv);
-	argz.addOptionSingleValue('i', "input data")
+	argz.addOptionSingleValue('i', "input filename")
     .addOptionSingle('h', "print out help")
-    .addOptionSingleValue('o', "output directory ");
+    .addOptionSingleValue('o', "output directory ")
+    .addOptionDoubleValue('I', "input", "input filename")
+    .addOptionDoubleValue('O', "output", "output directory");
 
 	int value = 0;
 	Argument<std::string> arg;
@@ -39,9 +41,11 @@ int main(int argc, char **argv) {
 				argz.help(std::cout);
 				break;
 			case 'i':
+            case 'I':
 				input_exe = arg.arg_value;
 				break;
             case 'o':
+            case 'O':
                 output_dir = arg.arg_value;
                 break;
 			}
