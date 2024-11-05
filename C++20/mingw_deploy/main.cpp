@@ -22,13 +22,43 @@ std::optional<std::string> extractFilename(const std::string &path) {
 }
 
 int main(int argc, char **argv) {
-    if(argc != 2) {
-        std::cerr << "Error requires one argument, EXE name.\n";
+    Argz<std::string> argz(argc, argv);
+	argz.addOptionSingleValue('i', "input data")
+    .addOptionSingle('h', "print out help")
+    .addOptionSingleValue('o', "output directory ");
+
+	int value = 0;
+	Argument<std::string> arg;
+    std::string input_exe;
+    std::string output_dir = ".";
+
+	try {
+		while((value = argz.proc(arg)) != -1) {
+			switch(value) {
+			case 'h':
+				argz.help(std::cout);
+				break;
+			case 'i':
+				input_exe = arg.arg_value;
+				break;
+            case 'o':
+                output_dir = arg.arg_value;
+                break;
+			}
+		}
+	} catch(const ArgException<std::string> &e) {
+		std::cerr << "Syntax Error: " << e.text() << "\n";
+	}
+
+    if(input_exe.empty()) {
+        std::cerr << "Error requires input EXE path with -i.\n";
+        argz.help(std::cout);
         std::cerr.flush();
         exit(EXIT_FAILURE);
     }
+
     std::ostringstream stream;
-    stream << "ldd " << argv[1] << " | grep mingw ";
+    stream << "ldd " << input_exe << " | grep mingw ";
 #ifdef _WIN32
     FILE *fptr = _popen(stream.str().c_str(), "r");
 #else
@@ -59,7 +89,7 @@ int main(int argc, char **argv) {
         auto filename = extractFilename(line);
         if(filename.has_value()) {
             std::ostringstream stream;
-            stream << "cp " << filename.value() << " . ";
+            stream << "cp " << filename.value() << " " << output_dir;
             system(stream.str().c_str());
             std::cout << stream.str() << "\n";
         }

@@ -16,6 +16,6 @@ install: all
 	cp $(OUTPUT_NAME) /usr/local/bin
 
 clean:
-	rm -f $(OUTPUT_NAME) $(OBJ_FILES)
+	rm -f $(OUTPUT_NAME).exe $(OBJ_FILES)
 
 .PHONY: all install clean
