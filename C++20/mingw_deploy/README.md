@@ -10,9 +10,9 @@ mingw-deploy helps identify and copy all the DLLs that an executable depends on 
 Command-Line Arguments
 The program uses the following command-line arguments to determine the input executable file and output directory for DLL copying:
 
--i or -I: Specifies the path to the input executable file whose dependencies you want to copy. This argument is required; if it’s not provided, the program will output an error and display help information.
+-i or --input: Specifies the path to the input executable file whose dependencies you want to copy. This argument is required; if it’s not provided, the program will output an error and display help information.
 
--o or -O: Specifies the output directory where DLL files should be copied. If omitted, the default output directory is the current directory (.).
+-o or --output: Specifies the output directory where DLL files should be copied. If omitted, the default output directory is the current directory (.).
 
 -h: Displays help information detailing available options.
 
