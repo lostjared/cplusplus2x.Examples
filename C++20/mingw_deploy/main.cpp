@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
     std::ostringstream stream;
-    stream << "ldd " << input_exe << " | grep mingw ";
+    stream << "ldd " << input_exe << " | grep -vi windows ";
 #ifdef _WIN32
     FILE *fptr = _popen(stream.str().c_str(), "r");
 #else
