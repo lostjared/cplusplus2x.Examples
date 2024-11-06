@@ -20,7 +20,7 @@ Explanation of the Program Flow
 Argument Parsing:
 
 The program uses the argz library to parse command-line arguments.
-It sets up options for the input file (-i or -I), output directory (-o or -O), and help (-h).
+It sets up options for the input file (-i or --input), output directory (-o or --output), and help (-h).
 If the -h flag is provided, it outputs the help message and exits.
 If the input executable path is not specified, it throws an error, shows help, and exits.
 Dependency Identification:
