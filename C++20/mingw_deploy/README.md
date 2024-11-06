@@ -41,9 +41,9 @@ If any errors occur during command execution or file copying, the program output
 Example Usage
 To use mingw-deploy:
 
-bash
-Copy code
+```bash
 mingw-deploy -i path/to/your.exe -o /desired/output/directory
+```
 -i: Specifies the path to the compiled executable file (your.exe) for which you want to gather DLLs.
 -o: Specifies the directory where all required DLLs should be copied (/desired/output/directory).
 
