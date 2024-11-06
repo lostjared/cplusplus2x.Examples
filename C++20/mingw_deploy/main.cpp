@@ -1,3 +1,12 @@
+/* 
+    mingw-deploy
+    written by Jared Bruni
+    https://lostsidedead.biz
+
+    Copy DLL from Mingw compiled EXE in MSYS2 to current directory
+    
+*/
+
 #include<iostream>
 #include<sstream>
 #include<string>
