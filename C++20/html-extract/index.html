@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Extract Tool - Separate CSS and JavaScript from HTML | WebAssembly-Powered</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Free online HTML Extract Tool powered by WebAssembly. Automatically extract and separate CSS styles and JavaScript code from HTML files. Convert inline styles and scripts to external files for better code organization.">
+    <meta name="keywords" content="HTML extractor, CSS extractor, JavaScript extractor, HTML parser, web development tools, code separation, inline CSS, inline JavaScript, WebAssembly, HTML tools, frontend development">
+    <meta name="author" content="HTML Extract Tool">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph Meta Tags for Social Media -->
+    <meta property="og:title" content="HTML Extract Tool - Separate CSS and JavaScript from HTML">
+    <meta property="og:description" content="Free WebAssembly-powered tool to extract and separate CSS styles and JavaScript code from HTML files. Perfect for cleaning up and organizing web code.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="HTML Extract Tool - Separate CSS and JavaScript from HTML">
+    <meta name="twitter:description" content="Free WebAssembly-powered tool to extract and separate CSS styles and JavaScript code from HTML files.">
+    <meta name="twitter:image" content="">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="">
+    
+    <!-- Structured Data for Search Engines -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "HTML Extract Tool",
+        "description": "Free online tool to extract and separate CSS styles and JavaScript code from HTML files using WebAssembly technology.",
+        "url": "",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "featureList": [
+            "Extract CSS from HTML",
+            "Extract JavaScript from HTML", 
+            "Convert inline styles to external CSS files",
+            "Convert inline scripts to external JS files",
+            "WebAssembly-powered performance",
+            "Free to use"
+        ]
+    }
+    </script>
+    
+    <style>
+        :root {
+            --primary-blue: #2c3e50;
+            --secondary-blue: #3498db;
+            --primary-red: #e74c3c;
+            --secondary-red: #c0392b;
+            --light-bg: #f5f5f5;
+            --dark-text: #333;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            margin: 0.5rem 0 0 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .description {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .description h2 {
+            margin-top: 0;
+            color: var(--primary-blue);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .feature {
+            background: var(--light-bg);
+            padding: 1rem;
+            border-radius: 5px;
+            border-left: 4px solid var(--primary-red);
+        }
+        
+        .input-section, .output-section {
+            margin-bottom: 2rem;
+        }
+        
+        h2 {
+            color: var(--primary-blue);
+            border-bottom: 3px solid var(--primary-red);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+        
+        .output-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .output-box {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .output-box h3 {
+            margin: 0;
+            padding: 0.75rem;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .html-output h3 {
+            background-color: var(--primary-blue);
+        }
+        
+        .css-output h3 {
+            background-color: var(--primary-red);
+        }
+        
+        .js-output h3 {
+            background-color: var(--secondary-blue);
+        }
+        
+        .btn {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-blue);
+        }
+        
+        .btn-extract {
+            background-color: var(--primary-red);
+        }
+        
+        .btn-extract:hover {
+            background-color: var(--secondary-red);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .status {
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .status.loading {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .status.ready {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .status.error {
+            background-color: #e74c3c;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>HTML Extract Tool</h1>
+        <p class="subtitle">WebAssembly-Powered CSS and JavaScript Extractor</p>
+    </header>
+    
+    <div class="container">
+        <div class="description">
+            <h2>About This Tool</h2>
+            <p>This free online HTML Extract Tool helps web developers separate inline CSS styles and JavaScript code from HTML files. Powered by WebAssembly for fast, client-side processing, it automatically extracts embedded styles and scripts, replacing them with external file references for better code organization and maintainability.</p>
+            
+            <div class="features">
+                <div class="feature">
+                    <strong>Extract CSS</strong><br>
+                    Automatically finds and extracts all &lt;style&gt; tags and their contents
+                </div>
+                <div class="feature">
+                    <strong>Extract JavaScript</strong><br>
+                    Identifies and extracts all &lt;script&gt; tags and their code
+                </div>
+                <div class="feature">
+                    <strong>Clean HTML Output</strong><br>
+                    Replaces inline code with clean external file references
+                </div>
+                <div class="feature">
+                    <strong>WebAssembly Powered</strong><br>
+                    Fast, secure client-side processing using C++ and WebAssembly
+                </div>
+            </div>
+        </div>
+        
+        <div id="status" class="status loading">Loading WebAssembly module...</div>
+        
+        <div class="input-section">
+            <h2>Source HTML</h2>
+            <textarea id="source-html" placeholder="Paste your HTML source code here..."></textarea>
+            
+            <div class="button-group">
+                <button class="btn btn-extract" onclick="extractComponents()" id="extract-btn" disabled>Extract Components</button>
+                <button class="btn" onclick="clearAll()">Clear All</button>
+            </div>
+        </div>
+        
+        <div class="output-section">
+            <h2>Extracted Components</h2>
+            
+            <div class="output-container">
+                <div class="output-box html-output">
+                    <h3>HTML</h3>
+                    <textarea id="html-output" placeholder="Extracted HTML will appear here..." readonly></textarea>
+                </div>
+                
+                <div class="output-box css-output">
+                    <h3>CSS: styles.css</h3>
+                    <textarea id="css-output" placeholder="Extracted CSS will appear here - copy to file styles.css" readonly></textarea>
+                </div>
+                
+                <div class="output-box js-output">
+                    <h3>JavaScript: script.js</h3>
+                    <textarea id="js-output" placeholder="Extracted JavaScript will appear here - copy to script.js" readonly></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="extractor.js?v=1.0"></script>
+    <script>
+        let extractorModule = null;
+        let extractor = null;
+
+        // Initialize the WebAssembly module
+        Module.onRuntimeInitialized = function() {
+            try {
+                extractorModule = Module;
+                extractor = new extractorModule.Extractor();
+                
+                document.getElementById('status').textContent = 'WebAssembly module ready!';
+                document.getElementById('status').className = 'status ready';
+                document.getElementById('extract-btn').disabled = false;
+                
+                console.log('WebAssembly module loaded successfully');
+            } catch (error) {
+                console.error('Error initializing WebAssembly module:', error);
+                document.getElementById('status').textContent = 'Error loading WebAssembly module';
+                document.getElementById('status').className = 'status error';
+            }
+        };
+
+        function extractComponents() {
+            if (!extractor) {
+                alert('WebAssembly module not loaded yet. Please wait.');
+                return;
+            }
+
+            const sourceHTML = document.getElementById('source-html').value;
+            
+            if (!sourceHTML.trim()) {
+                alert('Please enter some HTML code first!');
+                return;
+            }
+            
+            try {
+                const success = extractor.extractHtml(sourceHTML);
+                
+                if (success) {
+                    document.getElementById('html-output').value = extractor.getHtml();
+                    document.getElementById('css-output').value = extractor.getCss();
+                    document.getElementById('js-output').value = extractor.getJs();
+                } else {
+                    alert('Error extracting components');
+                }
+            } catch (error) {
+                console.error('Error during extraction:', error);
+                alert('Error during extraction: ' + error.message);
+            }
+        }
+        
+        function clearAll() {
+            document.getElementById('source-html').value = '';
+            document.getElementById('html-output').value = '';
+            document.getElementById('css-output').value = '';
+            document.getElementById('js-output').value = '';
+        }
+    </script>
+</body>
+</html>
