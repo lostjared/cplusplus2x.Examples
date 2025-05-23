@@ -11,10 +11,11 @@ public:
     std::string getHtml() { return html; }
 
     bool extractHtml(const std::string& content) {
-        std::string modifiedContent = content; // Make a copy to modify
+        std::string modifiedContent = content; 
         std::string allCss;
         std::string allJs;
-
+        bool cssLinkAdded = false;
+        bool jsLinkAdded = false;
         size_t pos = 0;
         while (true) {
             auto start = modifiedContent.find("<style", pos);
@@ -23,12 +24,21 @@ public:
             if (startTagEnd == std::string::npos) break;
             auto end = modifiedContent.find("</style>", startTagEnd);
             if (end == std::string::npos) break;
+            
             allCss += modifiedContent.substr(startTagEnd + 1, end - (startTagEnd + 1)) + "\n";
-            std::string linkTag = "<link rel=\"stylesheet\" href=\"" + cssPath + "\">";
-            modifiedContent.replace(start, (end + 8) - start, linkTag);
-            pos = start + linkTag.size();
+            
+            if (!cssLinkAdded) {
+                std::string linkTag = "<link rel=\"stylesheet\" href=\"" + cssPath + "\">";
+                modifiedContent.replace(start, (end + 8) - start, linkTag);
+                pos = start + linkTag.size();
+                cssLinkAdded = true;
+            } else {
+                modifiedContent.erase(start, (end + 8) - start);
+                pos = start;
+            }
         }
 
+        
         pos = 0;
         while (true) {
             auto start = modifiedContent.find("<script", pos);
@@ -37,10 +47,18 @@ public:
             if (startTagEnd == std::string::npos) break;
             auto end = modifiedContent.find("</script>", startTagEnd);
             if (end == std::string::npos) break;
+            
             allJs += modifiedContent.substr(startTagEnd + 1, end - (startTagEnd + 1)) + "\n";
-            std::string scriptTag = "<script src=\"" + jsPath + "\"></script>";
-            modifiedContent.replace(start, (end + 9) - start, scriptTag);
-            pos = start + scriptTag.size();
+            
+            if (!jsLinkAdded) {
+                std::string scriptTag = "<script src=\"" + jsPath + "\"></script>";
+                modifiedContent.replace(start, (end + 9) - start, scriptTag);
+                pos = start + scriptTag.size();
+                jsLinkAdded = true;
+            } else {
+                modifiedContent.erase(start, (end + 9) - start);
+                pos = start;
+            }
         }
 
         this->css = allCss;
