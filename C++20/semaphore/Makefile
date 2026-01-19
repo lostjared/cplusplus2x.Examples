@@ -1,5 +1,5 @@
 CXXFLAGS = -std=c++20 
-LDFLAGS = 
+LDFLAGS = -pthread
 CPP_FILES := $(wildcard *.cpp)
 OBJ_FILES := $(CPP_FILES:.cpp=.o)
 OUTPUT_NAME =  sem-test
