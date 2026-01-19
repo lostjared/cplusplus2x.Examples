@@ -1,4 +1,5 @@
-CXXFLAGS = -std=c++20 
+CXX=g++
+CXXFLAGS = -std=c++20 -pthread
 LDFLAGS = -pthread
 CPP_FILES := $(wildcard *.cpp)
 OBJ_FILES := $(CPP_FILES:.cpp=.o)
