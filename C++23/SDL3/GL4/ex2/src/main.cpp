@@ -108,6 +108,8 @@ int main()
         return 1;
     }
 
+    SDL_GL_SetSwapInterval(0);
+
     std::println("GL_VERSION: {}", (const char*)glGetString(GL_VERSION));
     if (!SDL_GL_ExtensionSupported("GL_ARB_gl_spirv")) {
         std::println("Missing GL_ARB_gl_spirv");
