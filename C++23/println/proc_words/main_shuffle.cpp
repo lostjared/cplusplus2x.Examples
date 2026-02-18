@@ -9,13 +9,14 @@
 #include<print>
 #include<algorithm>
 #include<vector>
+#include<ranges>
 
 std::string reverse_string(const std::string &);
 std::string shuffle_string(const std::string &);
 
 template<typename T, typename F>
 void echo_words(T &m, F func) {
-    for(auto &i : m) {
+    for(auto &&i : m | std::views::transform(func)) {
         std::print("{} ", func(i));
     }
     std::print("\n");
