@@ -29,23 +29,11 @@ std::string reverse_string(const std::string &text) {
 	return data;
 }
 
-bool compare_vector(const std::vector<char> &v1, const std::vector<char> &v2) {
-    if(v1.size() != v2.size()) return false;
-    for(size_t i = 0; i < v1.size(); ++i) {
-        if(v1[i] != v2[2])
-            return false;
-    }
-    return true;
-}
-
-bool is_palindrome(const std::string &text) {
-    return text == reverse_string(text);
-}
-
 std::string shuffle_string(const std::string &text) {
     static std::random_device rd;
     static std::mt19937 gen(rd());  
     std::string data;
+    auto is_palindrome = [](const std::string &text) { return text == reverse_string(text); };
     if(text.length() >= 4) {
         char first, last;
         first = text[0];
@@ -59,6 +47,7 @@ std::string shuffle_string(const std::string &text) {
         std::string sub_a;
         int attempts = 0;
         bool is_pal = is_palindrome(text);
+        bool valid = false;
         do {
             std::shuffle(ch.begin(), ch.end(), gen);
             sub_a = "";
@@ -66,7 +55,7 @@ std::string shuffle_string(const std::string &text) {
                 sub_a += ch[i];
             }
             ++attempts;
-            bool valid = (sub_p != sub_a);
+            valid = (sub_p != sub_a);
             if(sub_p.length() <= 2 && is_palindrome(sub_p)) {
                  valid = true;
             } else {
@@ -74,14 +63,11 @@ std::string shuffle_string(const std::string &text) {
                     valid = (reverse_string(sub_p) != sub_a);
                 }
             }
-            if(valid) {
-                break;
-            }
             if(attempts >= 1000) {
                 sub_a = sub_p;  
                 break;
             }
-        } while(true);
+        } while(!valid);
         data += first;
         data += sub_a;
         data += last;
@@ -89,7 +75,6 @@ std::string shuffle_string(const std::string &text) {
         data = text;
     }
     return data;
-    
 }
 
 int main(int argc, char **argv) {
