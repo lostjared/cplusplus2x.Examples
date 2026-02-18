@@ -29,29 +29,67 @@ std::string reverse_string(const std::string &text) {
 	return data;
 }
 
+bool compare_vector(const std::vector<char> &v1, const std::vector<char> &v2) {
+    if(v1.size() != v2.size()) return false;
+    for(size_t i = 0; i < v1.size(); ++i) {
+        if(v1[i] != v2[2])
+            return false;
+    }
+    return true;
+}
+
+bool is_palindrome(const std::string &text) {
+    return text == reverse_string(text);
+}
+
 std::string shuffle_string(const std::string &text) {
     static std::random_device rd;
-    static std::mt19937 gen(rd());
-    
+    static std::mt19937 gen(rd());  
     std::string data;
-    if(text.length() >= 3) {
+    if(text.length() >= 4) {
         char first, last;
         first = text[0];
         last =  text[text.length()-1];
         std::vector<char> ch;
+        std::string sub_p;
         for(size_t i = 1; i < text.length()-1; ++i) {
+            sub_p += text[i];
             ch.push_back(text[i]);
         }
-        std::shuffle(ch.begin(), ch.end(), gen);
+        std::string sub_a;
+        int attempts = 0;
+        bool is_pal = is_palindrome(text);
+        do {
+            std::shuffle(ch.begin(), ch.end(), gen);
+            sub_a = "";
+            for(size_t i = 0; i < ch.size(); ++i) {
+                sub_a += ch[i];
+            }
+            ++attempts;
+            bool valid = (sub_p != sub_a);
+            if(sub_p.length() <= 2 && is_palindrome(sub_p)) {
+                 valid = true;
+            } else {
+                if(valid && !is_pal && ch.size() > 2) {
+                    valid = (reverse_string(sub_p) != sub_a);
+                }
+            }
+            if(valid) {
+                break;
+            }
+            if(attempts >= 1000) {
+                sub_a = sub_p;  
+                break;
+            }
+        } while(true);
         data += first;
-        for(size_t i = 0; i < ch.size(); ++i) {
-            data += ch[i];
-        }
+        data += sub_a;
         data += last;
     } else {
         data = text;
     }
     return data;
+    
 }
 
 int main(int argc, char **argv) {
@@ -101,6 +139,6 @@ int main(int argc, char **argv) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     std::shuffle(words.begin(), words.end(), gen);
-    echo_words(words, (mode ==1) ? reverse_string : shuffle_string);
+    echo_words(words, (mode == 1) ? reverse_string : shuffle_string);
     return 0;
 }
