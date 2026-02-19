@@ -12,6 +12,7 @@
 #include<ranges>
 #include<set>
 #include<iterator>
+#include<cctype>
 #include"argz.hpp"
 
 std::string reverse_string(const std::string &);
@@ -77,14 +78,19 @@ std::string shuffle_string(const std::string &text) {
 }
 
 template<typename T>
-void parse_words(const std::string &s, T out) {
+void parse_words(const std::string &s, T out, int case_mode = 0) {
     size_t i = 0;
     std::string word;
     size_t index = 0;
     while (i < s.length()) {
         char c = s[i++];
         if((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
-            word += c;
+            if(case_mode == 0)
+                word += c;
+            else if(case_mode == 1)
+                word += toupper(c);
+            else if(case_mode == 2)
+                word += tolower(c);
         } else {
             if(!word.empty()) {
                 *out++ = word;
@@ -102,6 +108,7 @@ struct Args {
     bool uniq = false;
     bool static_order = false;
     bool sorted_ = false;
+    int value_case = 0;
 };
 
 int main(int argc, char **argv) {
@@ -113,6 +120,8 @@ int main(int argc, char **argv) {
         .addOptionSingle('u', "unique words only")
         .addOptionSingle('o', "sorted")
         .addOptionSingle('n', "no operation keep the same")
+        .addOptionSingle('U', "upper case")
+        .addOptionSingle('L', "lower case")
         .addOptionSingleValue('i', "input file")
         ;
     Args args;
@@ -145,6 +154,12 @@ int main(int argc, char **argv) {
                 case 'o':
                     args.sorted_ = true;
                     break;
+                case 'U':
+                    args.value_case = 1;
+                    break;
+                case 'L':
+                    args.value_case = 2;
+                    break;
             }
         }
     } catch(const ArgException<std::string> &e) {
@@ -157,6 +172,10 @@ int main(int argc, char **argv) {
     if(args.mode == 0) {
         std::println("You must provide an operation option");
         parser.help(std::cout);
+        return EXIT_FAILURE;
+    }
+    if(args.value_case < 0 || args.value_case > 2) {
+        std::println("Value case must be 0-2");
         return EXIT_FAILURE;
     }
     if(args.source_file.empty()) {
@@ -174,7 +193,7 @@ int main(int argc, char **argv) {
     stream << file.rdbuf();
     if(args.uniq == false) {
         std::vector<std::string> words;
-        parse_words(stream.str(), std::back_inserter(words));    
+        parse_words(stream.str(), std::back_inserter(words), args.value_case);    
         static std::random_device rd;
         static std::mt19937 gen(rd());
         if(!args.static_order)
@@ -185,7 +204,7 @@ int main(int argc, char **argv) {
             echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string, args.sorted_ == false ? 0 : 1);
     } else {
         std::set<std::string> words;
-        parse_words(stream.str(), std::inserter(words, words.end()));
+        parse_words(stream.str(), std::inserter(words, words.end()), args.value_case);
         if(args.mode == 3) 
             echo_words(words);
         else
