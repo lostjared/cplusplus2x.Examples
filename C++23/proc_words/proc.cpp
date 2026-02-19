@@ -210,5 +210,5 @@ int main(int argc, char **argv) {
         else
             echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string, args.sorted_ == false ? 0 : 1);
     }
-    return 0;
+    return EXIT_SUCCESS;
 }
