@@ -2,7 +2,7 @@ CXXFLAGS = -std=c++23
 LDFLAGS =
 CPP_FILES := $(wildcard *.cpp)
 OBJ_FILES := $(CPP_FILES:.cpp=.o)
-OUTPUT_NAME = shuffle-words
+OUTPUT_NAME = proc-words
 DEPS := $(wildcard *.hpp)
 
 %.o: %.cpp $(DEPS) 

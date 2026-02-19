@@ -17,11 +17,25 @@
 std::string reverse_string(const std::string &);
 std::string shuffle_string(const std::string &);
 
-template<typename T, typename F>
-void echo_words(T &m, F func) {
-    for (auto &&value : m | std::views::transform(func)) {
+template<typename T>
+void echo_words(T &m) {
+    for(auto &&value : m) {
         std::print("{} ", value);
     }
+    std::print("\n");
+}
+
+template<typename T, typename F>
+void echo_words(T &m, F func, int sorted = 0) {
+    std::vector<std::string> cap;
+    cap.resize(m.size());
+    for (auto &&value : m | std::views::transform(func)) {
+        cap.push_back(value);
+    }
+    if(sorted != 0) {
+        std::sort(cap.begin(), cap.end());
+    }
+    echo_words(cap);
     std::print("\n");
 }
 
@@ -85,6 +99,8 @@ struct Args {
     std::string source_file;
     int mode = 0;
     bool uniq = false;
+    bool static_order = false;
+    bool sorted_ = false;
 };
 
 int main(int argc, char **argv) {
@@ -92,10 +108,12 @@ int main(int argc, char **argv) {
     parser.addOptionSingle('h', "Display help message")
         .addOptionSingle('s', "shuffle")
         .addOptionSingle('r', "reverse")
+        .addOptionSingle('c', "static order (no shuffle)")
         .addOptionSingle('u', "unique words only")
+        .addOptionSingle('o', "sorted")
+        .addOptionSingle('n', "no operation keep the same")
         .addOptionSingleValue('i', "input file")
         ;
-
     Args args;
     Argument<std::string> arg;
 	int value = 0;
@@ -114,10 +132,18 @@ int main(int argc, char **argv) {
                 case 'r':
                     args.mode = 2;
                     break;
+                case 'n':
+                    args.mode = 3;
+                    break;
                 case 'i':
                     args.source_file = arg.arg_value;
                     break;
-
+                case 'c':
+                    args.static_order = true;
+                    break;
+                case 'o':
+                    args.sorted_ = true;
+                    break;
             }
         }
     } catch(const ArgException<std::string> &e) {
@@ -150,12 +176,16 @@ int main(int argc, char **argv) {
         parse_words(stream.str(), std::back_inserter(words));    
         static std::random_device rd;
         static std::mt19937 gen(rd());
-        std::shuffle(words.begin(), words.end(), gen);
-        echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string);
+        if(!args.static_order)
+            std::shuffle(words.begin(), words.end(), gen);
+        if(args.mode == 3)
+            echo_words(words);
+        else
+            echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string, args.sorted_ == false ? 0 : 1);
     } else {
         std::set<std::string> words;
         parse_words(stream.str(), std::inserter(words, words.end()));
-        echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string);
+        echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string, args.sorted_ == false ? 0 : 1);
     }
     return 0;
 }
