@@ -10,121 +10,152 @@
 #include<algorithm>
 #include<vector>
 #include<ranges>
+#include<set>
+#include<iterator>
+#include"argz.hpp"
 
 std::string reverse_string(const std::string &);
 std::string shuffle_string(const std::string &);
 
 template<typename T, typename F>
 void echo_words(T &m, F func) {
-    for(auto &&i : m | std::views::transform(func)) {
-        std::print("{} ", func(i));
+    for (auto &&value : m | std::views::transform(func)) {
+        std::print("{} ", value);
     }
     std::print("\n");
 }
 
 std::string reverse_string(const std::string &text) {
-	std::string data;
-	for(int i = text.length() -1; i >= 0; --i) {
-		data += text[i];
-	}
+	std::string data(text.rbegin(), text.rend());
 	return data;
 }
 
 std::string shuffle_string(const std::string &text) {
     static std::random_device rd;
-    static std::mt19937 gen(rd());  
-    std::string data;
-    auto is_palindrome = [](const std::string &text) { return text == reverse_string(text); };
-    if(text.length() >= 4) {
-        char first, last;
-        first = text[0];
-        last =  text[text.length()-1];
-        std::vector<char> ch;
-        std::string sub_p;
-        for(size_t i = 1; i < text.length()-1; ++i) {
-            sub_p += text[i];
-            ch.push_back(text[i]);
-        }
-        std::string sub_a;
-        int attempts = 0;
-        bool is_pal = is_palindrome(text);
-        bool valid = false;
-        do {
-            std::shuffle(ch.begin(), ch.end(), gen);
-            sub_a = "";
-            for(size_t i = 0; i < ch.size(); ++i) {
-                sub_a += ch[i];
-            }
-            ++attempts;
-            valid = (sub_p != sub_a);
-            if(sub_p.length() <= 2 && is_palindrome(sub_p)) {
-                 valid = true;
-            } else {
-                if(valid && !is_pal && ch.size() > 2) {
-                    valid = (reverse_string(sub_p) != sub_a);
-                }
-            }
-            if(attempts >= 1000) {
-                sub_a = sub_p;  
-                break;
-            }
-        } while(!valid);
-        data += first;
-        data += sub_a;
-        data += last;
-    } else {
-        data = text;
+    static std::mt19937 gen(rd());
+    if (text.length() < 4) {
+        return text;
     }
-    return data;
+    char first = text.front();
+    char last = text.back();
+    std::string middle = text.substr(1, text.length() - 2);
+    std::string original_middle = middle;
+    if (std::ranges::all_of(middle, [&](char c) { return c == middle[0]; })) {
+        return text;
+    }
+    std::string reversed_text(text.rbegin(), text.rend());
+    bool is_palindrome = (text == reversed_text);
+    int attempts = 0;
+    do {
+        std::shuffle(middle.begin(), middle.end(), gen);
+        ++attempts;
+        if (attempts >= 1000) {
+            middle = original_middle;
+            break;
+        }
+    } while (middle == original_middle);
+    std::string shuffled = first + middle + last;
+    if (!is_palindrome && shuffled == text) {
+        return text;
+    }
+    return shuffled;
 }
 
-int main(int argc, char **argv) {
+template<typename T>
+void parse_words(const std::string &s, T out) {
+    size_t i = 0;
+    std::string word;
+    size_t index = 0;
+    while (i < s.length()) {
+        char c = s[i++];
+        if((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+            word += c;
+        } else {
+            if(!word.empty()) {
+                *out++ = word;
+                word.clear();
+            }
+        }
+    }
+    if(!word.empty())
+        *out++ = word;
+}
 
-    if(argc <= 2) {
-        std::println("invalid args.");
+struct Args {
+    std::string source_file;
+    int mode = 0;
+    bool uniq = false;
+};
+
+int main(int argc, char **argv) {
+    Argz<std::string> parser(argc, argv);
+    parser.addOptionSingle('h', "Display help message")
+        .addOptionSingle('s', "shuffle")
+        .addOptionSingle('r', "reverse")
+        .addOptionSingle('u', "unique words only")
+        .addOptionSingleValue('i', "input file")
+        ;
+
+    Args args;
+    Argument<std::string> arg;
+	int value = 0;
+    try {
+        while((value = parser.proc(arg)) != -1) {
+            switch(value) {
+                case 'h':
+                    parser.help(std::cout);
+                    break;
+                case 'u':
+                    args.uniq = true;
+                    break;
+                case 's':
+                    args.mode = 1;
+                    break;
+                case 'r':
+                    args.mode = 2;
+                    break;
+                case 'i':
+                    args.source_file = arg.arg_value;
+                    break;
+
+            }
+        }
+    } catch(const ArgException<std::string> &e) {
+        std::println(stderr, "Exception: {}", e.text());
+        return EXIT_FAILURE;
+    } catch(const std::exception &e) {
+        std::println(stderr, "std::exception: {}", e.what());
         return EXIT_FAILURE;
     }
-
-    int mode = 1;
-
-    if(argc == 3) {
-        if(std::string(argv[2]) == "r")
-            mode = 1;
-        else if(std::string(argv[2]) == "s")
-            mode = 2;
+    if(args.mode == 0) {
+        std::println("You must provide an operation option");
+        parser.help(std::cout);
+        return EXIT_FAILURE;
     }
-
+    if(args.source_file.empty()) {
+        std::println("You must provide a filename");
+        parser.help(std::cout);
+        return EXIT_FAILURE;
+    }
     std::fstream file;
-    file.open(argv[1], std::ios::in);
+    file.open(args.source_file, std::ios::in);
     if(!file.is_open()) {
         std::println("Error: file not found/could not open: {}", argv[1]);
         return EXIT_FAILURE;
     }
     std::ostringstream stream;
     stream << file.rdbuf();
-    std::vector<std::string> words;
-    size_t i = 0;
-    std::string s = stream.str();
-    std::string word;
-    size_t index = 0;
-
-    while (i < s.length()) {
-        if((s[i] >= 'a' && s[i] && s[i] <= 'z') || (s[i] >= 'A' && s[i] <= 'Z')) {
-            word += s[i];
-            ++i;
-            continue;
-        } else {
-            ++i;
-            if(!word.empty())
-                words.push_back(word);
-            word = "";
-            continue;
-        }
-        ++i;
+    if(args.uniq == false) {
+        std::vector<std::string> words;
+        parse_words(stream.str(), std::back_inserter(words));    
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        std::shuffle(words.begin(), words.end(), gen);
+        echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string);
+    } else {
+        std::set<std::string> words;
+        parse_words(stream.str(), std::inserter(words, words.end()));
+        echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string);
     }
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-    std::shuffle(words.begin(), words.end(), gen);
-    echo_words(words, (mode == 1) ? reverse_string : shuffle_string);
     return 0;
 }
