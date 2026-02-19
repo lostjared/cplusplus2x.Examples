@@ -19,7 +19,7 @@ std::string reverse_string(const std::string &);
 std::string shuffle_string(const std::string &);
 
 template<typename T>
-void echo_words(T &m) {
+void echo_words(const T &m) {
     for(auto &&value : m) {
         if(!value.empty())
             std::print("{} ", value);
@@ -28,7 +28,7 @@ void echo_words(T &m) {
 }
 
 template<typename T, typename F>
-void echo_words(T &m, F func, int sorted = 0) {
+void echo_words(const T &m, F func, int sorted = 0) {
     std::vector<std::string> cap;
     cap.resize(m.size());
     for (auto &&value : m | std::views::transform(func)) {
@@ -38,7 +38,6 @@ void echo_words(T &m, F func, int sorted = 0) {
         std::sort(cap.begin(), cap.end());
     }
     echo_words(cap);
-    std::print("\n");
 }
 
 std::string reverse_string(const std::string &text) {
@@ -78,7 +77,7 @@ std::string shuffle_string(const std::string &text) {
 }
 
 template<typename T>
-void parse_words(const std::string &s, T out, int case_mode = 0) {
+void parse_words(const std::string &s, T out, const int case_mode = 0) {
     size_t i = 0;
     std::string word;
     size_t index = 0;
