@@ -185,7 +185,10 @@ int main(int argc, char **argv) {
     } else {
         std::set<std::string> words;
         parse_words(stream.str(), std::inserter(words, words.end()));
-        echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string, args.sorted_ == false ? 0 : 1);
+        if(args.mode == 3) 
+            echo_words(words);
+        else
+            echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string, args.sorted_ == false ? 0 : 1);
     }
     return 0;
 }
