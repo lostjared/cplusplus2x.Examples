@@ -20,7 +20,8 @@ std::string shuffle_string(const std::string &);
 template<typename T>
 void echo_words(T &m) {
     for(auto &&value : m) {
-        std::print("{} ", value);
+        if(!value.empty())
+            std::print("{} ", value);
     }
     std::print("\n");
 }
