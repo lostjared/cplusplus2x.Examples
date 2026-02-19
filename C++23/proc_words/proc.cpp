@@ -170,23 +170,23 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
     if(args.mode == 0) {
-        std::println("You must provide an operation option");
+        std::println(stderr, "You must provide an operation option");
         parser.help(std::cout);
         return EXIT_FAILURE;
     }
     if(args.value_case < 0 || args.value_case > 2) {
-        std::println("Value case must be 0-2");
+        std::println(stderr, "Value case must be 0-2");
         return EXIT_FAILURE;
     }
     if(args.source_file.empty()) {
-        std::println("You must provide a filename");
+        std::println(stderr, "You must provide a filename");
         parser.help(std::cout);
         return EXIT_FAILURE;
     }
     std::fstream file;
     file.open(args.source_file, std::ios::in);
     if(!file.is_open()) {
-        std::println("Error: file not found/could not open: {}", argv[1]);
+        std::println(stderr, "Error: file not found/could not open: {}", argv[1]);
         return EXIT_FAILURE;
     }
     std::ostringstream stream;
