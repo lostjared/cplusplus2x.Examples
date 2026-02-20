@@ -28,13 +28,13 @@ void echo_words(const T &m) {
 }
 
 template<typename T, typename F>
-void echo_words(const T &m, F func, int sorted = 0) {
+void echo_words(const T &m, F func, const bool sorted = false) {
     std::vector<std::string> cap;
     cap.resize(m.size());
     for (auto &&value : m | std::views::transform(func)) {
         cap.push_back(value);
     }
-    if(sorted != 0) {
+    if(sorted) {
         std::sort(cap.begin(), cap.end());
     }
     echo_words(cap);
@@ -200,14 +200,14 @@ int main(int argc, char **argv) {
         if(args.mode == 3)
             echo_words(words);
         else
-            echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string, args.sorted_ == false ? 0 : 1);
+            echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string, args.sorted_);
     } else {
         std::set<std::string> words;
         parse_words(stream.str(), std::inserter(words, words.end()), args.value_case);
         if(args.mode == 3) 
             echo_words(words);
         else
-            echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string, args.sorted_ == false ? 0 : 1);
+            echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string, args.sorted_);
     }
     return EXIT_SUCCESS;
 }
