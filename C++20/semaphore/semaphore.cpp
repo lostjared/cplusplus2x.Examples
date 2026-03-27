@@ -1,17 +1,17 @@
-#include<iostream>
-#include<thread>
-#include<semaphore>
-#include<string>
-#include<syncstream>
+#include <iostream>
+#include <semaphore>
+#include <string>
+#include <syncstream>
+#include <thread>
 
 std::binary_semaphore waiter(0);
 std::string input_data;
 
 void worker_thread() {
-   std::osyncstream(std::cout) << "   [Thread] Launched. I am now waiting for the signal...\n";
-   waiter.acquire();
-   std::osyncstream(std::cout) << "   [Thread] Signal received! I am awake and working.\n";
-   std::osyncstream(std::cout) << "   Data entered: " << input_data << "\n";
+    std::osyncstream(std::cout) << "   [Thread] Launched. I am now waiting for the signal...\n";
+    waiter.acquire();
+    std::osyncstream(std::cout) << "   [Thread] Signal received! I am awake and working.\n";
+    std::osyncstream(std::cout) << "   Data entered: " << input_data << "\n";
 }
 
 int main() {

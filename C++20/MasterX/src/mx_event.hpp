@@ -1,14 +1,14 @@
- #ifndef __MX_EVENT_H_X
+#ifndef __MX_EVENT_H_X
 #define __MX_EVENT_H_X
 
-#include"window.hpp"
+#include "window.hpp"
 
 namespace mx {
 
     class Window;
 
     class EventHandler {
-    public:
+      public:
         EventHandler(mxApp &app) : app_{app} {}
         bool pumpEvent(SDL_Event &e);
         void sendDrawMessage();
@@ -20,10 +20,11 @@ namespace mx {
         void removeWindow(Window *window);
         std::vector<Window *> window_stack;
         bool checkWindowClick(int x, int y);
-    private:
+
+      private:
         mxApp &app_;
         int cur_focus = 0;
     };
-}
+} // namespace mx
 
 #endif

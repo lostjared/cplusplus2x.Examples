@@ -1,27 +1,27 @@
 #ifndef __SYMBOL_HPP__
 #define __SYMBOL_HPP__
 
-#include<iostream>
-#include<string>
-#include<unordered_map>
-#include<vector>
-#include<algorithm>
+#include <algorithm>
+#include <iostream>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 extern std::ostringstream stream;
 
 namespace symbol {
-    
+
     class Value {
-    public:
+      public:
         std::string text;
         double value;
         Value();
         Value(const Value &v);
         Value(const std::string &text, const double &value);
     };
-    
+
     class Variable {
-    public:
+      public:
         std::string name;
         Variable();
         ~Variable();
@@ -40,15 +40,15 @@ namespace symbol {
         bool isArray() const { return is_array; }
         unsigned long arraySize() const { return array_size; }
         friend std::ostream &operator<<(std::ostream &out, Variable &v);
-    private:
+
+      private:
         bool is_array;
         unsigned long array_size;
         Value *values;
     };
-    
-    
+
     class Symbol {
-    public:
+      public:
         Symbol();
         Symbol(const Symbol &s);
         Symbol(const Symbol &&s);
@@ -63,11 +63,11 @@ namespace symbol {
         void clear();
         bool remove(const std::string &n);
         friend std::ostream &operator<<(std::ostream &out, Symbol &s);
-    protected:
+
+      protected:
         std::unordered_map<std::string, Variable> var;
     };
-    
-    
-}
+
+} // namespace symbol
 
 #endif

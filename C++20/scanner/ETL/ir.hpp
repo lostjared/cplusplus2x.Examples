@@ -1,17 +1,17 @@
 #ifndef _IR_X_H_
 #define _IR_X_H_
 
+#include "ast.hpp"
+#include "symbol.hpp"
+#include <algorithm>
+#include <iomanip>
+#include <iostream>
+#include <memory>
+#include <stack>
 #include <string>
-#include <vector>
 #include <unordered_map>
 #include <unordered_set>
-#include <iostream>
-#include <iomanip>
-#include <memory>
-#include <algorithm>
-#include <stack>
-#include "symbol.hpp"
-#include "ast.hpp"
+#include <vector>
 
 namespace ir {
 
@@ -44,13 +44,13 @@ namespace ir {
         OR,
         LSHIFT,
         RSHIFT,
-        EQ,   
-        NEQ, 
-        LT,   
+        EQ,
+        NEQ,
+        LT,
         LE,
         GT,
         GE,
-        LOGICAL_AND, 
+        LOGICAL_AND,
         LOGICAL_OR,
         LOGICAL_NOT,
         SUB_LABEL,
@@ -80,14 +80,14 @@ namespace ir {
         "DEF_PARAM_POINTER",
         "LABEL",
         "DEFINE",
-        "MOD", 
+        "MOD",
         "AND",
         "XOR",
         "OR",
         "LSHIFT",
         "RSHIFT",
-        "EQ", 
-        "NEQ",  
+        "EQ",
+        "NEQ",
         "LT",
         "LE",
         "GT",
@@ -96,10 +96,9 @@ namespace ir {
         "LOGICAL_OR",
         "LOGICAL_NOT",
         "SUB_LABEL",
-        "JUMP", 
+        "JUMP",
         "SET",
-        "SET_CONST"
-    };
+        "SET_CONST"};
 
     struct IRInstruction {
         InstructionType type;
@@ -121,9 +120,12 @@ namespace ir {
 
         std::string toString() const {
             std::string result = InstructionStrings[static_cast<int>(type)] + " " + dest;
-            if (!functionName.empty()) result += " " + functionName;
-            if (!op1.empty()) result += " " + escapeString(op1);
-            if (!op2.empty()) result += " " + escapeString(op2);
+            if (!functionName.empty())
+                result += " " + functionName;
+            if (!op1.empty())
+                result += " " + escapeString(op1);
+            if (!op2.empty())
+                result += " " + escapeString(op2);
             for (const auto &arg : args) {
                 result += " " + arg;
             }
@@ -142,23 +144,24 @@ namespace ir {
     };
 
     class IRException {
-    public:
+      public:
         IRException(const std::string &what) : why_{what} {}
         std::string why() const { return why_; }
-    private:
+
+      private:
         std::string why_;
     };
 
-}
+} // namespace ir
 
 namespace parse {
 
     class IRGenerator {
-    public:
+      public:
         symbol::SymbolTable table;
         std::unordered_map<std::string, int> functionLocalVarCount;
 
-        ir::IRContext generateIR(const std::unique_ptr<ast::ASTNode> &ast) { 
+        ir::IRContext generateIR(const std::unique_ptr<ast::ASTNode> &ast) {
             ir::IRContext context;
             generate(ast.get(), context.instructions);
             context.table = table;
@@ -166,10 +169,10 @@ namespace parse {
             return context;
         }
 
-    private:
+      private:
         int tempVarCounter = 0;
-        std::string currentFunctionName;  
-        std::unordered_map<std::string, std::string> functionReturnValues;  
+        std::string currentFunctionName;
+        std::unordered_map<std::string, std::string> functionReturnValues;
         std::stack<std::pair<std::string, std::string>> loopLabelStack;
 
         std::string getNextTempVar() {
@@ -177,39 +180,39 @@ namespace parse {
         }
 
         void generate(const ast::ASTNode *node, ir::IRCode &code) {
-            if (auto program = dynamic_cast<const ast::Program*>(node)) {
+            if (auto program = dynamic_cast<const ast::Program *>(node)) {
                 generateProgram(program, code);
-            } else if (auto assign = dynamic_cast<const ast::Assignment*>(node)) {
+            } else if (auto assign = dynamic_cast<const ast::Assignment *>(node)) {
                 generateAssignment(assign, code);
-            } else if (auto binOp = dynamic_cast<const ast::BinaryOp*>(node)) {
+            } else if (auto binOp = dynamic_cast<const ast::BinaryOp *>(node)) {
                 generateBinaryOp(binOp, code);
-            } else if (auto unaryOp = dynamic_cast<const ast::UnaryOp*>(node)) {
+            } else if (auto unaryOp = dynamic_cast<const ast::UnaryOp *>(node)) {
                 generateUnaryOp(unaryOp, code);
-            } else if (auto fdef = dynamic_cast<const ast::DefineFunction*>(node)) {
+            } else if (auto fdef = dynamic_cast<const ast::DefineFunction *>(node)) {
                 generateDefFunction(fdef, code);
-            } else if (auto func = dynamic_cast<const ast::Function*>(node)) {
+            } else if (auto func = dynamic_cast<const ast::Function *>(node)) {
                 generateFunction(func, code);
-            }else if (auto call = dynamic_cast<const ast::Call*>(node)) {
+            } else if (auto call = dynamic_cast<const ast::Call *>(node)) {
                 generateCall(call, code);
-            } else if (auto literal = dynamic_cast<const ast::Literal*>(node)) {
+            } else if (auto literal = dynamic_cast<const ast::Literal *>(node)) {
                 generateLiteral(literal, code);
-            } else if (auto identifier = dynamic_cast<const ast::Identifier*>(node)) {
+            } else if (auto identifier = dynamic_cast<const ast::Identifier *>(node)) {
                 generateIdentifier(identifier, code);
-            } else if (auto rt = dynamic_cast<const ast::Return*>(node)) {
+            } else if (auto rt = dynamic_cast<const ast::Return *>(node)) {
                 generateReturn(rt, code);
-            } else if(auto if_s = dynamic_cast<const ast::IfStatement *>(node)) {
+            } else if (auto if_s = dynamic_cast<const ast::IfStatement *>(node)) {
                 generateIf(if_s, code);
-            } else if(auto while_s = dynamic_cast<const ast::WhileStatement *>(node)) {
+            } else if (auto while_s = dynamic_cast<const ast::WhileStatement *>(node)) {
                 generateWhile(while_s, code);
-            }  if (auto break_s = dynamic_cast<const ast::Break *>(node)) {
+            }
+            if (auto break_s = dynamic_cast<const ast::Break *>(node)) {
                 generateBreak(break_s, code);
             } else if (auto cont_s = dynamic_cast<const ast::Continue *>(node)) {
                 generateCont(cont_s, code);
-            } else if(auto for_s = dynamic_cast<const ast::ForStatement *>(node)) {
+            } else if (auto for_s = dynamic_cast<const ast::ForStatement *>(node)) {
                 generateFor(for_s, code);
             }
         }
-
 
         void generateProgram(const ast::Program *program, ir::IRCode &code) {
             for (const auto &stmt : program->body) {
@@ -273,7 +276,7 @@ namespace parse {
             code.emplace_back(ir::InstructionType::SUB_LABEL, endLabel);
             loopLabelStack.pop();
         }
-        
+
         void generateIf(const ast::IfStatement *if_s, ir::IRCode &code) {
             generate(if_s->condition.get(), code);
             std::string conditionResult = lastComputedValue["result"];
@@ -295,31 +298,30 @@ namespace parse {
             code.emplace_back(ir::InstructionType::SUB_LABEL, endLabel);
         }
         void generateAssignment(const ast::Assignment *assign, ir::IRCode &code) {
-            auto lhs = dynamic_cast<const ast::Identifier*>(assign->left.get());
+            auto lhs = dynamic_cast<const ast::Identifier *>(assign->left.get());
             if (lhs) {
-                auto rhsLiteral = dynamic_cast<const ast::Literal*>(assign->right.get());
+                auto rhsLiteral = dynamic_cast<const ast::Literal *>(assign->right.get());
                 if (rhsLiteral) {
-                    if(assign->there == false && table.is_there(lhs->name)) {
+                    if (assign->there == false && table.is_there(lhs->name)) {
                         std::ostringstream stream;
                         stream << " Variable: " << lhs->name << " already defined in constant assignment.\n";
                         throw ir::IRException(stream.str());
                     }
                     table.enter(lhs->name);
                     auto entry = table.lookup(lhs->name);
-                    if(entry.has_value()) {
+                    if (entry.has_value()) {
                         symbol::Symbol *e = entry.value();
                         e->name = lhs->name;
-                        e->value = rhsLiteral->value;      
-                        if(rhsLiteral->type == types::TokenType::TT_NUM)
+                        e->value = rhsLiteral->value;
+                        if (rhsLiteral->type == types::TokenType::TT_NUM)
                             e->vtype = ast::VarType::NUMBER;
-                        else if(rhsLiteral->type == types::TokenType::TT_STR)
+                        else if (rhsLiteral->type == types::TokenType::TT_STR)
                             e->vtype = ast::VarType::STRING;
                     }
-                    if(assign->there == false)
+                    if (assign->there == false)
                         code.emplace_back(ir::InstructionType::LOAD_CONST, lhs->name, rhsLiteral->value);
                     else
                         code.emplace_back(ir::InstructionType::SET_CONST, lhs->name, rhsLiteral->value);
-
 
                 } else {
                     generate(assign->right.get(), code);
@@ -329,15 +331,15 @@ namespace parse {
                     } else {
                         table.enter(lhs->name);
                         auto it = table.lookup(lhs->name);
-                        if(it.has_value()) {
+                        if (it.has_value()) {
                             symbol::Symbol *s = it.value();
                             table.enter(rhs);
                             auto r = table.lookup(rhs);
-                            if(r.has_value()) {
+                            if (r.has_value()) {
                                 s->vtype = r.value()->vtype;
                             }
                         }
-                        if(assign->there == false)
+                        if (assign->there == false)
                             code.emplace_back(ir::InstructionType::ASSIGN, lhs->name, rhs);
                         else
                             code.emplace_back(ir::InstructionType::SET, lhs->name, rhs);
@@ -355,10 +357,10 @@ namespace parse {
                 generate(return_value->return_value.get(), code);
                 std::string result = lastComputedValue["result"];
                 ir::IRInstruction t(ir::InstructionType::RETURN, result);
-                t.transfer_var = result; 
+                t.transfer_var = result;
                 code.push_back(t);
                 functionReturnValues[currentFunctionName] = result;
-                
+
             } else {
                 code.emplace_back(ir::InstructionType::RETURN, "");
             }
@@ -375,34 +377,32 @@ namespace parse {
             bool leftIsString = false;
             bool rightIsString = false;
 
-            if (auto identifier = dynamic_cast<ast::Identifier*>(binOp->left.get())) {
-                    leftIsString = identifier->vtype == ast::VarType::STRING;
+            if (auto identifier = dynamic_cast<ast::Identifier *>(binOp->left.get())) {
+                leftIsString = identifier->vtype == ast::VarType::STRING;
             }
 
-
-            if (auto identifier = dynamic_cast<ast::Identifier*>(binOp->right.get())) {
-                    rightIsString = identifier->vtype == ast::VarType::STRING;
+            if (auto identifier = dynamic_cast<ast::Identifier *>(binOp->right.get())) {
+                rightIsString = identifier->vtype == ast::VarType::STRING;
             }
 
-            if(!leftIsString) {
+            if (!leftIsString) {
                 auto it = table.lookup(leftResult);
-                if(it.has_value()) {
+                if (it.has_value()) {
                     symbol::Symbol *s = it.value();
-                    if((!s->value.empty() && s->value[0] == '\"') || s->vtype == ast::VarType::STRING)
+                    if ((!s->value.empty() && s->value[0] == '\"') || s->vtype == ast::VarType::STRING)
                         leftIsString = true;
                 }
             }
 
-            
-            if(!rightIsString) {
+            if (!rightIsString) {
                 auto it = table.lookup(rightResult);
-                if(it.has_value()) {
+                if (it.has_value()) {
                     symbol::Symbol *s = it.value();
-                    if((!s->value.empty() && s->value[0] == '\"') || s->vtype == ast::VarType::STRING)
+                    if ((!s->value.empty() && s->value[0] == '\"') || s->vtype == ast::VarType::STRING)
                         rightIsString = true;
                 }
             }
-     
+
             if (leftIsString && rightIsString) {
                 ir::IRInstruction t(ir::InstructionType::CONCAT, dest, leftResult, rightResult);
                 t.is_allocated = true;
@@ -416,78 +416,79 @@ namespace parse {
                     it.value()->allocated = true;
                 }
             } else if (!leftIsString && !rightIsString) {
-                    table.enter(dest);
-                    auto it = table.lookup(dest);
-                    if(it.has_value()) {
-                        symbol::Symbol *s = it.value();
-                        s->name = dest;
-                        s->vtype = ast::VarType::NUMBER;
-                    }
+                table.enter(dest);
+                auto it = table.lookup(dest);
+                if (it.has_value()) {
+                    symbol::Symbol *s = it.value();
+                    s->name = dest;
+                    s->vtype = ast::VarType::NUMBER;
+                }
 
-                    switch (binOp->op) {
-                        case types::OperatorType::OP_PLUS:
-                            code.emplace_back(ir::InstructionType::ADD, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_MINUS:
-                            code.emplace_back(ir::InstructionType::SUB, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_MUL:
-                            code.emplace_back(ir::InstructionType::MUL, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_DIV:
-                            code.emplace_back(ir::InstructionType::DIV, dest, leftResult, rightResult);
-                            break;                        case types::OperatorType::OP_MOD:
-                            code.emplace_back(ir::InstructionType::MOD, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_LSHIFT:
-                            code.emplace_back(ir::InstructionType::LSHIFT, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_RSHIFT:
-                            code.emplace_back(ir::InstructionType::RSHIFT, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_AND:
-                            code.emplace_back(ir::InstructionType::AND, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_OR:
-                            code.emplace_back(ir::InstructionType::OR, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_XOR:
-                            code.emplace_back(ir::InstructionType::XOR, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_EQ:
-                            code.emplace_back(ir::InstructionType::EQ, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_NEQ:
-                            code.emplace_back(ir::InstructionType::NEQ, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_LT:
-                            code.emplace_back(ir::InstructionType::LT, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_LE:
-                            code.emplace_back(ir::InstructionType::LE, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_GT:
-                            code.emplace_back(ir::InstructionType::GT, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_GE:
-                            code.emplace_back(ir::InstructionType::GE, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_AND_AND: 
-                            code.emplace_back(ir::InstructionType::LOGICAL_AND, dest, leftResult, rightResult);
-                            break;
-                        case types::OperatorType::OP_OR_OR:   
-                            code.emplace_back(ir::InstructionType::LOGICAL_OR, dest, leftResult, rightResult);
-                            break;                        
-                        default:
-                            std::ostringstream stream;
-                            stream << "Error: Unsupported numeric operation: " << static_cast<int>(binOp->op);
-                            throw ir::IRException(stream.str());
-                    }
+                switch (binOp->op) {
+                case types::OperatorType::OP_PLUS:
+                    code.emplace_back(ir::InstructionType::ADD, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_MINUS:
+                    code.emplace_back(ir::InstructionType::SUB, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_MUL:
+                    code.emplace_back(ir::InstructionType::MUL, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_DIV:
+                    code.emplace_back(ir::InstructionType::DIV, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_MOD:
+                    code.emplace_back(ir::InstructionType::MOD, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_LSHIFT:
+                    code.emplace_back(ir::InstructionType::LSHIFT, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_RSHIFT:
+                    code.emplace_back(ir::InstructionType::RSHIFT, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_AND:
+                    code.emplace_back(ir::InstructionType::AND, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_OR:
+                    code.emplace_back(ir::InstructionType::OR, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_XOR:
+                    code.emplace_back(ir::InstructionType::XOR, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_EQ:
+                    code.emplace_back(ir::InstructionType::EQ, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_NEQ:
+                    code.emplace_back(ir::InstructionType::NEQ, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_LT:
+                    code.emplace_back(ir::InstructionType::LT, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_LE:
+                    code.emplace_back(ir::InstructionType::LE, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_GT:
+                    code.emplace_back(ir::InstructionType::GT, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_GE:
+                    code.emplace_back(ir::InstructionType::GE, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_AND_AND:
+                    code.emplace_back(ir::InstructionType::LOGICAL_AND, dest, leftResult, rightResult);
+                    break;
+                case types::OperatorType::OP_OR_OR:
+                    code.emplace_back(ir::InstructionType::LOGICAL_OR, dest, leftResult, rightResult);
+                    break;
+                default:
+                    std::ostringstream stream;
+                    stream << "Error: Unsupported numeric operation: " << static_cast<int>(binOp->op);
+                    throw ir::IRException(stream.str());
+                }
             } else {
                 std::ostringstream stream;
                 stream << "Error: Binary Operator requires both operands to be of string type or both to be of number type. "
-                    << "Found: " << (leftIsString ? "string" : "number") << " + " 
-                    << (rightIsString ? "string" : "number") << ". Use str() to convert.";
+                       << "Found: " << (leftIsString ? "string" : "number") << " + "
+                       << (rightIsString ? "string" : "number") << ". Use str() to convert.";
                 throw ir::IRException(stream.str());
             }
 
@@ -499,12 +500,12 @@ namespace parse {
 
             std::string dest = getNextTempVar();
             if (unaryOp->op == types::OperatorType::OP_TILDE) {
-                code.emplace_back(ir::InstructionType::NOT, dest, result); 
+                code.emplace_back(ir::InstructionType::NOT, dest, result);
             } else if (unaryOp->op == types::OperatorType::OP_NOT) {
-                code.emplace_back(ir::InstructionType::LOGICAL_NOT, dest, result); 
+                code.emplace_back(ir::InstructionType::LOGICAL_NOT, dest, result);
             } else {
-                code.emplace_back(ir::InstructionType::NEG, dest, result); 
-            }   
+                code.emplace_back(ir::InstructionType::NEG, dest, result);
+            }
             lastComputedValue["result"] = dest;
         }
 
@@ -514,23 +515,23 @@ namespace parse {
             table.enterScope(func->name);
 
             for (const auto &param : func->parameters) {
-                table.enter(param.first);  
+                table.enter(param.first);
                 auto p = table.lookup(param.first);
-                if(p.has_value()) {
+                if (p.has_value()) {
                     symbol::Symbol *s = p.value();
                     s->vtype = param.second;
                 }
-                if(param.second == ast::VarType::STRING) {
-                    code.emplace_back(ir::InstructionType::PARAM_STRING, param.first, "");  
-                } else if(param.second == ast::VarType::NUMBER) {
-                    code.emplace_back(ir::InstructionType::PARAM, param.first, "");  
-                } else if(param.second == ast::VarType::POINTER){
+                if (param.second == ast::VarType::STRING) {
+                    code.emplace_back(ir::InstructionType::PARAM_STRING, param.first, "");
+                } else if (param.second == ast::VarType::NUMBER) {
+                    code.emplace_back(ir::InstructionType::PARAM, param.first, "");
+                } else if (param.second == ast::VarType::POINTER) {
                     code.emplace_back(ir::InstructionType::PARAM_POINTER, param.first, "");
                 }
             }
             std::vector<ast::VarType> paramTypes;
-            for (const auto& param : func->parameters) {
-                paramTypes.push_back(param.second); // Assuming parameters are stored as pairs <name, type>     
+            for (const auto &param : func->parameters) {
+                paramTypes.push_back(param.second); // Assuming parameters are stored as pairs <name, type>
             }
             table.enterFunction(func->name, paramTypes, func->return_type);
             for (const auto &stmt : func->body) {
@@ -545,27 +546,27 @@ namespace parse {
             code.emplace_back(ir::InstructionType::DEFINE, func->name, "");
             table.enterScope(func->name);
             for (const auto &param : func->parameters) {
-                table.enter(param.first);  
+                table.enter(param.first);
                 auto p = table.lookup(param.first);
-                if(p.has_value()) {
+                if (p.has_value()) {
                     symbol::Symbol *s = p.value();
                     s->vtype = param.second;
                 }
-                if(param.second == ast::VarType::STRING) {
-                    code.emplace_back(ir::InstructionType::DEF_PARAM_STRING, param.first, "");  
-                } else if(param.second == ast::VarType::NUMBER) {
-                    code.emplace_back(ir::InstructionType::DEF_PARAM, param.first, "");  
-                } else if(param.second == ast::VarType::POINTER) {
+                if (param.second == ast::VarType::STRING) {
+                    code.emplace_back(ir::InstructionType::DEF_PARAM_STRING, param.first, "");
+                } else if (param.second == ast::VarType::NUMBER) {
+                    code.emplace_back(ir::InstructionType::DEF_PARAM, param.first, "");
+                } else if (param.second == ast::VarType::POINTER) {
                     code.emplace_back(ir::InstructionType::DEF_PARAM_POINTER, param.first, "");
                 }
             }
 
             std::vector<ast::VarType> paramTypes;
-            for (const auto& param : func->parameters) {
-                paramTypes.push_back(param.second); // Assuming parameters are stored as pairs <name, type>     
+            for (const auto &param : func->parameters) {
+                paramTypes.push_back(param.second); // Assuming parameters are stored as pairs <name, type>
             }
             table.enterFunction(func->name, paramTypes, func->return_type);
-            //table.enterFunction(func->name, func->parameters.size(), func->return_type);
+            // table.enterFunction(func->name, func->parameters.size(), func->return_type);
             table.exitScope();
         }
 
@@ -574,11 +575,11 @@ namespace parse {
             code.emplace_back(ir::InstructionType::LOAD_CONST, tempVar, literal->value);
             table.enter(tempVar);
             auto value = table.lookup(tempVar);
-            if(value.has_value()) {
+            if (value.has_value()) {
                 symbol::Symbol *v = value.value();
                 v->value = literal->value;
                 v->name = tempVar;
-                if(literal->value.empty() && literal->value[0] == '\"') {
+                if (literal->value.empty() && literal->value[0] == '\"') {
                     v->vtype = ast::VarType::STRING;
                 } else {
                     v->vtype = ast::VarType::NUMBER;
@@ -595,12 +596,12 @@ namespace parse {
 
                 table.enter(tempVar);
                 auto v = table.lookup(tempVar);
-                if(v.has_value()) {
+                if (v.has_value()) {
                     symbol::Symbol *vx = v.value();
                     vx->name = tempVar;
                     vx->vtype = identifier->vtype;
                     auto cpx = table.lookup(identifier->name);
-                    if(cpx.has_value()) {
+                    if (cpx.has_value()) {
                         vx->value = cpx.value()->value;
                         vx->vtype = cpx.value()->vtype;
                     } else {
@@ -623,10 +624,10 @@ namespace parse {
             std::string callDest = getNextTempVar();
             table.enter(callDest);
             auto e = table.lookup(callDest);
-            if(e.has_value()) {
+            if (e.has_value()) {
                 symbol::Symbol *s = e.value();
                 s->name = callDest;
-                if(call->functionName == "str") {
+                if (call->functionName == "str") {
                     s->vtype = ast::VarType::STRING;
                 }
             }
@@ -634,17 +635,17 @@ namespace parse {
             if (functionReturnValues.find(call->functionName) != functionReturnValues.end()) {
                 std::string transfer_var = functionReturnValues[call->functionName];
                 ir::IRInstruction instr(ir::InstructionType::CALL, callDest, call->functionName, argRegisters);
-                instr.transfer_var = transfer_var;  
+                instr.transfer_var = transfer_var;
                 code.push_back(instr);
             } else {
                 code.emplace_back(ir::InstructionType::CALL, callDest, call->functionName, argRegisters);
             }
-         lastComputedValue["result"] = callDest;
+            lastComputedValue["result"] = callDest;
         }
 
         std::unordered_map<std::string, std::string> lastComputedValue;
     };
 
-}
+} // namespace parse
 
 #endif

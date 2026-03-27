@@ -1,48 +1,48 @@
-#include<iostream>
-#include<string>
-#include<fstream>
-#include<sstream>
-#include<unordered_map>
-#include<cstdlib>
-#include<random>
-#include<ctime>
-#include<print>
-#include<algorithm>
-#include<vector>
-#include<ranges>
-#include<set>
-#include<iterator>
-#include<cctype>
-#include"argz.hpp"
+#include "argz.hpp"
+#include <algorithm>
+#include <cctype>
+#include <cstdlib>
+#include <ctime>
+#include <fstream>
+#include <iostream>
+#include <iterator>
+#include <print>
+#include <random>
+#include <ranges>
+#include <set>
+#include <sstream>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 std::string reverse_string(const std::string &);
 std::string shuffle_string(const std::string &);
 
-template<typename T>
+template <typename T>
 void echo_words(const T &m) {
-    for(auto &&value : m) {
-        if(!value.empty())
+    for (auto &&value : m) {
+        if (!value.empty())
             std::print("{} ", value);
     }
     std::print("\n");
 }
 
-template<typename T, typename F>
+template <typename T, typename F>
 void echo_words(const T &m, F func, const bool sorted = false) {
     std::vector<std::string> cap;
     cap.resize(m.size());
     for (auto &&value : m | std::views::transform(func)) {
         cap.push_back(value);
     }
-    if(sorted) {
+    if (sorted) {
         std::sort(cap.begin(), cap.end());
     }
     echo_words(cap);
 }
 
 std::string reverse_string(const std::string &text) {
-	std::string data(text.rbegin(), text.rend());
-	return data;
+    std::string data(text.rbegin(), text.rend());
+    return data;
 }
 
 std::string shuffle_string(const std::string &text) {
@@ -76,28 +76,28 @@ std::string shuffle_string(const std::string &text) {
     return shuffled;
 }
 
-template<typename T>
+template <typename T>
 void parse_words(const std::string &s, T out, const int case_mode = 0) {
     size_t i = 0;
     std::string word;
     size_t index = 0;
     while (i < s.length()) {
         char c = s[i++];
-        if((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
-            if(case_mode == 0)
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+            if (case_mode == 0)
                 word += c;
-            else if(case_mode == 1)
+            else if (case_mode == 1)
                 word += toupper(c);
-            else if(case_mode == 2)
+            else if (case_mode == 2)
                 word += tolower(c);
         } else {
-            if(!word.empty()) {
+            if (!word.empty()) {
                 *out++ = word;
                 word.clear();
             }
         }
     }
-    if(!word.empty())
+    if (!word.empty())
         *out++ = word;
 }
 
@@ -121,90 +121,89 @@ int main(int argc, char **argv) {
         .addOptionSingle('n', "no operation keep the same")
         .addOptionSingle('U', "upper case")
         .addOptionSingle('L', "lower case")
-        .addOptionSingleValue('i', "input file")
-        ;
+        .addOptionSingleValue('i', "input file");
     Args args;
     Argument<std::string> arg;
-	int value = 0;
+    int value = 0;
     try {
-        while((value = parser.proc(arg)) != -1) {
-            switch(value) {
-                case 'h':
-                    parser.help(std::cout);
-                    break;
-                case 'u':
-                    args.uniq = true;
-                    break;
-                case 's':
-                    args.mode = 1;
-                    break;
-                case 'r':
-                    args.mode = 2;
-                    break;
-                case 'n':
-                    args.mode = 3;
-                    break;
-                case 'i':
-                    args.source_file = arg.arg_value;
-                    break;
-                case 'c':
-                    args.static_order = true;
-                    break;
-                case 'o':
-                    args.sorted_ = true;
-                    break;
-                case 'U':
-                    args.value_case = 1;
-                    break;
-                case 'L':
-                    args.value_case = 2;
-                    break;
+        while ((value = parser.proc(arg)) != -1) {
+            switch (value) {
+            case 'h':
+                parser.help(std::cout);
+                break;
+            case 'u':
+                args.uniq = true;
+                break;
+            case 's':
+                args.mode = 1;
+                break;
+            case 'r':
+                args.mode = 2;
+                break;
+            case 'n':
+                args.mode = 3;
+                break;
+            case 'i':
+                args.source_file = arg.arg_value;
+                break;
+            case 'c':
+                args.static_order = true;
+                break;
+            case 'o':
+                args.sorted_ = true;
+                break;
+            case 'U':
+                args.value_case = 1;
+                break;
+            case 'L':
+                args.value_case = 2;
+                break;
             }
         }
-    } catch(const ArgException<std::string> &e) {
+    } catch (const ArgException<std::string> &e) {
         std::println(stderr, "Exception: {}", e.text());
         return EXIT_FAILURE;
-    } catch(const std::exception &e) {
+    } catch (const std::exception &e) {
         std::println(stderr, "std::exception: {}", e.what());
         return EXIT_FAILURE;
     }
-    if(args.mode == 0) {
+    if (args.mode == 0) {
         std::println(stderr, "You must provide an operation option");
         parser.help(std::cout);
         return EXIT_FAILURE;
     }
-    if(args.value_case < 0 || args.value_case > 2) {
+    if (args.value_case < 0 || args.value_case > 2) {
         std::println(stderr, "Value case must be 0-2");
         return EXIT_FAILURE;
     }
-    if(args.source_file.empty()) {
+    if (args.source_file.empty()) {
         std::println(stderr, "You must provide a filename");
         parser.help(std::cout);
         return EXIT_FAILURE;
     }
     std::fstream file;
     file.open(args.source_file, std::ios::in);
-    if(!file.is_open()) {
+    if (!file.is_open()) {
         std::println(stderr, "Error: file not found/could not open: {}", argv[1]);
         return EXIT_FAILURE;
     }
     std::ostringstream stream;
     stream << file.rdbuf();
-    if(args.uniq == false) {
+    if (args.uniq == false) {
         std::vector<std::string> words;
-        parse_words(stream.str(), std::back_inserter(words), args.value_case);    
+        parse_words(stream.str(), std::back_inserter(words), args.value_case);
         static std::random_device rd;
         static std::mt19937 gen(rd());
-        if(!args.static_order)
+        if (!args.static_order)
             std::shuffle(words.begin(), words.end(), gen);
-        if(args.mode == 3)
+        if (args.mode == 3)
             echo_words(words);
         else
             echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string, args.sorted_);
     } else {
         std::set<std::string> words;
         parse_words(stream.str(), std::inserter(words, words.end()), args.value_case);
-        if(args.mode == 3) 
+        if (args.mode == 3)
             echo_words(words);
         else
             echo_words(words, (args.mode == 2) ? reverse_string : shuffle_string, args.sorted_);

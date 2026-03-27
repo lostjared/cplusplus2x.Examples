@@ -1,36 +1,48 @@
 #ifndef __CODE_HPP__
 #define __CODE_HPP__
-#include<iostream>
-#include<iomanip>
-#include<string>
-#include<cstdlib>
-#include<cstring>
-#include<vector>
-#include<algorithm>
-#include<fstream>
-#include<sstream>
-#include<bitset>
+#include "icode.hpp"
 #include "lexer.hpp"
 #include "symbol.hpp"
-#include "icode.hpp"
+#include <algorithm>
+#include <bitset>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
 
 extern std::ostringstream stream;
 
 namespace interp {
-    
+
     class Runtime_E {
-    public:
-        Runtime_E(const std::string &t) : text(t) { }
+      public:
+        Runtime_E(const std::string &t) : text(t) {}
         std::string text;
     };
-    
+
     // address modes
-    enum { IMMEDIATE=1,ZEROPAGE,ZEROPAGE_X,ZEROPAGE_Y,ABSOULTE,ABSOULTE_X,ABSOULTE_Y,IMPLIED,RELATIVE,INDIRECT_I,INDEXED_I,ACCUMULATOR,INDIRECT };
-    
+    enum { IMMEDIATE = 1,
+           ZEROPAGE,
+           ZEROPAGE_X,
+           ZEROPAGE_Y,
+           ABSOULTE,
+           ABSOULTE_X,
+           ABSOULTE_Y,
+           IMPLIED,
+           RELATIVE,
+           INDIRECT_I,
+           INDEXED_I,
+           ACCUMULATOR,
+           INDIRECT };
+
     extern const char *add_mode[];
-    
+
     class TextLine {
-    public:
+      public:
         TextLine();
         TextLine(int index, std::string text);
         TextLine(const TextLine &t);
@@ -41,18 +53,18 @@ namespace interp {
         int index;
         std::string text;
     };
-    
+
     class Code {
-    public:
+      public:
         Code();
         bool running() const { return run; }
-        void start(bool debug=false);
+        void start(bool debug = false);
         void step();
         void stop();
         void end();
         void pause();
         void cont();
-        void execute(bool debug=false);
+        void execute(bool debug = false);
         void clear();
         void print();
         void reset();
@@ -65,29 +77,30 @@ namespace interp {
         icode::Processor proc;
         std::vector<uint8_t> stack;
         std::vector<uint32_t> in_stack;
-        uint8_t mem[0xFFFF+1];
+        uint8_t mem[0xFFFF + 1];
         std::vector<icode::Instruction> instruct;
-    private:
+
+      private:
         void procInstruct(icode::Instruction &i);
         bool run;
     };
 
     typedef void (*call)(Code &c);
-    
+
     struct at_code {
         unsigned char op_code;
         int address_mode;
         icode::opc p_code;
     };
-    
+
     extern at_code m_code[];
-    
+
     struct iCodeInstruction {
         icode::opc opcode;
         call call_back;
         unsigned int mode;
     };
-    
+
     void i_adc(Code &c);
     void i_and(Code &c);
     void i_asl(Code &c);
@@ -147,20 +160,20 @@ namespace interp {
     void i_txa(Code &c);
     void i_txs(Code &c);
     void i_tya(Code &c);
-    
+
     extern iCodeInstruction inst[];
     void testcodes();
     extern std::unordered_map<std::string, int> label_table;
     extern std::unordered_map<int, int> label_line_table;
-    
+
     void inputText(std::vector<lex::Token> &tokens, std::string text);
     bool saveLineSource(const std::string &text);
     bool openLineSource(const std::string &text);
     void insertText(std::vector<lex::Token> &tokens, const TextLine &in);
     bool procLine(const TextLine &text, Code &code);
     bool checkInstruction(std::vector<lex::Token> &tokens, const TextLine &text);
-    
+
     extern std::vector<TextLine> lines;
-}
+} // namespace interp
 
 #endif

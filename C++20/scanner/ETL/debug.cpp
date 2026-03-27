@@ -1,8 +1,8 @@
-#include<iostream>
-#include<fstream>
-#include<sstream>
-#include"types.hpp"
-#include"ir.hpp"
+#include "ir.hpp"
+#include "types.hpp"
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 std::string htmlPage_Header = R"(
 <!DOCTYPE html>
@@ -46,18 +46,18 @@ void outputDebugInfo(std::ostream &file, symbol::SymbolTable &table, const ir::I
     file << "<table>\n";
     file << "<tr><th>Index</th><th>Instruction</th>\n";
     uint64_t index = 0;
-      for(const auto &i : code) {
+    for (const auto &i : code) {
         file << "<tr><td>" << index << "</td><td>" << i.toString() << "</td></tr>\n";
         index++;
     }
     file << "</table>\n";
     file << "<div class=\"centert\"><h1>Symbol Table</h1></div>\n";
-    file <<  "<table>\n";
+    file << "<table>\n";
     file << "<tr><th>Function</th><th>Symbol</th><th>Type</th></tr>\n";
     std::string curFunction;
-    for(const auto  &t: table.getTable()) {
+    for (const auto &t : table.getTable()) {
         curFunction = t.first;
-        for(const auto &s : t.second) {
+        for (const auto &s : t.second) {
             file << "<tr><td>" << curFunction << "</td><td>" << s.first << "</td><td>" << ast::VarString.at(static_cast<int>(s.second.vtype)) << "</td></tr>\n";
         }
     }

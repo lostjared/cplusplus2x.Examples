@@ -2,11 +2,10 @@
 
 namespace interp {
 
-	void Code::clear() {
-        //clear code tree
-        
-        // clear symbol table
-        //symbols.clear();
-	}
-}
+    void Code::clear() {
+        // clear code tree
 
+        // clear symbol table
+        // symbols.clear();
+    }
+} // namespace interp

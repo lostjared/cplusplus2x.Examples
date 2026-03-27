@@ -1,9 +1,8 @@
-#include<SDL3/SDL.h>
-#include<glad/glad.h>
-#include<print>
+#include <SDL3/SDL.h>
+#include <glad/glad.h>
+#include <print>
 
-static void set_gl_attributes()
-{
+static void set_gl_attributes() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
@@ -20,13 +19,11 @@ static void set_gl_attributes()
 #endif
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     (void)argc;
     (void)argv;
 
-    if (!SDL_Init(SDL_INIT_VIDEO))
-    {
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::println(stderr, "SDL_Init failed: {}", SDL_GetError());
         return 1;
     }
@@ -37,19 +34,16 @@ int main(int argc, char **argv)
         "SDL3 OpenGL 4.6",
         1280,
         720,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY
-    );
+        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
 
-    if (!window)
-    {
+    if (!window) {
         std::println(stderr, "SDL_CreateWindow failed: {}", SDL_GetError());
         SDL_Quit();
         return 1;
     }
 
     SDL_GLContext glctx = SDL_GL_CreateContext(window);
-    if (!glctx)
-    {
+    if (!glctx) {
         std::println(stderr, "SDL_GL_CreateContext failed: {}", SDL_GetError());
         SDL_DestroyWindow(window);
         SDL_Quit();
@@ -59,8 +53,7 @@ int main(int argc, char **argv)
     SDL_GL_MakeCurrent(window, glctx);
     SDL_GL_SetSwapInterval(1);
 
-    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
-    {
+    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
         std::println(stderr, "gladLoadGLLoader failed\n");
         SDL_GL_DestroyContext(glctx);
         SDL_DestroyWindow(window);
@@ -77,17 +70,12 @@ int main(int argc, char **argv)
     std::println("Renderer: {}", (const char *)glGetString(GL_RENDERER));
 
     bool running = true;
-    while (running)
-    {
+    while (running) {
         SDL_Event e;
-        while (SDL_PollEvent(&e))
-        {
-            if (e.type == SDL_EVENT_QUIT || (e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_ESCAPE))
-            {
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_EVENT_QUIT || (e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_ESCAPE)) {
                 running = false;
-            }
-            else if (e.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED)
-            {
+            } else if (e.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
                 int pw = e.window.data1;
                 int ph = e.window.data2;
                 glViewport(0, 0, pw, ph);

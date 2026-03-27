@@ -1,12 +1,12 @@
-#include"mx_event.hpp"
-#include<vector>
-#include"mx_window.hpp"
+#include "mx_event.hpp"
+#include "mx_window.hpp"
+#include <vector>
 
 namespace mx {
 
     bool EventHandler::pumpEvent(SDL_Event &e) {
 
-         if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
+        if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
             int x = e.button.x;
             int y = e.button.y;
             checkWindowClick(x, y);
@@ -22,12 +22,12 @@ namespace mx {
     }
 
     void EventHandler::removeWindow(Window *window) {
-        for(auto it = window_stack.begin(); it != window_stack.end(); ++it) {
+        for (auto it = window_stack.begin(); it != window_stack.end(); ++it) {
             Window *win = *it;
-            if(win == window) {
+            if (win == window) {
                 std::cout << "MasterX: Removing Window: " << window->title << "\n";
                 window_stack.erase(it);
-                if(!window_stack.empty()) {
+                if (!window_stack.empty()) {
                     setFocus(window_stack.back());
                 } else {
                     clearFocus();
@@ -66,18 +66,18 @@ namespace mx {
 
     void EventHandler::setFocus(Window *window) {
         int index = 0;
-        for(auto it = window_stack.begin(); it != window_stack.end(); ++it) {
+        for (auto it = window_stack.begin(); it != window_stack.end(); ++it) {
             Window *win = *it;
-            if(win == window) {
+            if (win == window) {
                 window_stack.erase(window_stack.begin() + index);
                 window_stack.push_back(window);
             }
-            index ++;
+            index++;
         }
     }
 
     void EventHandler::clearFocus() {
-        if(window_stack.empty()) {
+        if (window_stack.empty()) {
             cur_focus = 0;
         }
     }
@@ -92,4 +92,4 @@ namespace mx {
     void EventHandler::addWindow(Window *window) {
         window_stack.push_back(window);
     }
-}
+} // namespace mx

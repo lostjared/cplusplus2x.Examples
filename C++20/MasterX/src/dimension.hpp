@@ -1,24 +1,24 @@
 #ifndef _DIMENSION_H
 #define _DIMENSION_H
 
+#include "mx_event.hpp"
 #include "window.hpp"
-#include<memory>
-#include<vector>
-#include<string>
-#include<iostream>
-#include<functional>
-#include"mx_event.hpp"
+#include <functional>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace mx {
 
     extern bool cursor_shown;
 
-     class Window;
-     class SystemBar;
-     class MenuBar;
-    
+    class Window;
+    class SystemBar;
+    class MenuBar;
+
     class DimensionContainer : public Screen {
-    public:
+      public:
         std::string name = "Default";
         DimensionContainer(mxApp &app);
         virtual ~DimensionContainer();
@@ -38,7 +38,8 @@ namespace mx {
         bool hoveringX = false;
         SDL_Texture *wallpaper, *nextWallpaper;
         EventHandler events;
-    private:
+
+      private:
         SystemBar *system_bar;
         bool active = false;
         bool visible = false;
@@ -47,26 +48,26 @@ namespace mx {
         int nextDimension = -1;
         int transitionAlpha = 255;
         int transitionSpeed = 3;
-        
     };
-    
+
     class Terminal;
     class Label;
     class Button;
     class Image;
 
     class Dimension : public Screen {
-    public:
+      public:
         Dimension(mxApp &app);
         virtual ~Dimension();
         void setCurrentDimension(int dim);
-        int  getCurrentDimension() const;
+        int getCurrentDimension() const;
         virtual void draw(mxApp &app) override;
         virtual bool event(mxApp &app, SDL_Event &e) override;
         void drawDash(mxApp &app);
         Screen *getDimension();
         Screen *getDimension(int index);
-    private:
+
+      private:
         SDL_Texture *wallpaper;
         std::vector<std::unique_ptr<Screen>> objects;
         std::vector<std::unique_ptr<Screen>> dimensions;
@@ -86,6 +87,6 @@ namespace mx {
         Terminal *termx;
     };
 
-}
+} // namespace mx
 
 #endif

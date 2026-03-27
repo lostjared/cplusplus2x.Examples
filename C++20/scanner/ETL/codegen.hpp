@@ -1,26 +1,26 @@
 #ifndef _CODEGEN_H_
 #define _CODEGEN_H_
 
-#include <unordered_map>
-#include <unordered_set>
-#include <stack>
-#include <sstream>
-#include <vector>
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include <regex>
-#include <set>
+#include "clib.hpp"
 #include "ir.hpp"
 #include "symbol.hpp"
-#include "clib.hpp"
+#include <algorithm>
+#include <iostream>
+#include <regex>
+#include <set>
+#include <sstream>
+#include <stack>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 namespace codegen {
-    
+
     enum class ReturnType {
         INTEGER,
         POINTER,
-        VOID, 
+        VOID,
         FLOAT,
         DOUBLE,
     };
@@ -37,13 +37,13 @@ namespace codegen {
         VariableType type;
         bool isAllocated;
         std::string vname, text;
-        VariableInfo(VariableType t, bool alloc = false, const std::string& name = "", const std::string &txt = "")
+        VariableInfo(VariableType t, bool alloc = false, const std::string &name = "", const std::string &txt = "")
             : type(t), isAllocated(alloc), vname(name), text(txt) {}
-        VariableInfo() : type(VariableType::VAR), isAllocated(false), vname(""), text("") {} 
+        VariableInfo() : type(VariableType::VAR), isAllocated(false), vname(""), text("") {}
     };
 
     class CodeEmitter {
-    public:
+      public:
         CodeEmitter(symbol::SymbolTable &symbolTable, std::unordered_map<std::string, int> &functionVarCount)
             : table(symbolTable), functionLocalVarCount(functionVarCount), currentStackOffset{}, maxStackUsage{} {}
 
@@ -53,14 +53,14 @@ namespace codegen {
             analyzeTempVarUsage(code);
             emitDataSection(output);
             bool has_init = false;
-            for(auto &it : code) {
-                if(it.type == ir::InstructionType::LABEL && it.dest == "init") {
+            for (auto &it : code) {
+                if (it.type == ir::InstructionType::LABEL && it.dest == "init") {
                     has_init = true;
                     break;
                 }
             }
             curFunction = "main";
-            if(has_init == true) {
+            if (has_init == true) {
                 emitPreamble(output);
                 emitCallInit(output);
             } else {
@@ -77,7 +77,7 @@ namespace codegen {
             return applyPeephole(output);
         }
 
-    private:
+      private:
         symbol::SymbolTable &table;
         symbol::SymbolTable local;
         std::unordered_map<std::string, int> &functionLocalVarCount;
@@ -89,44 +89,44 @@ namespace codegen {
         std::unordered_map<std::string, std::unordered_map<std::string, std::string>> valueLocations;
         std::unordered_map<std::string, std::unordered_map<std::string, int>> valueToStackOffset;
         std::unordered_map<std::string, int> tempVarCountPerFunction;
-        std::unordered_map<std::string, std::unordered_set<std::string>> allocatedMemory;  
+        std::unordered_map<std::string, std::unordered_set<std::string>> allocatedMemory;
         std::unordered_map<std::string, std::unordered_map<std::string, VariableInfo>> variableInfo;
         std::unordered_map<std::string, std::set<std::string>> ownedMemory;
         std::string curFunction;
 
         void collectLiteralsAndConstants(const ir::IRCode &code) {
-        
-           static int counter = 1;
 
-           for (const auto &instr : code) {
+            static int counter = 1;
 
-                if(instr.type == ir::InstructionType::LABEL) {
+            for (const auto &instr : code) {
+
+                if (instr.type == ir::InstructionType::LABEL) {
                     curFunction = instr.dest;
                     continue;
                 }
 
                 if (instr.type == ir::InstructionType::LOAD_CONST || instr.type == ir::InstructionType::SET_CONST) {
                     if (instr.op1[0] == '\"') {
-                        std::string label =  instr.dest;
+                        std::string label = instr.dest;
                         stringLiterals[curFunction][instr.op1] = label;
                         variableInfo[curFunction][instr.dest] = VariableInfo(VariableType::STRING_CONST, false, label, instr.op1);
                         local.enter(label);
                         auto it = local.lookup(label);
-                        if(it.has_value()) {
+                        if (it.has_value()) {
                             symbol::Symbol *s = it.value();
                             s->name = label;
                             s->value = instr.op1;
                         }
                     } else {
                         std::string label = instr.dest;
-                        if(numericConstants[curFunction].find(instr.op1) == numericConstants[curFunction].end()) {
+                        if (numericConstants[curFunction].find(instr.op1) == numericConstants[curFunction].end()) {
                             numericConstants[curFunction][instr.op1] = label;
                             variableInfo[curFunction][instr.dest] = VariableInfo(VariableType::NUMERIC_CONST, false, label, instr.op1);
                             local.enter(label);
                             auto it = local.lookup(label);
-                            if(it.has_value()) {
+                            if (it.has_value()) {
                                 symbol::Symbol *s = it.value();
-                                 s->name = label;
+                                s->name = label;
                                 s->value = instr.op1;
                             }
                         }
@@ -153,7 +153,7 @@ namespace codegen {
                         tempVarIndices[instr.dest] = index;
                         maxStackUsage[currentFunction] += 8;
                     }
-                } 
+                }
             }
 
             for (auto &entry : maxStackUsage) {
@@ -163,15 +163,15 @@ namespace codegen {
 
         void emitDataSection(std::ostringstream &output) {
 #ifdef __APPLE__
-output << ".section __TEXT,__cstring\n";
+            output << ".section __TEXT,__cstring\n";
 #else
-output << ".section .data\n";
+            output << ".section .data\n";
 #endif
-            for(auto &func : variableInfo) {
-                for(const auto &v : func.second) {
-                    if(v.second.type == VariableType::NUMERIC_CONST) {
-                        //output << v.second.vname << ": .quad " << v.second.text << "\n";
-                    } else if(v.second.type == VariableType::STRING_CONST) {
+            for (auto &func : variableInfo) {
+                for (const auto &v : func.second) {
+                    if (v.second.type == VariableType::NUMERIC_CONST) {
+                        // output << v.second.vname << ": .quad " << v.second.text << "\n";
+                    } else if (v.second.type == VariableType::STRING_CONST) {
                         output << v.second.vname << ": .asciz " << ir::escapeString(v.second.text) << "\n";
                     }
                 }
@@ -214,19 +214,18 @@ output << ".section .data\n";
             output << "    movq $0, %rax\n";
             output << "    leave\n";
             output << "    ret\n";
-            
         }
 
         void emitFunctionPrologue(std::ostringstream &output, const std::string &functionName) {
             output << "    pushq %rbp\n";
             output << "    movq %rsp, %rbp\n";
 
-            int stackSpace = maxStackUsage[functionName] + 64; 
+            int stackSpace = maxStackUsage[functionName] + 64;
             if ((stackSpace % 16) != 0) {
-                stackSpace += 8; 
+                stackSpace += 8;
             }
 
-           if (stackSpace > 0) {
+            if (stackSpace > 0) {
                 output << "    subq $" << stackSpace << ", %rsp\n";
             }
 
@@ -236,7 +235,6 @@ output << ".section .data\n";
         void emitFunctionEpilogue(std::ostringstream &output) {
             output << "    leave\n";
             output << "    ret\n";
-            
         }
 
         void emitCode(const ir::IRCode &code, std::ostringstream &output) {
@@ -248,129 +246,128 @@ output << ".section .data\n";
                 }
 
                 switch (instr.type) {
-                    case ir::InstructionType::ADD:
-                        emitBinaryOp(output, instr, "addq");
-                        break;
-                    case ir::InstructionType::SUB:
-                        emitBinaryOp(output, instr, "subq");
-                        break;
-                    case ir::InstructionType::MUL:
-                        emitBinaryOp(output, instr, "imulq");
-                        break;
-                    case ir::InstructionType::DIV:
-                        emitDiv(output, instr);
-                        break;
-                    case ir::InstructionType::ASSIGN:
-                        emitAssign(output, instr);
-                        break;
-                    case ir::InstructionType::LOAD_CONST:
-                        emitLoadConst(output, instr);
-                        break;
-                    case ir::InstructionType::LOAD_VAR:
-                        emitLoadVar(output, instr);
-                        break;
-                    case ir::InstructionType::NEG:
-                        emitNeg(output, instr);
-                        break;
-                    case ir::InstructionType::NOT:
-                        emitNot(output, instr);
-                        break;
-                    case ir::InstructionType::CALL:
-                        emitCall(output, instr);
-                        break;
-                    case ir::InstructionType::LABEL:
-                        emitLabel(output, instr);
-                        break;
-                    case ir::InstructionType::RETURN:
-                        emitReturn(output, instr);
-                        break;
-                    case ir::InstructionType::CONCAT:
-                        emitConcat(output, instr);
-                        break;
-                    case ir::InstructionType::PARAM:
-                        emitParam(output, instr);
-                        break;
-                    case ir::InstructionType::PARAM_STRING:
-                        emitParamString(output, instr);
-                        break;
-                    case ir::InstructionType::DEF_PARAM:
-                        emitDefParam(output, instr);
-                        break;
-                    case ir::InstructionType::DEF_PARAM_STRING:
-                        emitDefParamString(output, instr);
-                        break;
-                    case ir::InstructionType::DEFINE:
-                        break;
-                    case ir::InstructionType::MOD:
-                        emitMod(output, instr);
-                        break;
-                    case ir::InstructionType::AND:
-                        emitAnd(output, instr);
-                        break;
-                    case ir::InstructionType::XOR:
-                        emitXor(output, instr);
-                        break;
-                    case ir::InstructionType::OR:
-                        emitOr(output, instr);
-                        break;
-                    case ir::InstructionType::LSHIFT:
-                        emitLShift(output, instr); 
-                        break;
-                    case ir::InstructionType::RSHIFT:
-                        emitRShift(output, instr);
-                        break; 
-                    case ir::InstructionType::EQ:  
-                        emitEq(output, instr);
-                        break;
-                    case ir::InstructionType::NEQ: 
-                        emitNeq(output, instr);
-                        break;
-                    case ir::InstructionType::LT:  
-                        emitLt(output, instr);
-                        break;
-                    case ir::InstructionType::LE:  
-                        emitLe(output, instr);
-                        break;
-                    case ir::InstructionType::GT:  
-                        emitGt(output, instr);
-                        break;
-                    case ir::InstructionType::GE:  
-                        emitGe(output, instr);
-                        break;
-                    case ir::InstructionType::LOGICAL_AND:  
-                        emitLogicalAnd(output, instr);
-                        break;
-                    case ir::InstructionType::LOGICAL_OR:  
-                        emitLogicalOr(output, instr);
-                        break;
-                    case ir::InstructionType::SUB_LABEL:
-                        emitSubLabel(output, instr);
-                        break;
-                    case ir::InstructionType::JUMP:
-                        emitJump(output, instr);
-                        break;
-                    case ir::InstructionType::SET:
-                        emitSet(output, instr);
-                        break;  
-                    case ir::InstructionType::SET_CONST:
-                        emitSetConst(output, instr);
-                        break;
-                    case ir::InstructionType::LOGICAL_NOT:
-                        emitLogicalNot(output, instr);
-                        break;
-                    case ir::InstructionType::PARAM_POINTER:
-                        emitParamPointer(output, instr);
-                        break;
-                    case ir::InstructionType::DEF_PARAM_POINTER:
-                        emitDefParamPointer(output, instr);
-                        break;
-                    default:
-                        std::cerr << "Unsupported IR Instruction: " << instr.toString() << std::endl;
-                        break;
+                case ir::InstructionType::ADD:
+                    emitBinaryOp(output, instr, "addq");
+                    break;
+                case ir::InstructionType::SUB:
+                    emitBinaryOp(output, instr, "subq");
+                    break;
+                case ir::InstructionType::MUL:
+                    emitBinaryOp(output, instr, "imulq");
+                    break;
+                case ir::InstructionType::DIV:
+                    emitDiv(output, instr);
+                    break;
+                case ir::InstructionType::ASSIGN:
+                    emitAssign(output, instr);
+                    break;
+                case ir::InstructionType::LOAD_CONST:
+                    emitLoadConst(output, instr);
+                    break;
+                case ir::InstructionType::LOAD_VAR:
+                    emitLoadVar(output, instr);
+                    break;
+                case ir::InstructionType::NEG:
+                    emitNeg(output, instr);
+                    break;
+                case ir::InstructionType::NOT:
+                    emitNot(output, instr);
+                    break;
+                case ir::InstructionType::CALL:
+                    emitCall(output, instr);
+                    break;
+                case ir::InstructionType::LABEL:
+                    emitLabel(output, instr);
+                    break;
+                case ir::InstructionType::RETURN:
+                    emitReturn(output, instr);
+                    break;
+                case ir::InstructionType::CONCAT:
+                    emitConcat(output, instr);
+                    break;
+                case ir::InstructionType::PARAM:
+                    emitParam(output, instr);
+                    break;
+                case ir::InstructionType::PARAM_STRING:
+                    emitParamString(output, instr);
+                    break;
+                case ir::InstructionType::DEF_PARAM:
+                    emitDefParam(output, instr);
+                    break;
+                case ir::InstructionType::DEF_PARAM_STRING:
+                    emitDefParamString(output, instr);
+                    break;
+                case ir::InstructionType::DEFINE:
+                    break;
+                case ir::InstructionType::MOD:
+                    emitMod(output, instr);
+                    break;
+                case ir::InstructionType::AND:
+                    emitAnd(output, instr);
+                    break;
+                case ir::InstructionType::XOR:
+                    emitXor(output, instr);
+                    break;
+                case ir::InstructionType::OR:
+                    emitOr(output, instr);
+                    break;
+                case ir::InstructionType::LSHIFT:
+                    emitLShift(output, instr);
+                    break;
+                case ir::InstructionType::RSHIFT:
+                    emitRShift(output, instr);
+                    break;
+                case ir::InstructionType::EQ:
+                    emitEq(output, instr);
+                    break;
+                case ir::InstructionType::NEQ:
+                    emitNeq(output, instr);
+                    break;
+                case ir::InstructionType::LT:
+                    emitLt(output, instr);
+                    break;
+                case ir::InstructionType::LE:
+                    emitLe(output, instr);
+                    break;
+                case ir::InstructionType::GT:
+                    emitGt(output, instr);
+                    break;
+                case ir::InstructionType::GE:
+                    emitGe(output, instr);
+                    break;
+                case ir::InstructionType::LOGICAL_AND:
+                    emitLogicalAnd(output, instr);
+                    break;
+                case ir::InstructionType::LOGICAL_OR:
+                    emitLogicalOr(output, instr);
+                    break;
+                case ir::InstructionType::SUB_LABEL:
+                    emitSubLabel(output, instr);
+                    break;
+                case ir::InstructionType::JUMP:
+                    emitJump(output, instr);
+                    break;
+                case ir::InstructionType::SET:
+                    emitSet(output, instr);
+                    break;
+                case ir::InstructionType::SET_CONST:
+                    emitSetConst(output, instr);
+                    break;
+                case ir::InstructionType::LOGICAL_NOT:
+                    emitLogicalNot(output, instr);
+                    break;
+                case ir::InstructionType::PARAM_POINTER:
+                    emitParamPointer(output, instr);
+                    break;
+                case ir::InstructionType::DEF_PARAM_POINTER:
+                    emitDefParamPointer(output, instr);
+                    break;
+                default:
+                    std::cerr << "Unsupported IR Instruction: " << instr.toString() << std::endl;
+                    break;
                 }
             }
         }
-
 
         void emitLogicalNot(std::ostringstream &output, const ir::IRInstruction &instr) {
             loadToRegister(output, instr.op1, "%rax");
@@ -383,19 +380,19 @@ output << ".section .data\n";
         void emitSet(std::ostringstream &output, const ir::IRInstruction &instr) {
             variableInfo[curFunction][instr.dest].type = variableInfo[curFunction][instr.op1].type;
             auto val = table.lookup(instr.dest);
-            if(val.has_value()) {
+            if (val.has_value()) {
                 auto loc = table.lookup(instr.op1);
-                if(loc.has_value()) {
+                if (loc.has_value()) {
                     val.value()->vtype = loc.value()->vtype;
                 }
                 auto val = ownedMemory[curFunction].find(instr.op1);
-                if(val != ownedMemory[curFunction].end()) {
+                if (val != ownedMemory[curFunction].end()) {
                     ownedMemory[curFunction].erase(val);
                     ownedMemory[curFunction].insert(instr.dest);
                 }
                 output << "# load " << instr.op1 << " to " << instr.dest << "\n";
-                output << "    movq "<< getOperand(instr.op1) << ", %rcx\n";
-                output << "    movq " << "%rcx, " << getOperand(instr.dest)<< "\n";
+                output << "    movq " << getOperand(instr.op1) << ", %rcx\n";
+                output << "    movq " << "%rcx, " << getOperand(instr.dest) << "\n";
             }
         }
 
@@ -404,7 +401,7 @@ output << ".section .data\n";
             if (instr.op1[0] == '\"') {
                 std::string label = stringLiterals[curFunction][instr.op1];
                 variableInfo[curFunction][instr.dest].type = VariableType::STRING_CONST;
-                if(loc.has_value()) {
+                if (loc.has_value()) {
                     loc.value()->vtype = ast::VarType::STRING;
                     loc.value()->value = instr.op1;
                 }
@@ -413,14 +410,13 @@ output << ".section .data\n";
             } else {
                 std::string label = numericConstants[curFunction][instr.op1];
                 variableInfo[curFunction][instr.dest].type = VariableType::NUMERIC_CONST;
-                if(loc.has_value()) {
+                if (loc.has_value()) {
                     loc.value()->vtype = ast::VarType::NUMBER;
                     loc.value()->value = instr.op1;
                 }
                 output << "    movq $" << instr.op1 << ", %rcx # here\n";
                 output << "    movq %rcx, " << getOperand(instr.dest) << "\n";
-            } 
-           
+            }
         }
 
         void emitSubLabel(std::ostringstream &output, const ir::IRInstruction &instr) {
@@ -451,7 +447,7 @@ output << ".section .data\n";
             output << "    cmpq $0, %rdi\n";
             output << "    setne %cl\n";
             output << "    andb %al, %cl\n";
-            output << "    movzbq %cl, %rax\n"; 
+            output << "    movzbq %cl, %rax\n";
             storeToTemp(output, instr.dest, "%rax");
         }
 
@@ -469,10 +465,10 @@ output << ".section .data\n";
             output << "    cmpq $0, %rdx\n";
             output << "    setne %cl\n";
             output << "    orb %al, %cl\n";
-            output << "    movzbq %cl, %rdx\n"; 
+            output << "    movzbq %cl, %rdx\n";
             storeToTemp(output, instr.dest, "%rdx");
         }
-        
+
         void emitEq(std::ostringstream &output, const ir::IRInstruction &instr) {
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
@@ -491,83 +487,82 @@ output << ".section .data\n";
         void emitNeq(std::ostringstream &output, const ir::IRInstruction &instr) {
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rdi");
-            output << "    cmpq %rdi, %rax\n";  
-            output << "    setne %cl\n";         
-            output << "    movzbq %cl, %rdx\n"; 
+            output << "    cmpq %rdi, %rax\n";
+            output << "    setne %cl\n";
+            output << "    movzbq %cl, %rdx\n";
             storeToTemp(output, instr.dest, "%rdx");
         }
 
         void emitLt(std::ostringstream &output, const ir::IRInstruction &instr) {
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rdi");
-            output << "    cmpq %rdi, %rax\n";  
-            output << "    setl %cl\n";         
-            output << "    movzbq %cl, %rdx\n"; 
+            output << "    cmpq %rdi, %rax\n";
+            output << "    setl %cl\n";
+            output << "    movzbq %cl, %rdx\n";
             storeToTemp(output, instr.dest, "%rdx");
         }
 
         void emitLe(std::ostringstream &output, const ir::IRInstruction &instr) {
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rdi");
-            output << "    cmpq %rdi, %rax\n";  
-            output << "    setle %cl\n";         
-            output << "    movzbq %cl, %rdx\n"; 
+            output << "    cmpq %rdi, %rax\n";
+            output << "    setle %cl\n";
+            output << "    movzbq %cl, %rdx\n";
             storeToTemp(output, instr.dest, "%rdx");
         }
 
         void emitGt(std::ostringstream &output, const ir::IRInstruction &instr) {
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rdi");
-            output << "    cmpq %rdi, %rax\n";  
-            output << "    setg %cl\n";         
-            output << "    movzbq %cl, %rdx\n"; 
+            output << "    cmpq %rdi, %rax\n";
+            output << "    setg %cl\n";
+            output << "    movzbq %cl, %rdx\n";
             storeToTemp(output, instr.dest, "%rdx");
-
         }
 
         void emitGe(std::ostringstream &output, const ir::IRInstruction &instr) {
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
             loadToRegister(output, instr.op2, "%rdi");
-            output << "    cmpq %rdi, %rax\n";  
-            output << "    setge %cl\n";         
-            output << "    movzbq %cl, %rdx\n"; 
+            output << "    cmpq %rdi, %rax\n";
+            output << "    setge %cl\n";
+            output << "    movzbq %cl, %rdx\n";
             storeToTemp(output, instr.dest, "%rdx");
         }
 
         void emitAnd(std::ostringstream &output, const ir::IRInstruction &instr) {
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
@@ -580,7 +575,7 @@ output << ".section .data\n";
         void emitOr(std::ostringstream &output, const ir::IRInstruction &instr) {
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
@@ -593,7 +588,7 @@ output << ".section .data\n";
         void emitXor(std::ostringstream &output, const ir::IRInstruction &instr) {
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
@@ -606,7 +601,7 @@ output << ".section .data\n";
         void emitLShift(std::ostringstream &output, const ir::IRInstruction &instr) {
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
@@ -619,7 +614,7 @@ output << ".section .data\n";
         void emitRShift(std::ostringstream &output, const ir::IRInstruction &instr) {
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
@@ -632,32 +627,32 @@ output << ".section .data\n";
         void emitMod(std::ostringstream &output, const ir::IRInstruction &instr) {
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             loadToRegister(output, instr.op1, "%rax");
-            output << "    cqto\n";          
+            output << "    cqto\n";
             loadToRegister(output, instr.op2, "%rdi");
             output << "    idivq %rdi\n";
             storeToTemp(output, instr.dest, "%rdx");
         }
 
         std::vector<std::string> cargs;
-        int paramIndex = 0; 
+        int paramIndex = 0;
 
         void emitDefParam(std::ostringstream &stream, const ir::IRInstruction &instr) {
-        
-                static std::vector<std::pair<std::string, int>> paramLocations = {
-                {"%rdi", -8},  
-                {"%rsi", -16}, 
-                {"%rdx", -24}, 
-                {"%rcx", -32}, 
-                {"%r8", -40},  
-                {"%r9", -48}   
-            };
 
-            if(curFunction == "main") return;
+            static std::vector<std::pair<std::string, int>> paramLocations = {
+                {"%rdi", -8},
+                {"%rsi", -16},
+                {"%rdx", -24},
+                {"%rcx", -32},
+                {"%r8", -40},
+                {"%r9", -48}};
+
+            if (curFunction == "main")
+                return;
 
             if (paramIndex < paramLocations.size()) {
                 std::string reg = paramLocations[paramIndex].first;
@@ -674,14 +669,14 @@ output << ".section .data\n";
 
         void emitDefParamString(std::ostringstream &stream, const ir::IRInstruction &instr) {
             static std::vector<std::pair<std::string, int>> paramLocations = {
-                {"%rdi", -8},  
-                {"%rsi", -16}, 
-                {"%rdx", -24}, 
-                {"%rcx", -32}, 
-                {"%r8", -40},  
-                {"%r9", -48}   
-            };
-            if(curFunction == "main") return;
+                {"%rdi", -8},
+                {"%rsi", -16},
+                {"%rdx", -24},
+                {"%rcx", -32},
+                {"%r8", -40},
+                {"%r9", -48}};
+            if (curFunction == "main")
+                return;
 
             if (paramIndex < paramLocations.size()) {
                 std::string reg = paramLocations[paramIndex].first;
@@ -689,7 +684,7 @@ output << ".section .data\n";
                 paramIndex++;
                 table.enter(instr.dest);
                 auto it = table.lookup(instr.dest);
-                if(it.has_value()) {
+                if (it.has_value()) {
                     it.value()->vtype = ast::VarType::STRING;
                 }
                 variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
@@ -699,18 +694,17 @@ output << ".section .data\n";
             }
         }
 
-        
-        void emitParamPointer(std::ostringstream &output, const ir::IRInstruction  &instr) {
+        void emitParamPointer(std::ostringstream &output, const ir::IRInstruction &instr) {
             static std::vector<std::pair<std::string, int>> paramLocations = {
-                {"%rdi", -8},  
-                {"%rsi", -16}, 
-                {"%rdx", -24}, 
-                {"%rcx", -32}, 
-                {"%r8", -40},  
-                {"%r9", -48}   
-            };
+                {"%rdi", -8},
+                {"%rsi", -16},
+                {"%rdx", -24},
+                {"%rcx", -32},
+                {"%r8", -40},
+                {"%r9", -48}};
 
-            if(curFunction == "main") return;
+            if (curFunction == "main")
+                return;
 
             if (paramIndex < paramLocations.size()) {
                 std::string reg = paramLocations[paramIndex].first;
@@ -719,7 +713,7 @@ output << ".section .data\n";
                 paramIndex++;
                 table.enter(instr.dest);
                 auto it = table.lookup(instr.dest);
-                if(it.has_value()) {
+                if (it.has_value()) {
                     it.value()->vtype = ast::VarType::POINTER;
                 }
                 variableInfo[curFunction][instr.dest].type = VariableType::VAR;
@@ -731,15 +725,15 @@ output << ".section .data\n";
 
         void emitDefParamPointer(std::ostringstream &output, const ir::IRInstruction &instr) {
             static std::vector<std::pair<std::string, int>> paramLocations = {
-                {"%rdi", -8},  
-                {"%rsi", -16}, 
-                {"%rdx", -24}, 
-                {"%rcx", -32}, 
-                {"%r8", -40},  
-                {"%r9", -48}   
-            };
+                {"%rdi", -8},
+                {"%rsi", -16},
+                {"%rdx", -24},
+                {"%rcx", -32},
+                {"%r8", -40},
+                {"%r9", -48}};
 
-            if(curFunction == "main") return;
+            if (curFunction == "main")
+                return;
 
             if (paramIndex < paramLocations.size()) {
                 std::string reg = paramLocations[paramIndex].first;
@@ -747,7 +741,7 @@ output << ".section .data\n";
                 paramIndex++;
                 table.enter(instr.dest);
                 auto it = table.lookup(instr.dest);
-                if(it.has_value()) {
+                if (it.has_value()) {
                     it.value()->vtype = ast::VarType::POINTER;
                 }
                 variableInfo[curFunction][instr.dest].type = VariableType::VAR;
@@ -759,15 +753,15 @@ output << ".section .data\n";
 
         void emitParam(std::ostringstream &stream, const ir::IRInstruction &instr) {
             static std::vector<std::pair<std::string, int>> paramLocations = {
-                {"%rdi", -8},  
-                {"%rsi", -16}, 
-                {"%rdx", -24}, 
-                {"%rcx", -32}, 
-                {"%r8", -40},  
-                {"%r9", -48}   
-            };
+                {"%rdi", -8},
+                {"%rsi", -16},
+                {"%rdx", -24},
+                {"%rcx", -32},
+                {"%r8", -40},
+                {"%r9", -48}};
 
-            if(curFunction == "main") return;
+            if (curFunction == "main")
+                return;
 
             if (paramIndex < paramLocations.size()) {
                 std::string reg = paramLocations[paramIndex].first;
@@ -785,14 +779,14 @@ output << ".section .data\n";
 
         void emitParamString(std::ostringstream &output, const ir::IRInstruction &instr) {
             static std::vector<std::pair<std::string, int>> paramLocations = {
-                {"%rdi", -8},  
-                {"%rsi", -16}, 
-                {"%rdx", -24}, 
-                {"%rcx", -32}, 
-                {"%r8", -40},  
-                {"%r9", -48}   
-            };
-            if(curFunction == "main") return;
+                {"%rdi", -8},
+                {"%rsi", -16},
+                {"%rdx", -24},
+                {"%rcx", -32},
+                {"%r8", -40},
+                {"%r9", -48}};
+            if (curFunction == "main")
+                return;
 
             if (paramIndex < paramLocations.size()) {
                 std::string reg = paramLocations[paramIndex].first;
@@ -801,7 +795,7 @@ output << ".section .data\n";
                 paramIndex++;
                 table.enter(instr.dest);
                 auto it = table.lookup(instr.dest);
-                if(it.has_value()) {
+                if (it.has_value()) {
                     it.value()->vtype = ast::VarType::STRING;
                 }
                 variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
@@ -810,73 +804,71 @@ output << ".section .data\n";
                 exit(EXIT_FAILURE);
             }
         }
-        
+
         void emitLoadConst(std::ostringstream &output, const ir::IRInstruction &instr) {
 
             table.enter(instr.dest);
             auto loc = table.lookup(instr.dest);
 
-
             if (instr.op1[0] == '\"') {
                 std::string label = stringLiterals[curFunction][instr.op1];
                 output << "    leaq " << label << "(%rip), %rax\n";
                 variableInfo[curFunction][instr.dest].type = VariableType::STRING_CONST;
-                if(loc.has_value()) {
+                if (loc.has_value()) {
                     loc.value()->vtype = ast::VarType::STRING;
                 }
             } else {
                 std::string label = numericConstants[curFunction][instr.op1];
                 output << "    movq " << "$" << instr.op1 << ", %rax\n";
                 variableInfo[curFunction][instr.dest].type = VariableType::NUMERIC_CONST;
-                if(loc.has_value()) {
+                if (loc.has_value()) {
                     loc.value()->vtype = ast::VarType::NUMBER;
                 }
-            } 
+            }
             storeToTemp(output, instr.dest, "%rax");
         }
-        
+
         void emitConcat(std::ostringstream &output, const ir::IRInstruction &instr) {
-            
-            auto op1_it  = table.lookup(instr.op1);
-            auto op2_it  = table.lookup(instr.op2);
+
+            auto op1_it = table.lookup(instr.op1);
+            auto op2_it = table.lookup(instr.op2);
             std::string prefix;
 #ifdef __APPLE__
             prefix = "_";
 #endif
 
-
-            output  << "    movq $0, %rcx\n";
+            output << "    movq $0, %rcx\n";
             storeToTemp(output, "counter", "%rcx");
 
             if (variableInfo[curFunction][instr.op1].type == VariableType::STRING_CONST) {
-                if(!variableInfo[curFunction][instr.op1].text.empty()  && variableInfo[curFunction][instr.op1].text[0] == '\"') {
-                    auto len = variableInfo[curFunction][instr.op1].text.length()+1;
+                if (!variableInfo[curFunction][instr.op1].text.empty() && variableInfo[curFunction][instr.op1].text[0] == '\"') {
+                    auto len = variableInfo[curFunction][instr.op1].text.length() + 1;
                     output << "    addq $" << len << ", " << getOperand("counter") << "\n";
                 } else {
                     loadToRegister(output, instr.op1, "%rdi");
                     output << "    call " << prefix << "strlen #" << instr.op1 << "\n";
                     output << "    addq  %rax, " << getOperand("counter") << "\n";
                 }
-            } else if(variableInfo[curFunction][instr.op1].type == VariableType::VAR_STRING || op1_it.has_value()   && op1_it.value()->vtype == ast::VarType::STRING) {
+            } else if (variableInfo[curFunction][instr.op1].type == VariableType::VAR_STRING || op1_it.has_value() && op1_it.value()->vtype == ast::VarType::STRING) {
                 loadToRegister(output, instr.op1, "%rdi");
-                output << "    call " << prefix << "strlen # " << instr.op1 <<"\n";
+                output << "    call " << prefix << "strlen # " << instr.op1 << "\n";
                 output << "    addq %rax, " << getOperand("counter") << "\n";
-            } 
+            }
 
             if (variableInfo[curFunction][instr.op2].type == VariableType::STRING_CONST) {
-                if(!variableInfo[curFunction][instr.op2].text.empty()  && variableInfo[curFunction][instr.op2].text[0] == '\"') {
-                    auto len = variableInfo[curFunction][instr.op2].text.length()+1;
+                if (!variableInfo[curFunction][instr.op2].text.empty() && variableInfo[curFunction][instr.op2].text[0] == '\"') {
+                    auto len = variableInfo[curFunction][instr.op2].text.length() + 1;
                     output << "    addq $" << len << ", " << getOperand("counter") << "\n";
                 } else {
                     loadToRegister(output, instr.op2, "%rdi");
                     output << "    call " << prefix << "strlen # " << instr.op2 << "\n";
-                    output << "    addq %rax, "  << getOperand("counter") << "\n";
+                    output << "    addq %rax, " << getOperand("counter") << "\n";
                 }
-            } else if (variableInfo[curFunction][instr.op2].type == VariableType::VAR_STRING   && op2_it.has_value()  && op2_it.value()->vtype == ast::VarType::STRING) {
+            } else if (variableInfo[curFunction][instr.op2].type == VariableType::VAR_STRING && op2_it.has_value() && op2_it.value()->vtype == ast::VarType::STRING) {
                 loadToRegister(output, instr.op2, "%rdi");
                 output << "    call " << prefix << "strlen # " << instr.op2 << "\n";
                 output << "    addq %rax, " << getOperand("counter") << "\n";
-            } 
+            }
 
             output << "    addq $1, " << getOperand("counter") << "\n";
             output << "    movq $" << sizeof(char) << ", %rsi\n";
@@ -885,15 +877,15 @@ output << ".section .data\n";
             output << "    call " << prefix << "calloc\n";
             output << "    movq %rax, %rdi\n";
             storeToTemp(output, instr.dest, "%rdi");
-            loadToRegister(output,instr.op1,"%rsi");
+            loadToRegister(output, instr.op1, "%rsi");
             output << "    call " << prefix << "strcpy\n";
-            loadToRegister(output,instr.op2,"%rsi");
+            loadToRegister(output, instr.op2, "%rsi");
             output << "    call " << prefix << "strcat\n";
-            allocatedMemory[curFunction].insert(instr.dest);  
+            allocatedMemory[curFunction].insert(instr.dest);
             variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 it.value()->vtype = ast::VarType::STRING;
             }
         }
@@ -901,7 +893,7 @@ output << ".section .data\n";
         void emitBinaryOp(std::ostringstream &output, const ir::IRInstruction &instr, const std::string &op) {
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
@@ -914,7 +906,7 @@ output << ".section .data\n";
             variableInfo[curFunction][instr.dest].type = VariableType::VAR;
             table.enter(instr.dest);
             auto it = table.lookup(instr.dest);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 it.value()->vtype = ast::VarType::NUMBER;
             }
             loadToRegister(output, instr.op1, "%rax");
@@ -927,13 +919,13 @@ output << ".section .data\n";
             variableInfo[curFunction][instr.dest].type = variableInfo[curFunction][instr.op1].type;
             table.enter(instr.dest);
             auto val = table.lookup(instr.dest);
-            if(val.has_value()) {
+            if (val.has_value()) {
                 auto loc = table.lookup(instr.op1);
-                if(loc.has_value()) {
+                if (loc.has_value()) {
                     val.value()->vtype = loc.value()->vtype;
                 }
                 auto val = ownedMemory[curFunction].find(instr.op1);
-                if(val != ownedMemory[curFunction].end()) {
+                if (val != ownedMemory[curFunction].end()) {
                     ownedMemory[curFunction].erase(val);
                     ownedMemory[curFunction].insert(instr.dest);
                 }
@@ -948,14 +940,13 @@ output << ".section .data\n";
             table.enter(instr.op1);
             table.enter(instr.dest);
             auto it = table.lookup(instr.op1);
-            if(it.has_value()) {
+            if (it.has_value()) {
                 symbol::Symbol *s = it.value();
                 auto src = table.lookup(instr.dest);
-                if(src.has_value()) {
+                if (src.has_value()) {
                     symbol::Symbol *v = src.value();
                     v->vtype = s->vtype;
                     variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
-                   
                 }
             }
         }
@@ -975,8 +966,7 @@ output << ".section .data\n";
         std::string lastFunctionCall;
         std::string lastFunctionCallDest;
 
-
-        bool checkArgumentTypes(const std::string& functionName, const std::vector<ast::VarType>& providedArgs, const std::vector<ast::VarType>& expectedArgs) {
+        bool checkArgumentTypes(const std::string &functionName, const std::vector<ast::VarType> &providedArgs, const std::vector<ast::VarType> &expectedArgs) {
             if (providedArgs.size() != expectedArgs.size()) {
                 std::cerr << "Error: Function '" << functionName << "' expected " << expectedArgs.size() << " arguments, but got " << providedArgs.size() << ".\n";
                 return false;
@@ -988,41 +978,40 @@ output << ".section .data\n";
 
                 if (actual != expected) {
                     std::cerr << "Error: Type mismatch for argument " << i << " in function '" << functionName
-                            << "'. Expected type: " << ast::VarString[static_cast<int>(expected)]
-                            << ", Actual type: " << ast::VarString[static_cast<int>(actual)] << ".\n";
+                              << "'. Expected type: " << ast::VarString[static_cast<int>(expected)]
+                              << ", Actual type: " << ast::VarString[static_cast<int>(actual)] << ".\n";
                     return false;
                 }
             }
 
             return true;
         }
-        void checkFunctionArguments(const std::string& functionName, const std::vector<std::string>& args) {
-                std::vector<ast::VarType> providedArgs;
-                for (const auto& arg : args) {
-                    auto argIt = table.lookup(arg);
-                    if (argIt.has_value()) {
-                        providedArgs.push_back(argIt.value()->vtype);
-                    } else {
-                        std::cerr << "Error: Argument '" << arg << "' not found in symbol table.\n";
-                        exit(EXIT_FAILURE);
-                    }
-                }
-
-                auto localFunc = table.lookupFunc(functionName);
-                if (localFunc.has_value()) {
-                    const auto& expectedArgs = localFunc.value()->argTypes;
-                    if (!checkArgumentTypes(functionName, providedArgs, expectedArgs)) {
-                        std::cerr << "Error: Argument type check failed for function '" << functionName << "'.\n";
-                        exit(EXIT_FAILURE);
-                    }
+        void checkFunctionArguments(const std::string &functionName, const std::vector<std::string> &args) {
+            std::vector<ast::VarType> providedArgs;
+            for (const auto &arg : args) {
+                auto argIt = table.lookup(arg);
+                if (argIt.has_value()) {
+                    providedArgs.push_back(argIt.value()->vtype);
                 } else {
-                    if(functionName != "printf") {
-                        std::cerr << "Error: Function '" << functionName << "' is not defined.\n";
-                        exit(EXIT_FAILURE);
-                    }
+                    std::cerr << "Error: Argument '" << arg << "' not found in symbol table.\n";
+                    exit(EXIT_FAILURE);
                 }
-        }
+            }
 
+            auto localFunc = table.lookupFunc(functionName);
+            if (localFunc.has_value()) {
+                const auto &expectedArgs = localFunc.value()->argTypes;
+                if (!checkArgumentTypes(functionName, providedArgs, expectedArgs)) {
+                    std::cerr << "Error: Argument type check failed for function '" << functionName << "'.\n";
+                    exit(EXIT_FAILURE);
+                }
+            } else {
+                if (functionName != "printf") {
+                    std::cerr << "Error: Function '" << functionName << "' is not defined.\n";
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
 
         void emitCall(std::ostringstream &output, const ir::IRInstruction &instr) {
             static const std::vector<std::string> argumentRegisters = {"%rdi", "%rsi", "%rdx", "%rcx", "%r8", "%r9"};
@@ -1036,7 +1025,7 @@ output << ".section .data\n";
 
             lastFunctionCall = instr.functionName;
             lastFunctionCallDest = instr.dest;
-            output << "    movq $0, %rax\n"; 
+            output << "    movq $0, %rax\n";
 #ifdef __APPLE__
             output << "    call " << "_" << instr.functionName << "\n";
 #else
@@ -1044,38 +1033,36 @@ output << ".section .data\n";
 #endif
             storeToTemp(output, instr.dest, "%rax");
             table.enter(instr.dest);
-            if(variableInfo[curFunction][instr.dest].type == VariableType::VAR_STRING) {
+            if (variableInfo[curFunction][instr.dest].type == VariableType::VAR_STRING) {
                 ownedMemory[curFunction].insert(instr.dest);
             }
 
-            
-
-            if(instr.functionName == "str") {
+            if (instr.functionName == "str") {
                 output << "    addq $22, " << getOperand("counter") << "\n";
             }
             auto fn = clib::clibrary.find(instr.functionName);
-            
+
             if (fn != clib::clibrary.end()) {
 
                 auto dest_rt = table.lookup(instr.dest);
 
                 switch (fn->second.return_type) {
-                    case clib::VarType::POINTER:
-                        variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
-                        if(dest_rt.has_value()) {
-                            dest_rt.value()->vtype = ast::VarType::STRING;
-                        }
-                        break;
-                    case clib::VarType::INTEGER:
-                        variableInfo[curFunction][instr.dest].type = VariableType::VAR;
-                        if(dest_rt.has_value()) {
-                            dest_rt.value()->vtype = ast::VarType::NUMBER;
-                        }
-                        break;
-                    default:
-                        std::cerr << "ETL: Return type not supported yet.\n";
-                        exit(EXIT_FAILURE);
-                        break;
+                case clib::VarType::POINTER:
+                    variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
+                    if (dest_rt.has_value()) {
+                        dest_rt.value()->vtype = ast::VarType::STRING;
+                    }
+                    break;
+                case clib::VarType::INTEGER:
+                    variableInfo[curFunction][instr.dest].type = VariableType::VAR;
+                    if (dest_rt.has_value()) {
+                        dest_rt.value()->vtype = ast::VarType::NUMBER;
+                    }
+                    break;
+                default:
+                    std::cerr << "ETL: Return type not supported yet.\n";
+                    exit(EXIT_FAILURE);
+                    break;
                 }
 
                 if (instr.args.size() != fn->second.args.size() && instr.functionName != "printf") {
@@ -1085,27 +1072,26 @@ output << ".section .data\n";
 
                 if (instr.functionName != "printf") {
                     for (size_t i = 0; i < fn->second.args.size(); ++i) {
-                        ast::VarType actualVarType , expectedType;
+                        ast::VarType actualVarType, expectedType;
 
                         auto one = instr.args.at(i);
                         auto t1 = table.lookup(one);
-                        if(t1.has_value()) {
+                        if (t1.has_value()) {
                             actualVarType = t1.value()->vtype;
-                          
                         }
 
                         auto type = fn->second.args.at(i);
-                        switch(type) {
-                            case clib::VarType::POINTER:
+                        switch (type) {
+                        case clib::VarType::POINTER:
                             expectedType = ast::VarType::STRING;
                             break;
-                            case clib::VarType::INTEGER:
+                        case clib::VarType::INTEGER:
                             expectedType = ast::VarType::NUMBER;
                             break;
-                            default:
-                                break;
+                        default:
+                            break;
                         }
-                       
+
                         if (actualVarType != expectedType) {
                             std::cerr << "ETL: Type mismatch for argument " << i << " " << static_cast<int>(actualVarType) << ":" << static_cast<int>(expectedType) << " " << instr.args.at(i) << " in function " << instr.functionName << "\n";
                             exit(EXIT_FAILURE);
@@ -1118,49 +1104,47 @@ output << ".section .data\n";
                         allocatedMemory[curFunction].insert(instr.dest);
                     }
                 }
-                if(fn->first == "str") {
+                if (fn->first == "str") {
                     table.enter(instr.dest);
                     auto it = table.lookup(instr.dest);
-                    if(it.has_value()) {
+                    if (it.has_value()) {
                         it.value()->vtype = ast::VarType::STRING;
                     }
                 }
             } else {
                 auto f = table.lookupFunc(instr.functionName);
-                if(f.has_value()) {
-                    if(f.value()->num_args != instr.args.size()) {
+                if (f.has_value()) {
+                    if (f.value()->num_args != instr.args.size()) {
                         std::cerr << "ETL: Error function argument count doesn't match call to: " << instr.functionName << "\n";
                         exit(EXIT_FAILURE);
                     }
                     ast::VarType returnType = f.value()->vtype;
                     table.enter(instr.dest);
                     auto loc = table.lookup(instr.dest);
-                    if(loc.has_value()) {
+                    if (loc.has_value()) {
                         loc.value()->name = instr.dest;
                         loc.value()->vtype = returnType;
                     }
 
-                       switch (returnType) {
-                        case ast::VarType::STRING:
-                                if(variableInfo[instr.functionName][instr.transfer_var].type == VariableType::VAR_STRING) {
-                                    variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
-                                    allocatedMemory[curFunction].insert(instr.dest);
-                                }
-                            break;
-                        case ast::VarType::NUMBER:
-                            variableInfo[curFunction][instr.dest].type = VariableType::VAR;
-                            break;
-                        case ast::VarType::POINTER:
-                             variableInfo[curFunction][instr.dest].type = VariableType::POINTER;
-                             break;
-                        default:
-                            std::cerr << "ETL: Unsupported return type for local function " << instr.functionName << "\n";
-                            exit(EXIT_FAILURE);
+                    switch (returnType) {
+                    case ast::VarType::STRING:
+                        if (variableInfo[instr.functionName][instr.transfer_var].type == VariableType::VAR_STRING) {
+                            variableInfo[curFunction][instr.dest].type = VariableType::VAR_STRING;
+                            allocatedMemory[curFunction].insert(instr.dest);
+                        }
+                        break;
+                    case ast::VarType::NUMBER:
+                        variableInfo[curFunction][instr.dest].type = VariableType::VAR;
+                        break;
+                    case ast::VarType::POINTER:
+                        variableInfo[curFunction][instr.dest].type = VariableType::POINTER;
+                        break;
+                    default:
+                        std::cerr << "ETL: Unsupported return type for local function " << instr.functionName << "\n";
+                        exit(EXIT_FAILURE);
                     }
                 }
             }
-
-        
 
             cargs.clear();
         }
@@ -1179,17 +1163,16 @@ output << ".section .data\n";
             if (instr.dest != "main") {
                 emitFunctionPrologue(output, instr.dest);
             }
-            
         }
 
         void emitReturn(std::ostringstream &output, const ir::IRInstruction &instr) {
 
-            if(variableInfo[curFunction][instr.dest].type == VariableType::VAR_STRING) {
+            if (variableInfo[curFunction][instr.dest].type == VariableType::VAR_STRING) {
                 auto val = allocatedMemory[curFunction].find(instr.dest);
-                if(val != allocatedMemory[curFunction].end()) {
+                if (val != allocatedMemory[curFunction].end()) {
                     allocatedMemory[curFunction].erase(val);
                 }
-            } 
+            }
 
             std::string prefix;
 #ifdef __APPLE__
@@ -1197,15 +1180,15 @@ output << ".section .data\n";
 #endif
 
             for (const auto &var : allocatedMemory[curFunction]) {
-                if(variableInfo[curFunction][var].type == VariableType::VAR_STRING) {
+                if (variableInfo[curFunction][var].type == VariableType::VAR_STRING) {
                     loadToRegister(output, var, "%rdi");
-                    output << "    call " << prefix << "free # local variable: "<<var<<"\n";
+                    output << "    call " << prefix << "free # local variable: " << var << "\n";
                 }
             }
 
-            for(const auto &var : ownedMemory[curFunction]) {
-                    loadToRegister(output, var, "%rdi");
-                    output << "    call " << prefix << "free # ownership transfer: "<<var<<"\n";
+            for (const auto &var : ownedMemory[curFunction]) {
+                loadToRegister(output, var, "%rdi");
+                output << "    call " << prefix << "free # ownership transfer: " << var << "\n";
             }
 
             if (!instr.dest.empty()) {
@@ -1213,7 +1196,7 @@ output << ".section .data\n";
             } else {
                 output << "    movq $0, %rax\n";
             }
-            
+
             emitFunctionEpilogue(output);
             local.exitScope();
         }
@@ -1221,11 +1204,10 @@ output << ".section .data\n";
         void loadToRegister(std::ostringstream &output, const std::string &operand, const std::string &reg) {
             if (operand[0] == '$' || operand[0] == '%') {
                 output << "    movq " << operand << ", " << reg << " # " << operand << "," << reg << "\n";
-            } else if(operand[0] == isalpha(operand[0]) || isdigit(operand[0])) {
+            } else if (operand[0] == isalpha(operand[0]) || isdigit(operand[0])) {
                 output << "    leaq " << operand << "%(rip), " << reg << " #" << operand << ", " << reg << "\n";
-                
-            } 
-            else {
+
+            } else {
                 int offset = getVariableOffset(operand);
                 output << "    movq " << offset << "(%rbp), " << reg << " # " << operand << " # " << operand << "\n";
             }
@@ -1233,7 +1215,7 @@ output << ".section .data\n";
 
         void storeToTemp(std::ostringstream &output, const std::string &temp, const std::string &reg) {
             if (valueLocations[curFunction][temp] == reg) {
-                return; 
+                return;
             }
             int offset = getVariableOffset(temp);
             valueToStackOffset[curFunction][temp] = offset;
@@ -1245,7 +1227,7 @@ output << ".section .data\n";
             if (variableOffsets[curFunction].find(varName) == variableOffsets[curFunction].end()) {
                 currentStackOffset[curFunction] -= 8;
                 variableOffsets[curFunction][varName] = currentStackOffset[curFunction];
-                //maxStackUsage[curFunction] = std::min(maxStackUsage[curFunction], currentStackOffset[curFunction]);
+                // maxStackUsage[curFunction] = std::min(maxStackUsage[curFunction], currentStackOffset[curFunction]);
             }
             return variableOffsets[curFunction][varName];
         }
@@ -1277,7 +1259,7 @@ output << ".section .data\n";
 
                     if (lastWasStore) {
                         if (src == lastStoreLocation && dest == lastStoreRegister) {
-                            lastWasStore = false; 
+                            lastWasStore = false;
                             continue;
                         }
                     }
@@ -1304,6 +1286,6 @@ output << ".section .data\n";
         }
     };
 
-}
+} // namespace codegen
 
 #endif

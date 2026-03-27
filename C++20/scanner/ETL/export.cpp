@@ -1,13 +1,13 @@
 #define VERSION_INFO "1.0"
-#include<unordered_map>
-#include<emscripten.h>
-#include<emscripten/bind.h>
-#include<iostream>
-#include<string>
-#include<sstream>
-#include"parser.hpp"
-#include"ir.hpp"
-#include"ir_opt.hpp"
+#include "ir.hpp"
+#include "ir_opt.hpp"
+#include "parser.hpp"
+#include <emscripten.h>
+#include <emscripten/bind.h>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <unordered_map>
 
 extern void outputDebugInfo(std::ostream &file, symbol::SymbolTable &table, const ir::IRCode &code);
 
@@ -36,20 +36,21 @@ std::string test_parse(const std::string &data) {
             } else {
                 code << *c;
             }
-        } else break;
+        } else
+            break;
     }
-    try { 
-        if(data.length()>0) {
+    try {
+        if (data.length() > 0) {
             parse::Parser parser(new scan::Scanner(scan::TString(code.str())));
-            if(parser.parse()) {
-                auto rootAST = parser.getAST();  
+            if (parser.parse()) {
+                auto rootAST = parser.getAST();
                 if (rootAST) {
-                            parse::IRGenerator irGen;
-                            auto irContext = irGen.generateIR(rootAST);  
-                            ir::IROptimizer opt;
-                            irContext.instructions = std::move(opt.optimize(irContext.instructions));
-                            outputDebugInfo(stream, irContext.table, irContext.instructions);
-                            return stream.str();
+                    parse::IRGenerator irGen;
+                    auto irContext = irGen.generateIR(rootAST);
+                    ir::IROptimizer opt;
+                    irContext.instructions = std::move(opt.optimize(irContext.instructions));
+                    outputDebugInfo(stream, irContext.table, irContext.instructions);
+                    return stream.str();
                 }
             } else {
                 stream << "<b>ETL: Parsing failed...</b>\n";
@@ -60,23 +61,22 @@ std::string test_parse(const std::string &data) {
             return stream.str();
         }
 
-        } catch(ir::IRException &e) {
-            stream << "<b>ETL: IR Exception: " << e.why() << "</b>\n";
-            return stream.str();
-        } catch(parse::ParseException &e) {
-            stream << "<b>ETL: Parse Exception: " << e.why() << "</b>\n";
-            return stream.str();
-        } 
-        catch(...) {
-            stream << "<b>ETL: Unknown Exception</b>\n";
-            return stream.str();
-        }
-    
+    } catch (ir::IRException &e) {
+        stream << "<b>ETL: IR Exception: " << e.why() << "</b>\n";
+        return stream.str();
+    } catch (parse::ParseException &e) {
+        stream << "<b>ETL: Parse Exception: " << e.why() << "</b>\n";
+        return stream.str();
+    } catch (...) {
+        stream << "<b>ETL: Unknown Exception</b>\n";
+        return stream.str();
+    }
+
     return stream.str();
-} 
+}
 
 class ETL_Export {
-public:
+  public:
     ETL_Export() {
     }
     std::string scan(std::string input_line) {
@@ -89,6 +89,5 @@ using namespace emscripten;
 EMSCRIPTEN_BINDINGS(my_ETL) {
     class_<ETL_Export>("ETL")
         .constructor()
-        .function("scan", &ETL_Export::scan)
-    ;
+        .function("scan", &ETL_Export::scan);
 }

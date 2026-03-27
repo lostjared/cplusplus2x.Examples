@@ -1,7 +1,7 @@
 #ifndef _ATS_H_
 #define _ATS_H_
 
-#include<string>
+#include <string>
 
 extern std::string scanATS(std::string input);
 

@@ -1,22 +1,21 @@
 #include "function.hpp"
-#include<signal.h>
-#include<unistd.h>
-#include<sys/wait.h>
-#include<sys/types.h>
-#include<errno.h>
-
+#include <errno.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 namespace token {
-    
+
     int System(const std::string &command) {
         /*
         sigset_t bmask, omask;
         struct sigaction sa_ignore, sa_oquit, sa_origint, sa_default;
         pid_t id;
         int status, serrno;
-        
+
         if(command == "") return System(":") == 0;
-        
+
         sigemptyset(&bmask);
         sigaddset(&bmask, SIGCHLD);
         sigprocmask(SIG_BLOCK, &bmask, &omask);
@@ -25,7 +24,7 @@ namespace token {
         sigemptyset(&sa_ignore.sa_mask);
         sigaction(SIGINT, &sa_ignore, &sa_origint);
         sigaction(SIGQUIT, &sa_ignore, &sa_oquit);
-        
+
         switch((id = fork())) {
             case -1:
                 status = -1;
@@ -38,7 +37,7 @@ namespace token {
                     sigaction(SIGINT, &sa_default, NULL);
                 if(sa_oquit.sa_handler != SIG_IGN)
                     sigaction(SIGQUIT, &sa_default, NULL);
-                
+
                 execl("/bin/sh", "sh", "-c", command.c_str(), (char*)NULL);
                 _exit(127);
                 break;
@@ -59,12 +58,12 @@ namespace token {
         return status;*/
         return 0;
     }
-    
+
     void token_sh(const std::string &command, std::vector<lex::Token> &tokens) {
         int rt_value = 0;
-        if(tokens.size() >= 1) {
-            if(tokens[1].getTokenType() == lex::TOKEN_STRING)
-            	rt_value = System(tokens[1].getToken());
+        if (tokens.size() >= 1) {
+            if (tokens[1].getTokenType() == lex::TOKEN_STRING)
+                rt_value = System(tokens[1].getToken());
             else {
                 stream << "Error: sh requires one string argument in quotes\r\n";
                 return;
@@ -72,4 +71,4 @@ namespace token {
         }
         stream << "sh: returns " << rt_value << "\r\n";
     }
-}
+} // namespace token

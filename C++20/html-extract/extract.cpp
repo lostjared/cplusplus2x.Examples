@@ -1,5 +1,5 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 int main(int argc, char **argv) {
     if (argc < 2) {
@@ -26,11 +26,14 @@ int main(int argc, char **argv) {
     size_t pos = 0;
     while (true) {
         auto start = content.find("<style", pos);
-        if (start == std::string::npos) break;
+        if (start == std::string::npos)
+            break;
         auto startTagEnd = content.find('>', start);
-        if (startTagEnd == std::string::npos) break;
+        if (startTagEnd == std::string::npos)
+            break;
         auto end = content.find("</style>", startTagEnd);
-        if (end == std::string::npos) break;
+        if (end == std::string::npos)
+            break;
         allCss += content.substr(startTagEnd + 1, end - (startTagEnd + 1)) + "\n";
         std::string linkTag = "<link rel=\"stylesheet\" href=\"" + cssPath + "\">";
         content.replace(start, (end + 8) - start, linkTag);
@@ -40,11 +43,14 @@ int main(int argc, char **argv) {
     pos = 0;
     while (true) {
         auto start = content.find("<script", pos);
-        if (start == std::string::npos) break;
+        if (start == std::string::npos)
+            break;
         auto startTagEnd = content.find('>', start);
-        if (startTagEnd == std::string::npos) break;
+        if (startTagEnd == std::string::npos)
+            break;
         auto end = content.find("</script>", startTagEnd);
-        if (end == std::string::npos) break;
+        if (end == std::string::npos)
+            break;
         allJs += content.substr(startTagEnd + 1, end - (startTagEnd + 1)) + "\n";
         std::string scriptTag = "<script src=\"" + jsPath + "\"></script>";
         content.replace(start, (end + 9) - start, scriptTag);
@@ -60,7 +66,7 @@ int main(int argc, char **argv) {
 
     std::cout << "Separated files generated:\n"
               << "  HTML: " << outputHtmlPath << "\n"
-              << "  CSS:  " << cssPath      << "\n"
-              << "  JS:   " << jsPath       << "\n";
+              << "  CSS:  " << cssPath << "\n"
+              << "  JS:   " << jsPath << "\n";
     return 0;
 }

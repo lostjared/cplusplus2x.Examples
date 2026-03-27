@@ -1,17 +1,16 @@
-#include<iostream>
-#include<string>
+#include <iostream>
+#include <string>
 
 #include <emscripten/bind.h>
 
 class Extractor {
-public:
-
+  public:
     std::string getCss() { return css; }
     std::string getJs() { return js; }
     std::string getHtml() { return html; }
 
-    bool extractHtml(const std::string& content) {
-        std::string modifiedContent = content; 
+    bool extractHtml(const std::string &content) {
+        std::string modifiedContent = content;
         std::string allCss;
         std::string allJs;
         bool cssLinkAdded = false;
@@ -19,14 +18,17 @@ public:
         size_t pos = 0;
         while (true) {
             auto start = modifiedContent.find("<style", pos);
-            if (start == std::string::npos) break;
+            if (start == std::string::npos)
+                break;
             auto startTagEnd = modifiedContent.find('>', start);
-            if (startTagEnd == std::string::npos) break;
+            if (startTagEnd == std::string::npos)
+                break;
             auto end = modifiedContent.find("</style>", startTagEnd);
-            if (end == std::string::npos) break;
-            
+            if (end == std::string::npos)
+                break;
+
             allCss += modifiedContent.substr(startTagEnd + 1, end - (startTagEnd + 1)) + "\n";
-            
+
             if (!cssLinkAdded) {
                 std::string linkTag = "<link rel=\"stylesheet\" href=\"" + cssPath + "\">";
                 modifiedContent.replace(start, (end + 8) - start, linkTag);
@@ -38,18 +40,20 @@ public:
             }
         }
 
-        
         pos = 0;
         while (true) {
             auto start = modifiedContent.find("<script", pos);
-            if (start == std::string::npos) break;
+            if (start == std::string::npos)
+                break;
             auto startTagEnd = modifiedContent.find('>', start);
-            if (startTagEnd == std::string::npos) break;
+            if (startTagEnd == std::string::npos)
+                break;
             auto end = modifiedContent.find("</script>", startTagEnd);
-            if (end == std::string::npos) break;
-            
+            if (end == std::string::npos)
+                break;
+
             allJs += modifiedContent.substr(startTagEnd + 1, end - (startTagEnd + 1)) + "\n";
-            
+
             if (!jsLinkAdded) {
                 std::string scriptTag = "<script src=\"" + jsPath + "\"></script>";
                 modifiedContent.replace(start, (end + 9) - start, scriptTag);
@@ -67,7 +71,8 @@ public:
 
         return true;
     }
-private:
+
+  private:
     std::string css;
     std::string js;
     std::string html;

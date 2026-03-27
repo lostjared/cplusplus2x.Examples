@@ -1,14 +1,7 @@
-#include"string_buffer.hpp"
-#include<utility>
-#include<optional>
+#include "string_buffer.hpp"
+#include <optional>
+#include <utility>
 
 namespace scan {
 
-
-
 }
-
-
-
-
-

@@ -1,15 +1,14 @@
-/* 
-	SDL3/OpenGL 4.6/C++23
+/*
+    SDL3/OpenGL 4.6/C++23
 */
 
 #include <SDL3/SDL.h>
-#include <glad/glad.h>
-#include <vector>
 #include <fstream>
+#include <glad/glad.h>
 #include <print>
+#include <vector>
 
-static std::vector<char> readFile(const char* path)
-{
+static std::vector<char> readFile(const char *path) {
     std::ifstream file(path, std::ios::binary | std::ios::ate);
     if (!file) {
         std::println("Failed to open: {}", path);
@@ -26,8 +25,7 @@ static std::vector<char> readFile(const char* path)
     return buffer;
 }
 
-static GLuint loadSPV(GLenum type, const char* path)
-{
+static GLuint loadSPV(GLenum type, const char *path) {
     auto data = readFile(path);
     if (data.empty()) {
         std::println("SPV load failed: {}", path);
@@ -42,8 +40,7 @@ static GLuint loadSPV(GLenum type, const char* path)
 
     GLint ok = 0;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &ok);
-    if(!ok)
-    {
+    if (!ok) {
         char log[4096];
         glGetShaderInfoLog(shader, 4096, nullptr, log);
         std::println("Shader error ({}): {}", path, log);
@@ -54,16 +51,14 @@ static GLuint loadSPV(GLenum type, const char* path)
     return shader;
 }
 
-struct StaticShader
-{
+struct StaticShader {
     GLuint program = 0;
 };
 
-static StaticShader initStaticShader()
-{
+static StaticShader initStaticShader() {
     StaticShader s;
 
-    GLuint vs = loadSPV(GL_VERTEX_SHADER,   "shaders/static.vert.spv");
+    GLuint vs = loadSPV(GL_VERTEX_SHADER, "shaders/static.vert.spv");
     GLuint fs = loadSPV(GL_FRAGMENT_SHADER, "shaders/static.frag.spv");
 
     if (!vs || !fs) {
@@ -78,8 +73,7 @@ static StaticShader initStaticShader()
 
     GLint linked = 0;
     glGetProgramiv(s.program, GL_LINK_STATUS, &linked);
-    if (!linked)
-    {
+    if (!linked) {
         char log[4096];
         glGetProgramInfoLog(s.program, 4096, nullptr, log);
         std::println("Program link error: {}", log);
@@ -91,15 +85,15 @@ static StaticShader initStaticShader()
     return s;
 }
 
-int main()
-{
-    if (!SDL_Init(SDL_INIT_VIDEO)) return 1;
+int main() {
+    if (!SDL_Init(SDL_INIT_VIDEO))
+        return 1;
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    SDL_Window* window = SDL_CreateWindow("OpenGL SPV Static", 1280, 720, SDL_WINDOW_OPENGL);
+    SDL_Window *window = SDL_CreateWindow("OpenGL SPV Static", 1280, 720, SDL_WINDOW_OPENGL);
     SDL_GLContext ctx = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, ctx);
 
@@ -110,7 +104,7 @@ int main()
 
     SDL_GL_SetSwapInterval(0);
 
-    std::println("GL_VERSION: {}", (const char*)glGetString(GL_VERSION));
+    std::println("GL_VERSION: {}", (const char *)glGetString(GL_VERSION));
     if (!SDL_GL_ExtensionSupported("GL_ARB_gl_spirv")) {
         std::println("Missing GL_ARB_gl_spirv");
     }
@@ -122,29 +116,27 @@ int main()
     StaticShader shader = initStaticShader();
 
     bool running = true;
-    while (running)
-    {
+    while (running) {
         SDL_Event e;
-        while (SDL_PollEvent(&e))
-        {
+        while (SDL_PollEvent(&e)) {
             if (e.type == SDL_EVENT_QUIT ||
-               (e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_ESCAPE))
+                (e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_ESCAPE))
                 running = false;
         }
 
-        int w,h;
-        SDL_GetWindowSizeInPixels(window,&w,&h);
+        int w, h;
+        SDL_GetWindowSizeInPixels(window, &w, &h);
 
-        glViewport(0,0,w,h);
-        glClearColor(0.1f,0.0f,0.1f,1.0f);
+        glViewport(0, 0, w, h);
+        glClearColor(0.1f, 0.0f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shader.program);
-        float t = SDL_GetTicks()/1000.0f;
+        float t = SDL_GetTicks() / 1000.0f;
         glUniform1f(0, t);
         glUniform2f(1, (float)w, (float)h);
 
-        glDrawArrays(GL_TRIANGLES,0,3);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         SDL_GL_SwapWindow(window);
     }
@@ -152,4 +144,3 @@ int main()
     SDL_Quit();
     return 0;
 }
-

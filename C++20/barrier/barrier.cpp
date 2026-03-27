@@ -1,13 +1,13 @@
-#include<iostream>
-#include<thread>
-#include<vector>
-#include<barrier> 
-#include<syncstream>
-#include<chrono>
+#include <barrier>
+#include <chrono>
+#include <iostream>
+#include <syncstream>
+#include <thread>
+#include <vector>
 
-auto on_completion = []() noexcept { 
+auto on_completion = []() noexcept {
     static int phase_count = 1;
-    std::osyncstream(std::cout) << "\n--- [Barrier] Phase " << phase_count++ << " Completed! Resetting... ---\n\n"; 
+    std::osyncstream(std::cout) << "\n--- [Barrier] Phase " << phase_count++ << " Completed! Resetting... ---\n\n";
 };
 
 std::barrier sync_point(3, on_completion);
@@ -25,16 +25,16 @@ void worker(int id) {
 
 int main() {
     std::cout << "[Main] Spawning 3 workers...\n";
-    
+
     std::vector<std::thread> threads;
-    for(int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 3; ++i) {
         threads.emplace_back(worker, i + 1);
     }
 
-    for(auto& t : threads) {
+    for (auto &t : threads) {
         t.join();
     }
-    
+
     std::cout << "[Main] All threads joined.\n";
     return 0;
 }

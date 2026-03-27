@@ -1,4 +1,4 @@
-/* 
+/*
 
     MasterX System written by Jared Bruni
     (C) 2024 LostSideDead Software
@@ -6,31 +6,30 @@
 
 */
 
-#include"SDL.h"
-#include<iostream>
-#include"window.hpp"
-#include"splash.hpp"
-#include"dimension.hpp"
-#include<vector>
-#include<memory>
-#include"argz.hpp"
-#include<limits.h>
+#include "SDL.h"
+#include "argz.hpp"
+#include "dimension.hpp"
+#include "splash.hpp"
+#include "window.hpp"
+#include <iostream>
+#include <limits.h>
+#include <memory>
+#include <vector>
 
 #ifdef _WIN32
-#include<windows.h>
+#include <windows.h>
 #endif
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
 #endif
 
-
 std::vector<std::unique_ptr<mx::Screen>> *screens;
 int cur_screen = 0;
 mx::mxApp *p_app = nullptr;
 
 void setScreen(int scr) {
-    if(scr >= 0 && scr < static_cast<int>(screens->size()))
+    if (scr >= 0 && scr < static_cast<int>(screens->size()))
         cur_screen = scr;
     else {
         std::cerr << "Error screen out of bounds\n";
@@ -51,7 +50,7 @@ void draw(mx::mxApp &app) {
     SDL_RenderPresent(app.ren);
 }
 
- void eventProc() {
+void eventProc() {
     static SDL_Event e;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)) {
@@ -78,7 +77,7 @@ std::string getPath(const std::string &name) {
 }
 
 std::optional<std::string> get_current_directory() {
- #ifdef _WIN32
+#ifdef _WIN32
     char cwd[MAX_PATH];
     if (GetCurrentDirectoryA(sizeof(cwd), cwd)) {
         return std::string(cwd);
@@ -92,7 +91,7 @@ std::optional<std::string> get_current_directory() {
     } else {
         return std::nullopt;
     }
- #endif
+#endif
     return std::nullopt;
 }
 
@@ -103,14 +102,14 @@ SDL_Texture *loadTexture(mx::mxApp &app, const std::string &name) {
 
 extern SDL_Texture *loadTexture(mx::mxApp &app, const std::string &name, int &w, int &h) {
     SDL_Surface *surf = SDL_LoadBMP(getPath(name).c_str());
-    if(!surf) {
+    if (!surf) {
         std::cerr << "Error loading surface; " << getPath(name) << "\n";
         exit(EXIT_FAILURE);
     }
     w = surf->w;
     h = surf->h;
     SDL_Texture *tex = SDL_CreateTextureFromSurface(app.ren, surf);
-    if(!tex) {
+    if (!tex) {
         std::cerr << "Error creating texture from surface: " << name << "\n";
         exit(EXIT_FAILURE);
     }
@@ -126,44 +125,44 @@ void quit() {
 
 int main(int argc, char **argv) {
     Argz<std::string> argz(argc, argv);
-    argz.addOptionSingleValue('p', "path to assets").addOptionDoubleValue('P', "path", "path to assets").addOptionSingleValue('v', "info").addOptionSingle('h', "info").addOptionSingle('f', "set fullscreen").addOptionDouble('F',"fullscreen", "set fullscreen");
+    argz.addOptionSingleValue('p', "path to assets").addOptionDoubleValue('P', "path", "path to assets").addOptionSingleValue('v', "info").addOptionSingle('h', "info").addOptionSingle('f', "set fullscreen").addOptionDouble('F', "fullscreen", "set fullscreen");
     std::string path;
     bool full = false;
     int value = 0;
     Argument<std::string> arg;
     try {
-        while((value = argz.proc(arg)) != -1) {
-            switch(value) {
-                case 'h':
-                case 'v':
-                    argz.help(std::cout);
-                    exit(EXIT_SUCCESS);
-                    break;
-                case 'p':
-                case 'P':
-                    path = arg.arg_value;
-                    break;
-                case 'f':
-                case 'F':
-                    full = true;
-                    break;
+        while ((value = argz.proc(arg)) != -1) {
+            switch (value) {
+            case 'h':
+            case 'v':
+                argz.help(std::cout);
+                exit(EXIT_SUCCESS);
+                break;
+            case 'p':
+            case 'P':
+                path = arg.arg_value;
+                break;
+            case 'f':
+            case 'F':
+                full = true;
+                break;
             }
         }
-    } catch(const ArgException<std::string> &e) {
+    } catch (const ArgException<std::string> &e) {
         std::cerr << "Syntax Error: " << e.text() << "\n";
     }
 
-    if(path.length()>0) {
+    if (path.length() > 0) {
         std::cout << "MasterX System: path set to: " << path << "\n";
         cur_path = path;
     } else {
-    #ifndef FOR_WASM
+#ifndef FOR_WASM
         argz.help(std::cout);
         exit(EXIT_FAILURE);
-    #endif
+#endif
     }
 
-    mx::mxApp app;  
+    mx::mxApp app;
     p_app = &app;
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -171,7 +170,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    if(TTF_Init() < 0) {
+    if (TTF_Init() < 0) {
         std::cerr << "Error initializing SDL_ttf: " << TTF_GetError() << "\n";
         return 1;
     }
@@ -182,26 +181,24 @@ int main(int argc, char **argv) {
 
     std::vector<std::unique_ptr<mx::Screen>> screen_obj;
     screens = &screen_obj;
-    if(!app.init("MasterX", 1280, 720)) {
+    if (!app.init("MasterX", 1280, 720)) {
         exit(EXIT_FAILURE);
         return 1;
     }
     init(app);
 
-    if(full) {
+    if (full) {
         app.set_fullscreen(app.win, true);
     }
 
     app.active = true;
 
 #ifndef FOR_WASM
-    while(app.active == true) {
+    while (app.active == true) {
         eventProc();
     }
 #else
     emscripten_set_main_loop(eventProc, 0, 1);
 #endif
     return 0;
-
- 
 }

@@ -7,12 +7,14 @@
 
 namespace ast {
 
-    enum class VarType { NUMBER, STRING, POINTER };
-    inline std::vector<std::string> VarString { "NUMBER", "STRING", "POINTER" };
+    enum class VarType { NUMBER,
+                         STRING,
+                         POINTER };
+    inline std::vector<std::string> VarString{"NUMBER", "STRING", "POINTER"};
 
     struct ASTNode {
         virtual ~ASTNode() = default;
-        virtual std::string text() const = 0;  // Pure virtual method to be implemented by subclasses
+        virtual std::string text() const = 0; // Pure virtual method to be implemented by subclasses
     };
 
     struct Expression : ASTNode {};
@@ -27,13 +29,13 @@ namespace ast {
 
         Literal(const std::string &v) : value(v) {}
         Literal(const std::string &v, const types::TokenType &t) : value(v), type{t} {
-            if(type == types::TokenType::TT_STR) {
+            if (type == types::TokenType::TT_STR) {
                 value = "\"" + value + "\"";
             }
         }
 
         std::string text() const override {
-            return value;  
+            return value;
         }
     };
 
@@ -43,7 +45,7 @@ namespace ast {
         Identifier(const std::string &n) : name(n), vtype{} {}
 
         std::string text() const override {
-            return name;  
+            return name;
         }
     };
 
@@ -123,22 +125,22 @@ namespace ast {
         std::vector<std::unique_ptr<ASTNode>> if_body;
         std::vector<std::unique_ptr<ASTNode>> else_body;
 
-        IfStatement(std::unique_ptr<Expression> cond, 
-                    std::vector<std::unique_ptr<ASTNode>> if_b, 
+        IfStatement(std::unique_ptr<Expression> cond,
+                    std::vector<std::unique_ptr<ASTNode>> if_b,
                     std::vector<std::unique_ptr<ASTNode>> else_b = {})
             : condition(std::move(cond)), if_body(std::move(if_b)), else_body(std::move(else_b)) {}
 
         std::string text() const override {
             std::string result = "if (" + condition->text() + ") {\n";
-            
-            for (const auto& stmt : if_body) {
+
+            for (const auto &stmt : if_body) {
                 result += "  " + stmt->text() + "\n";
             }
             result += "}";
 
             if (!else_body.empty()) {
                 result += " else {\n";
-                for (const auto& stmt : else_body) {
+                for (const auto &stmt : else_body) {
                     result += "  " + stmt->text() + "\n";
                 }
                 result += "}";
@@ -163,15 +165,15 @@ namespace ast {
         std::unique_ptr<Expression> condition;
         std::vector<std::unique_ptr<ASTNode>> body;
 
-         WhileStatement(std::unique_ptr<Expression> cond, 
-                    std::vector<std::unique_ptr<ASTNode>> b)
+        WhileStatement(std::unique_ptr<Expression> cond,
+                       std::vector<std::unique_ptr<ASTNode>> b)
             : condition(std::move(cond)), body(std::move(b)) {}
 
         std::string text() const override {
             std::ostringstream oss;
             oss << "while (" << condition->text() << ") {\n";
-            
-            for (const auto& statement : body) {
+
+            for (const auto &statement : body) {
                 oss << "    " << statement->text() << "\n";
             }
             oss << "}";
@@ -184,15 +186,15 @@ namespace ast {
         std::unique_ptr<Assignment> init_statement, post;
         std::vector<std::unique_ptr<ASTNode>> body;
 
-         ForStatement(std::unique_ptr<Assignment> init_x,std::unique_ptr<Expression> cond, std::unique_ptr<Assignment> p,
-                    std::vector<std::unique_ptr<ASTNode>> b)
+        ForStatement(std::unique_ptr<Assignment> init_x, std::unique_ptr<Expression> cond, std::unique_ptr<Assignment> p,
+                     std::vector<std::unique_ptr<ASTNode>> b)
             : init_statement(std::move(init_x)), condition(std::move(cond)), post(std::move(p)), body(std::move(b)) {}
 
         std::string text() const override {
             std::ostringstream oss;
             oss << "for (" << init_statement->text() << ";" << condition->text() << ";" << post->text() << ") {\n";
-            
-            for (const auto& statement : body) {
+
+            for (const auto &statement : body) {
                 oss << "    " << statement->text() << "\n";
             }
             oss << "}";
@@ -203,13 +205,13 @@ namespace ast {
     struct Function : ASTNode {
         std::string name;
         std::vector<std::unique_ptr<ASTNode>> body;
-        std::vector<std::pair<std::string,VarType>> parameters;
+        std::vector<std::pair<std::string, VarType>> parameters;
         ast::VarType return_type;
         Function(const std::string &n, const std::vector<std::pair<std::string, VarType>> &p, VarType vt) : name(n), parameters(std::move(p)), return_type{vt} {}
         Function(const std::string &n) : name{n} {}
         std::string text() const override {
             std::string result = "function " + name + "() {\n";
-            for (const auto& stmt : body) {
+            for (const auto &stmt : body) {
                 result += "  " + stmt->text() + "\n";
             }
             result += "}";
@@ -220,13 +222,13 @@ namespace ast {
     struct DefineFunction : ASTNode {
         std::string name;
         std::vector<std::unique_ptr<ASTNode>> body;
-        std::vector<std::pair<std::string,VarType>> parameters;
+        std::vector<std::pair<std::string, VarType>> parameters;
         ast::VarType return_type;
         DefineFunction(const std::string &n, const std::vector<std::pair<std::string, VarType>> &p, VarType vt) : name(n), parameters(std::move(p)), return_type{vt} {}
         DefineFunction(const std::string &n) : name{n} {}
         std::string text() const override {
             std::string result = "define " + name + "(";
-            for(auto &i : parameters) {
+            for (auto &i : parameters) {
                 result += i.first + " ";
             }
             result += ")";
@@ -241,13 +243,13 @@ namespace ast {
 
         std::string text() const override {
             std::string result;
-            for (const auto& stmt : body) {
+            for (const auto &stmt : body) {
                 result += stmt->text() + "\n";
             }
             return result;
         }
     };
 
-}
+} // namespace ast
 
 #endif

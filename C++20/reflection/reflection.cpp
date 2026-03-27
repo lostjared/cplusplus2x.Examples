@@ -1,10 +1,10 @@
-#include<iostream>
-#include<string>
-#include<unordered_map>
-#include<functional>
+#include <functional>
+#include <iostream>
+#include <string>
+#include <unordered_map>
 
 class Object {
-public:
+  public:
     void func1(std::string arg) {
         std::cout << "func1: " << arg << "\n";
         value = arg;
@@ -23,12 +23,13 @@ public:
     void printValue() {
         std::cout << "Value is: " << value << "\n";
     }
-private:
+
+  private:
     std::string value;
 };
 
 class Reflect {
-public:
+  public:
     std::unordered_map<std::string, std::function<void(Object &o, std::string)>> func;
     Reflect() {
         func["func1"] = [](Object &o, std::string arg) {
@@ -44,9 +45,9 @@ public:
 
     void call(std::string f, Object &o, std::string arg) {
         auto f1 = func.find(f);
-        if(f1 != func.end())
+        if (f1 != func.end())
             f1->second(o, arg);
-        else 
+        else
             std::cout << "Error bad function name..\n";
     }
 };
@@ -54,7 +55,7 @@ public:
 int main() {
     Reflect reflection;
     Object obj1;
-    while(1) {
+    while (1) {
         std::cout << "Enter func1, or func2 to specify function..\n";
         std::string line;
         std::getline(std::cin, line);

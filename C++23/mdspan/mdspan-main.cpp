@@ -1,8 +1,8 @@
-#include<opencv2/opencv.hpp>
-#include"mdspan.hpp" // in the ftuure when package
+#include "mdspan.hpp" // in the ftuure when package
+#include <opencv2/opencv.hpp>
 // as a part of libstdc++ change to
 // #include<mdspan>
-#include<print> 
+#include <print>
 
 int main() {
     int width = 800;
@@ -19,7 +19,7 @@ int main() {
             uint8_t blue = (x * 255) / width;
             uint8_t green = (y * 255) / height;
             uint8_t red = 0;
-            grid[y, x] = cv::Vec3b(blue, green, red); 
+            grid[y, x] = cv::Vec3b(blue, green, red);
         }
     }
     cv::imwrite("gradient.png", img);

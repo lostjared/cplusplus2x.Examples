@@ -2,24 +2,24 @@
 #define __MX_CONTROL_H_X
 
 #include "window.hpp"
-#include<functional>
+#include <functional>
 
 namespace mx {
 
     class Window;
 
     using EventCallback = bool (*)(mxApp &app, Window *window, SDL_Event &e);
-    using ResizeCallback = std::function<void(Window*, int, int)>;
+    using ResizeCallback = std::function<void(Window *, int, int)>;
 
     class Control : public Screen {
-    public:
+      public:
         virtual ~Control() = default;
         virtual void setWindowPos(int x, int y) = 0;
         virtual void resizeWindow(int w, int h) {}
 
-        template<typename F>
-        void setCallback(F callb) { callback = callb; }  
-        template<typename F>
+        template <typename F>
+        void setCallback(F callb) { callback = callb; }
+        template <typename F>
         void setResizeCallback(F callb) { rcallback = callb; }
         Window *parent = nullptr;
         EventCallback callback = nullptr;
@@ -27,8 +27,6 @@ namespace mx {
         bool show = true;
         void setShow(bool s) { show = s; }
     };
-}
-
-
+} // namespace mx
 
 #endif

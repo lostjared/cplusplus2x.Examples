@@ -1,11 +1,11 @@
-#include"window.hpp"
+#include "window.hpp"
 
 namespace mx {
-    
+
     bool mxApp::init(const std::string &name, int w, int h) {
-        win = SDL_CreateWindow(name.c_str(), 
-                                        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
-                                        w, h, SDL_WINDOW_SHOWN);
+        win = SDL_CreateWindow(name.c_str(),
+                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                               w, h, SDL_WINDOW_SHOWN);
         if (win == nullptr) {
             std::cerr << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
             SDL_Quit();
@@ -32,7 +32,7 @@ namespace mx {
         width = w;
         height = h;
         font = TTF_OpenFont(getPath("fonts/arial.ttf").c_str(), 14);
-        if(!font) {
+        if (!font) {
             std::cerr << "MasterX System: font: " << getPath("fonts/arial.ttf") << " Could not be loaded.\n";
             exit(EXIT_FAILURE);
         }
@@ -44,11 +44,11 @@ namespace mx {
         return true;
     }
 
-    SDL_Texture* mxApp::convertToStreamingTexture(SDL_Texture* originalTexture) {
+    SDL_Texture *mxApp::convertToStreamingTexture(SDL_Texture *originalTexture) {
         int width, height;
         Uint32 format;
         SDL_QueryTexture(originalTexture, &format, nullptr, &width, &height);
-        SDL_Texture* streamingTexture = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_STREAMING, width, height);
+        SDL_Texture *streamingTexture = SDL_CreateTexture(ren, format, SDL_TEXTUREACCESS_STREAMING, width, height);
         if (!streamingTexture) {
             std::cerr << "Error creating streaming texture: " << SDL_GetError() << "\n";
             return nullptr;
@@ -60,7 +60,7 @@ namespace mx {
     }
 
     void mxApp::release() {
-        if(init_ == true) {
+        if (init_ == true) {
             std::cout << "MasterX: Releasing System Objects\n";
             SDL_DestroyTexture(icon);
             SDL_DestroyTexture(tex);
@@ -73,7 +73,7 @@ namespace mx {
         active = false;
     }
 
-    void mxApp::set_fullscreen(SDL_Window* window, bool fullscreen) {
+    void mxApp::set_fullscreen(SDL_Window *window, bool fullscreen) {
         if (fullscreen) {
             SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
         } else {
@@ -85,4 +85,4 @@ namespace mx {
     mxApp::~mxApp() {
         release();
     }
-}
+} // namespace mx

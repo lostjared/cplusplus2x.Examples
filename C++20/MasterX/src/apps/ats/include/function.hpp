@@ -1,12 +1,12 @@
 #ifndef __FUNCTION_HPP_
 #define __FUNCTION_HPP_
 
-#include<string>
-#include<iostream>
-#include<vector>
-#include"code.hpp"
-#include<unordered_map>
-#include<sstream>
+#include "code.hpp"
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 extern interp::Code code;
 extern std::ostringstream stream;
@@ -17,13 +17,13 @@ struct Command {
     bool greater;
     tokenFunc func;
     std::string help_text;
-    
+
     Command() {
         args = 0;
         func = 0;
         greater = false;
     }
-    
+
     Command(tokenFunc ifunc, int iargs, const std::string &text) {
         args = iargs;
         func = ifunc;
@@ -36,7 +36,7 @@ struct Command {
         greater = g;
         help_text = text;
     }
-    Command(const Command &c) : args(c.args), greater(c.greater), func(c.func), help_text(c.help_text) { }
+    Command(const Command &c) : args(c.args), greater(c.greater), func(c.func), help_text(c.help_text) {}
     Command &operator=(const Command &c) {
         args = c.args;
         func = c.func;
@@ -81,6 +81,6 @@ namespace token {
     void token_Stack(const std::string &cmd, std::vector<lex::Token> &tokens);
     void token_Bin(const std::string &cmd, std::vector<lex::Token> &tokens);
     void token_Integer(const std::string &cmd, std::vector<lex::Token> &tokens);
-}
+} // namespace token
 
 #endif

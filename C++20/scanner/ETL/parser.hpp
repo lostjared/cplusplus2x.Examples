@@ -1,24 +1,24 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
-#include "scanner.hpp"
 #include "ast.hpp"
+#include "scanner.hpp"
 #include <memory>
-
 
 namespace parse {
 
     class ParseException {
-    public:
+      public:
         using string_type = scan::token::Token<char>::string_type;
         ParseException(const string_type &w) : what{w} {}
         string_type why() const { return what; }
-    private:
+
+      private:
         string_type what;
     };
 
     class Parser {
-    public:
+      public:
         using string_type = scan::token::Token<char>::string_type;
         Parser(scan::Scanner *scanner);
         ~Parser();
@@ -26,7 +26,7 @@ namespace parse {
 
         std::unique_ptr<ast::ASTNode> getAST() { return std::move(root); }
 
-    private:
+      private:
         std::unique_ptr<scan::Scanner> scan;
         uint64_t token_index = 0;
 
@@ -40,7 +40,7 @@ namespace parse {
         bool test(const types::OperatorType &op);
         bool test(const types::KeywordType &kw);
         bool test(const string_type &t);
-        
+
         void inc(const uint64_t num = 1);
         void dec(const uint64_t num = 1);
         void proc_tokens();
@@ -66,7 +66,6 @@ namespace parse {
         std::unique_ptr<ast::WhileStatement> parseWhileStatement();
         std::unique_ptr<ast::ForStatement> parseForStatement();
     };
-}
+} // namespace parse
 
-
-#endif 
+#endif
