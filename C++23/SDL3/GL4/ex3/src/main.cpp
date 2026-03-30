@@ -110,7 +110,7 @@ struct FractalShader {
     GLuint program = 0;
 };
 
-static FractalShader initStaticShader() {
+static FractalShader initFractalShader() {
     FractalShader s;
 
     GLuint vs = loadSPV(GL_VERTEX_SHADER, "shaders/vertex.spv");
@@ -189,7 +189,7 @@ int main(int argc, char **argv) {
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, ubos[0]);
     glBindBufferBase(GL_UNIFORM_BUFFER, 2, ubos[1]);
 
-    FractalShader shader = initStaticShader();
+    FractalShader shader = initFractalShader();
 
     bool running = true;
     while (running) {
