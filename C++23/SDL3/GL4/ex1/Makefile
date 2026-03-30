@@ -4,7 +4,7 @@ LDFLAGS =
 LIBS = $(shell pkg-config --libs sdl3) -ldl -lGL
 INCLUDES = -Iglad/include $(shell pkg-config --cflags sdl3)
 
-SRC = src/main.cpp glad/src/glad.c
+SRC = src/main.cpp glad/src/glad.cpp
 OBJ = $(SRC:.cpp=.o)
 OBJ := $(OBJ:.c=.o)
 
