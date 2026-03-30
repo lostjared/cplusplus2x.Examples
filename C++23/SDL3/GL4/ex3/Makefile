@@ -5,7 +5,7 @@ LIBS=`pkg-config --libs sdl3` -lGL -ldl
 INCLUDES=`pkg-config --cflags sdl3` -Iglad/include
 OUTPUT=FractalApp
 all:
-	$(CXX) src/main.cpp glad/src/glad.c -o $(OUTPUT) $(CXXFLAGS) $(INCLUDES) $(LIBS)
+	$(CXX) src/main.cpp glad/src/glad.cpp -o $(OUTPUT) $(CXXFLAGS) $(INCLUDES) $(LIBS)
 
 clean:
 	rm -f $(OUTPUT)

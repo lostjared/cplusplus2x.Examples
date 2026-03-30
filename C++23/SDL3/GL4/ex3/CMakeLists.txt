@@ -15,7 +15,7 @@ find_package(OpenGL REQUIRED)
 
 add_executable(FractalApp 
     src/main.cpp 
-    glad/src/glad.c
+    glad/src/glad.cpp
 )
 
 target_include_directories(FractalApp PRIVATE glad/include)
