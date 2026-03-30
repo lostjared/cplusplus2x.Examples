@@ -584,7 +584,8 @@ namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
     MDSPAN_TEMPLATE_REQUIRES(                                                     \
         class function_requires_ignored = void,                                   \
         (std::is_void<function_requires_ignored>::value && REQ))                  \
-    MDSPAN_PP_REMOVE_PARENS(PAREN_PREQUALS) FNAME PAREN_PARAMS QUALS /**/
+    MDSPAN_PP_REMOVE_PARENS(PAREN_PREQUALS)                                       \
+    FNAME PAREN_PARAMS QUALS /**/
 #endif
 
 #if defined(MDSPAN_IMPL_COMPILER_MSVC) && (!defined(_MSVC_TRADITIONAL) || _MSVC_TRADITIONAL)

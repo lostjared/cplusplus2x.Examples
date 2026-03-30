@@ -1,9 +1,9 @@
 #include <SDL3/SDL.h>
+#include <cstring>
 #include <fstream>
 #include <glad/glad.h>
 #include <print>
 #include <vector>
-#include <cstring>
 
 struct PushConstants {
     float screenSize[2];
@@ -21,15 +21,14 @@ struct SpriteExtended {
     float u3[4];
 };
 
-
-static GLuint loadTextureBMP(const char* path) {
-    SDL_Surface* raw = SDL_LoadBMP(path);
+static GLuint loadTextureBMP(const char *path) {
+    SDL_Surface *raw = SDL_LoadBMP(path);
     if (!raw) {
         std::println("Failed to load BMP: {}", SDL_GetError());
         return 0;
     }
 
-    SDL_Surface* surface = SDL_ConvertSurface(raw, SDL_PIXELFORMAT_RGBA32);
+    SDL_Surface *surface = SDL_ConvertSurface(raw, SDL_PIXELFORMAT_RGBA32);
     SDL_DestroySurface(raw);
     if (!surface) {
         std::println("Failed to convert surface: {}", SDL_GetError());
@@ -39,11 +38,11 @@ static GLuint loadTextureBMP(const char* path) {
     int pitch = surface->pitch;
     int h = surface->h;
     std::vector<uint8_t> rowBuf(pitch);
-    uint8_t* pixels = static_cast<uint8_t*>(surface->pixels);
+    uint8_t *pixels = static_cast<uint8_t *>(surface->pixels);
 
     for (int i = 0; i < h / 2; ++i) {
-        uint8_t* row1 = pixels + i * pitch;
-        uint8_t* row2 = pixels + (h - i - 1) * pitch;
+        uint8_t *row1 = pixels + i * pitch;
+        uint8_t *row2 = pixels + (h - i - 1) * pitch;
         std::memcpy(rowBuf.data(), row1, pitch);
         std::memcpy(row1, row2, pitch);
         std::memcpy(row2, rowBuf.data(), pitch);
@@ -110,7 +109,7 @@ struct FractalShader {
     GLuint program = 0;
 };
 
-template<typename T>
+template <typename T>
 static T initShader() {
     T s;
     GLuint vs = loadSPV(GL_VERTEX_SHADER, "shaders/vertex.spv");
@@ -176,7 +175,7 @@ int main(int argc, char **argv) {
     }
 
     glBindTextureUnit(0, tex);
-    
+
     GLuint ubos[2];
     glCreateBuffers(2, ubos);
     glNamedBufferStorage(ubos[0], sizeof(PushConstants), nullptr, GL_DYNAMIC_STORAGE_BIT);
@@ -212,7 +211,7 @@ int main(int argc, char **argv) {
 
         SpriteExtended ext = {};
         ext.mouse[0] = mx;
-        ext.mouse[1] = static_cast<float>(h) - my; 
+        ext.mouse[1] = static_cast<float>(h) - my;
         ext.mouse[2] = mDown ? 1.0f : 0.0f;
 
         glNamedBufferSubData(ubos[0], 0, sizeof(PushConstants), &pc);
