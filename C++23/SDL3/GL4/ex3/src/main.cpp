@@ -76,7 +76,7 @@ static std::vector<char> readFile(const char *path) {
     }
     std::vector<char> buffer(size);
     file.seekg(0);
-    file.read(buffer.data(), (std::streamsize)size);
+    file.read(buffer.data(), static_cast<std::streamsize>(size));
     return buffer;
 }
 
@@ -137,7 +137,7 @@ static T initShader() {
 
 int main(int argc, char **argv) {
     if (!SDL_Init(SDL_INIT_VIDEO))
-        return 1;
+        return EXIT_FAILURE;
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
 
     if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
         std::println("Failed to load GL");
-        return 1;
+        return EXIT_FAILURE;
     }
 
     SDL_GL_SetSwapInterval(0);
@@ -231,5 +231,5 @@ int main(int argc, char **argv) {
     glDeleteTextures(1, &tex);
     glDeleteBuffers(2, ubos);
     SDL_Quit();
-    return 0;
+    return EXIT_SUCCESS;
 }
