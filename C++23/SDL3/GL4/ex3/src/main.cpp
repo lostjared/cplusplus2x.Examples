@@ -69,7 +69,7 @@ static std::vector<char> readFile(const char *path) {
         std::println("Failed to open: {}", path);
         return {};
     }
-    size_t size = (size_t)file.tellg();
+    size_t size = static_cast<size_t>(file.tellg());
     if (size == 0) {
         std::println("Empty file: {}", path);
         return {};
@@ -110,22 +110,19 @@ struct FractalShader {
     GLuint program = 0;
 };
 
-static FractalShader initFractalShader() {
-    FractalShader s;
-
+template<typename T>
+static T initShader() {
+    T s;
     GLuint vs = loadSPV(GL_VERTEX_SHADER, "shaders/vertex.spv");
     GLuint fs = loadSPV(GL_FRAGMENT_SHADER, "shaders/frac.spv");
-
     if (!vs || !fs) {
         std::println("Shader creation failed");
         return s;
     }
-
     s.program = glCreateProgram();
     glAttachShader(s.program, vs);
     glAttachShader(s.program, fs);
     glLinkProgram(s.program);
-
     GLint linked = 0;
     glGetProgramiv(s.program, GL_LINK_STATUS, &linked);
     if (!linked) {
@@ -133,10 +130,8 @@ static FractalShader initFractalShader() {
         glGetProgramInfoLog(s.program, 4096, nullptr, log);
         std::println("Program link error: {}", log);
     }
-
     glDeleteShader(vs);
     glDeleteShader(fs);
-
     return s;
 }
 
@@ -189,7 +184,7 @@ int main(int argc, char **argv) {
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, ubos[0]);
     glBindBufferBase(GL_UNIFORM_BUFFER, 2, ubos[1]);
 
-    FractalShader shader = initFractalShader();
+    FractalShader shader = initShader<FractalShader>();
 
     bool running = true;
     while (running) {
@@ -209,15 +204,15 @@ int main(int argc, char **argv) {
         float t = SDL_GetTicks() / 1000.0f;
 
         PushConstants pc = {};
-        pc.screenSize[0] = (float)w;
-        pc.screenSize[1] = (float)h;
-        pc.spriteSize[0] = (float)w;
-        pc.spriteSize[1] = (float)h;
+        pc.screenSize[0] = static_cast<float>(w);
+        pc.screenSize[1] = static_cast<float>(h);
+        pc.spriteSize[0] = static_cast<float>(w);
+        pc.spriteSize[1] = static_cast<float>(h);
         pc.params[3] = t;
 
         SpriteExtended ext = {};
         ext.mouse[0] = mx;
-        ext.mouse[1] = (float)h - my; 
+        ext.mouse[1] = static_cast<float>(h) - my; 
         ext.mouse[2] = mDown ? 1.0f : 0.0f;
 
         glNamedBufferSubData(ubos[0], 0, sizeof(PushConstants), &pc);
