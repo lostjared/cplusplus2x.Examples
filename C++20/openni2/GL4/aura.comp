@@ -1,0 +1,93 @@
+#version 460 core
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+// Bindings match the glitch shader so main.cpp picks the right layout.
+layout(rgba8, binding = 0) readonly uniform image2D srcColor;
+layout(rgba8, binding = 1) writeonly uniform image2D destTex;
+layout(r16ui, binding = 2) readonly uniform uimage2D depthTex;
+
+layout(location = 0) uniform float u_time;
+
+// What counts as "you": the foreground band of depth values (mm).
+const float SUBJECT_MIN_MM = 500.0;
+const float SUBJECT_MAX_MM = 1800.0;
+
+// Aura look.
+const vec3 AURA_COLOR_INNER = vec3(1.00, 0.55, 0.85); // hot pink
+const vec3 AURA_COLOR_OUTER = vec3(1.00, 0.20, 0.55); // deeper magenta
+const float AURA_RADIUS_PX = 36.0;                    // how far the glow reaches
+
+// 1 = depth in foreground band (subject), 0 otherwise. Smooth at the edges.
+float subjectMask(ivec2 p, ivec2 sz) {
+    p = clamp(p, ivec2(0), sz - 1);
+    uint raw = imageLoad(depthTex, p).r;
+    if (raw == 0u)
+        return 0.0;
+    float mm = float(raw);
+    // Smooth in/out so the mask edge isn't a hard line.
+    float a = smoothstep(SUBJECT_MIN_MM - 60.0, SUBJECT_MIN_MM + 60.0, mm);
+    float b = 1.0 - smoothstep(SUBJECT_MAX_MM - 80.0, SUBJECT_MAX_MM + 80.0, mm);
+    return a * b;
+}
+
+// Cheap separable-ish blur to build the aura: jittered ring samples around p.
+float auraField(ivec2 p, ivec2 sz, float radius) {
+    float acc = 0.0;
+    float wsum = 0.0;
+    // 16 samples on two rings.
+    const int N = 16;
+    for (int i = 0; i < N; ++i) {
+        float a = (float(i) / float(N)) * 6.2831853;
+        // Mix inner + outer ring so it has body.
+        float r = (i % 2 == 0) ? radius : radius * 0.55;
+        vec2 o = vec2(cos(a), sin(a)) * r;
+        ivec2 q = p + ivec2(o);
+        float w = 1.0 / (1.0 + 0.02 * r * r); // soft falloff
+        acc += subjectMask(q, sz) * w;
+        wsum += w;
+    }
+    return acc / wsum;
+}
+
+void main() {
+    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 sz = imageSize(destTex);
+    if (pos.x >= sz.x || pos.y >= sz.y)
+        return;
+
+    float subject = subjectMask(pos, sz);
+
+    // Aura = blurred subject mask minus the subject itself (so the glow lives
+    // around the body, not on top of it).
+    float blurred = auraField(pos, sz, AURA_RADIUS_PX);
+    float aura = clamp(blurred - subject * 0.85, 0.0, 1.0);
+
+    // Outer wider, dimmer halo for atmosphere.
+    float blurredFar = auraField(pos, sz, AURA_RADIUS_PX * 2.2);
+    float halo = clamp(blurredFar - subject * 0.6, 0.0, 1.0) * 0.6;
+
+    // Gentle breathing pulse.
+    float pulse = 0.85 + 0.15 * sin(u_time * 2.0);
+
+    // Aura color: bright inner core fading to deeper magenta outwards.
+    vec3 auraColor = mix(AURA_COLOR_OUTER, AURA_COLOR_INNER, pow(aura, 0.6));
+    vec3 glow = auraColor * (aura * 1.6 + halo) * pulse;
+
+    // Base scene: dim the original camera image a bit so the aura reads.
+    vec3 camCol = imageLoad(srcColor, pos).rgb;
+    vec3 base = camCol * mix(0.35, 1.0, subject);
+
+    // Tint the subject very slightly pink so they feel "lit" by the aura.
+    base = mix(base, base * vec3(1.15, 0.95, 1.05), subject * 0.4);
+
+    // Additive blend the glow on top of the scene.
+    vec3 col = base + glow;
+
+    // Subtle outer vignette to push focus inward.
+    vec2 uv = (vec2(pos) + 0.5) / vec2(sz);
+    vec2 cv = uv - 0.5;
+    float vg = smoothstep(0.85, 0.30, length(cv));
+    col *= mix(0.75, 1.0, vg);
+
+    imageStore(destTex, pos, vec4(col, 1.0));
+}

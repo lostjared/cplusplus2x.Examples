@@ -1,0 +1,49 @@
+#version 460 core
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+// Current frame (output of the glitch pass).
+layout(rgba8, binding = 0) readonly uniform image2D srcTex;
+// New accumulator written this frame.
+layout(rgba8, binding = 1) writeonly uniform image2D dstTex;
+// Previous-frame accumulator.
+layout(rgba8, binding = 2) readonly uniform image2D prevTex;
+// Depth frame (raw mm).
+layout(r16ui, binding = 3) readonly uniform uimage2D depthTex;
+
+const float DEPTH_MIN_MM = 400.0;
+const float DEPTH_MAX_MM = 4000.0;
+
+void main() {
+    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 sz = imageSize(dstTex);
+    if (pos.x >= sz.x || pos.y >= sz.y)
+        return;
+
+    uint raw = imageLoad(depthTex, pos).r;
+    float d = (raw == 0u)
+                  ? 1.0
+                  : clamp((float(raw) - DEPTH_MIN_MM) / (DEPTH_MAX_MM - DEPTH_MIN_MM), 0.0, 1.0);
+    float near = 1.0 - d;
+
+    // Decay: near pixels persist (long trail), far pixels fade quickly.
+    // 0.99 near, ~0.80 far.
+    float decay = mix(0.80, 0.985, near);
+
+    // Drift the previous accumulator slightly — near pixels drift more.
+    vec2 dir = vec2(0.0, -1.0); // upward smear
+    int amt = int(round(near * 3.0));
+    ivec2 src = pos + ivec2(dir * float(amt));
+    src = clamp(src, ivec2(0), sz - 1);
+    vec3 prev = imageLoad(prevTex, src).rgb;
+
+    vec3 cur = imageLoad(srcTex, pos).rgb;
+
+    // Take the brighter of (decayed previous) and (current) per channel so
+    // bright features streak instead of being averaged away.
+    vec3 trail = max(prev * decay, cur);
+
+    // Mix the raw current frame back in so the foreground stays crisp.
+    vec3 outc = mix(trail, cur, 0.25 + 0.35 * d);
+
+    imageStore(dstTex, pos, vec4(outc, 1.0));
+}

@@ -1,0 +1,86 @@
+#version 460 core
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+// Color frame from the Astra Pro RGB camera (uploaded as BGR -> RGBA8).
+layout(rgba8, binding = 0) readonly uniform image2D srcColor;
+// Output image consumed by the fragment shader.
+layout(rgba8, binding = 1) writeonly uniform image2D destTex;
+// Depth frame (raw mm).
+layout(r16ui, binding = 2) readonly uniform uimage2D depthTex;
+
+layout(location = 0) uniform float u_time;
+
+const float DEPTH_MIN_MM = 400.0;
+const float DEPTH_MAX_MM = 4000.0;
+
+float hash11(float p) {
+    p = fract(p * 0.1031);
+    p *= p + 33.33;
+    p *= p + p;
+    return fract(p);
+}
+float hash21(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+}
+
+void main() {
+    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 sz = imageSize(destTex);
+    if (pos.x >= sz.x || pos.y >= sz.y)
+        return;
+
+    // Normalised depth (0 = near, 1 = far; 1 if invalid).
+    uint raw = imageLoad(depthTex, pos).r;
+    float d = (raw == 0u)
+                  ? 1.0
+                  : clamp((float(raw) - DEPTH_MIN_MM) / (DEPTH_MAX_MM - DEPTH_MIN_MM), 0.0, 1.0);
+    float near = 1.0 - d; // 1 near camera, 0 far away
+
+    // ---- Glitch ----
+    // Horizontal scanline tearing: random shift per band, modulated by nearness.
+    float band = floor(float(pos.y) / 12.0);
+    float tslice = floor(u_time * 10.0);
+    float shiftF = (hash21(vec2(band, tslice)) - 0.5) * 80.0 * (0.25 + near);
+    int shift = int(shiftF);
+
+    // RGB channel split scales with depth (closer = wider split).
+    int split = int(2.0 + near * 14.0);
+
+    int xR = clamp(pos.x + shift + split, 0, sz.x - 1);
+    int xG = clamp(pos.x + shift, 0, sz.x - 1);
+    int xB = clamp(pos.x + shift - split, 0, sz.x - 1);
+
+    float r = imageLoad(srcColor, ivec2(xR, pos.y)).r;
+    float g = imageLoad(srcColor, ivec2(xG, pos.y)).g;
+    float b = imageLoad(srcColor, ivec2(xB, pos.y)).b;
+    vec3 col = vec3(r, g, b);
+
+    // Block corruption: occasional bands replaced with noise tinted by depth.
+    float blkH = hash21(vec2(floor(float(pos.y) / 8.0), floor(u_time * 6.0)));
+    float corrupt = step(0.97, blkH);
+    if (corrupt > 0.5) {
+        float n = hash21(vec2(pos) + u_time);
+        vec3 noise = vec3(n,
+                          hash11(n + 1.7),
+                          hash11(n + 3.3));
+        col = mix(col, noise, 0.7 * near + 0.2);
+    }
+
+    // Vertical jitter on near pixels.
+    if (near > 0.6) {
+        int vshift = int((hash21(vec2(floor(float(pos.x) / 4.0), tslice)) - 0.5) * 10.0);
+        int ys = clamp(pos.y + vshift, 0, sz.y - 1);
+        vec3 jc = vec3(imageLoad(srcColor, ivec2(pos.x, ys)).rgb);
+        col = mix(col, jc, 0.5);
+    }
+
+    // Depth tint overlay so the depth signal is visible even on flat color.
+    vec3 tint = mix(vec3(1.0, 0.25, 0.4), // near
+                    vec3(0.15, 0.4, 1.0), // far
+                    d);
+    col = mix(col, col * tint * 1.4, 0.35);
+
+    imageStore(destTex, pos, vec4(col, 1.0));
+}

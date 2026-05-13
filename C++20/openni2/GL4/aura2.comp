@@ -1,0 +1,155 @@
+#version 460 core
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(rgba8, binding = 0) readonly uniform image2D srcColor;
+layout(rgba8, binding = 1) writeonly uniform image2D destTex;
+layout(r16ui, binding = 2) readonly uniform uimage2D depthTex;
+
+layout(location = 0) uniform float u_time;
+
+// --- SENSOR BOUNDS ---
+// Generous absolute bounds (0.3m to 3.5m)
+const float SUBJECT_MIN_MM = 300.0;
+const float SUBJECT_MAX_MM = 3500.0;
+// The "Slice" thickness: only accept pixels within this many mm of the closest point
+const float DEPTH_TOLERANCE = 250.0;
+
+// --- AURA SETTINGS ---
+const vec3 AURA_COLOR_INNER = vec3(1.00, 0.55, 0.85); // Hot Pink
+const vec3 AURA_COLOR_OUTER = vec3(1.00, 0.20, 0.55); // Deep Magenta
+const float AURA_RADIUS_PX = 36.0;
+
+// Find the CLOSEST valid depth point anywhere in the central frame
+float findTargetDepth(ivec2 sz) {
+    uint closest = 9999u;
+    bool found = false;
+
+    // Scan a grid, avoiding the extreme edges where walls/monitors might be
+    for (int y = 50; y < sz.y - 50; y += 20) {
+        for (int x = 50; x < sz.x - 50; x += 20) {
+            uint d = imageLoad(depthTex, ivec2(x, y)).r;
+            if (d > uint(SUBJECT_MIN_MM) && d < uint(SUBJECT_MAX_MM)) {
+                if (d < closest) {
+                    closest = d;
+                    found = true;
+                }
+            }
+        }
+    }
+    return found ? float(closest) : -1.0;
+}
+
+// Creates a mask of ONLY the subject, ignoring background and foreground noise
+float getIsolatedMask(ivec2 p, ivec2 sz, float targetDepth) {
+    if (targetDepth < 0.0)
+        return 0.0; // Nobody found
+
+    // Clamp to ensure we don't sample off the edge of the screen
+    uint raw = imageLoad(depthTex, clamp(p, ivec2(0), sz - 1)).r;
+    if (raw == 0u)
+        return 0.0; // Black hole / occlusion
+
+    float mm = float(raw);
+
+    // 1. Slice logic: smoothly fade out as pixels get further from the target depth
+    float diff = abs(mm - targetDepth);
+    float sliceMask = smoothstep(DEPTH_TOLERANCE, DEPTH_TOLERANCE * 0.5, diff);
+
+    // 2. Absolute bounds logic: drop anything completely out of bounds
+    float bounds = smoothstep(SUBJECT_MIN_MM - 50.0, SUBJECT_MIN_MM + 50.0, mm) *
+                   (1.0 - smoothstep(SUBJECT_MAX_MM - 100.0, SUBJECT_MAX_MM, mm));
+
+    // 3. NEW: Spatial Edge Curtain
+    // Normalize the X coordinate to a 0.0 to 1.0 range
+    float normalizedX = float(p.x) / float(sz.x);
+
+    // Fade out the extreme left 12% and right 12% of the frame
+    // This physically cuts the doorframe out of the aura generation
+    float edgeCrop = 0.12;
+    float edgeMask = smoothstep(edgeCrop * 0.5, edgeCrop, normalizedX) *
+                     smoothstep(1.0 - edgeCrop * 0.5, 1.0 - edgeCrop, normalizedX);
+
+    return bounds * sliceMask * edgeMask;
+}
+// --- BUTTERY SMOOTH FIBONACCI BLUR ---
+float auraField(ivec2 p, ivec2 sz, float radius, float targetDepth) {
+    float acc = 0.0;
+    float totalWeight = 0.0;
+
+    // Cranked up from 16 to 64 for desktop GPU smoothness
+    const int SAMPLES = 64;
+
+    // The Golden Angle creates a mathematically perfect, gapless distribution
+    const float GOLDEN_ANGLE = 2.39996323;
+
+    // Generate a tiny bit of animated static (Temporal Jitter)
+    // When combined with your trails shader, this acts as Temporal Anti-Aliasing (TAA)
+    float jitter = fract(sin(dot(vec2(p), vec2(12.9898, 78.233)) + u_time) * 43758.5453);
+
+    for (int i = 0; i < SAMPLES; ++i) {
+        // Distribute samples smoothly from the center out to the edge
+        float r = radius * sqrt((float(i) + jitter) / float(SAMPLES));
+        float theta = float(i) * GOLDEN_ANGLE;
+
+        // Calculate the exact pixel to sample
+        ivec2 q = p + ivec2(cos(theta) * r, sin(theta) * r);
+
+        // Gaussian-style falloff: the center is bright, the edges fade smoothly to zero
+        float weight = smoothstep(radius, 0.0, r);
+
+        acc += getIsolatedMask(q, sz, targetDepth) * weight;
+        totalWeight += weight;
+    }
+    return acc / max(totalWeight, 0.001);
+}
+
+void main() {
+    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 sz = imageSize(destTex);
+    if (pos.x >= sz.x || pos.y >= sz.y)
+        return;
+
+    // 1. Identify the user's distance
+    float userDepth = findTargetDepth(sz);
+
+    // 2. Mask out just the user
+    float subject = getIsolatedMask(pos, sz, userDepth);
+
+    // 3. Generate the Aura (blurred mask MINUS the subject itself)
+    float blur = auraField(pos, sz, AURA_RADIUS_PX, userDepth);
+    float aura = clamp(blur - subject * 0.85, 0.0, 1.0);
+
+    // Add a wider, softer halo
+    float blurFar = auraField(pos, sz, AURA_RADIUS_PX * 2.2, userDepth);
+    float halo = clamp(blurFar - subject * 0.6, 0.0, 1.0) * 0.5;
+
+    // 4. Color & Pulse
+    float pulse = 0.85 + 0.15 * sin(u_time * 2.5);
+    vec3 auraCol = mix(AURA_COLOR_OUTER, AURA_COLOR_INNER, pow(aura, 0.6));
+    vec3 glow = auraCol * (aura * 1.8 + halo) * pulse;
+
+    // 5. Composite with Camera
+    vec3 camCol = imageLoad(srcColor, pos).rgb;
+
+    // Darken the background slightly to make the aura pop
+    vec3 base = camCol * mix(0.35, 1.0, subject);
+
+    // Tint the subject slightly pink to simulate lighting from the aura
+    base = mix(base, base * vec3(1.15, 0.95, 1.05), subject * 0.4);
+
+    // Combine
+    vec3 finalCol = base + glow;
+
+    // 6. VHS / CRT Glitch Polish
+    if (subject > 0.1) {
+        // Subtle scanlines only on the subject
+        finalCol += 0.03 * sin(pos.y * 1.5 + u_time * 15.0);
+    }
+
+    // Subtle vignette to draw the eye to the center
+    vec2 uv = (vec2(pos) + 0.5) / vec2(sz);
+    float vg = smoothstep(0.85, 0.30, length(uv - 0.5));
+    finalCol *= mix(0.8, 1.0, vg);
+
+    imageStore(destTex, pos, vec4(finalCol, 1.0));
+}

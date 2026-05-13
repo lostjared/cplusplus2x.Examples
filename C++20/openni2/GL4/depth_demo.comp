@@ -1,0 +1,108 @@
+#version 460 core
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+// Raw depth (mm) from OpenNI.
+layout(r16ui, binding = 0) readonly uniform uimage2D depthTex;
+// Output color image consumed by the fragment shader.
+layout(rgba8, binding = 1) writeonly uniform image2D destTex;
+
+layout(location = 0) uniform float u_time;
+
+// Astra Pro practical range. Tweak to taste.
+const float DEPTH_MIN_MM = 400.0;
+const float DEPTH_MAX_MM = 4000.0;
+
+// ---------- Turbo colormap (Mikhail-Mikhail / Google). High-contrast,
+// perceptually monotonic — great for depth. ----------
+vec3 turbo(float t) {
+    t = clamp(t, 0.0, 1.0);
+    const vec3 c0 = vec3(0.13572138, 0.09140261, 0.10667330);
+    const vec3 c1 = vec3(4.61539260, 2.19418839, 4.84296658);
+    const vec3 c2 = vec3(-42.66032258, -2.19741529, -86.16804500);
+    const vec3 c3 = vec3(132.13108234, -82.36345470, 432.18821803);
+    const vec3 c4 = vec3(-152.94239396, 200.76823960, -753.71247247);
+    const vec3 c5 = vec3(59.28637943, -134.50798427, 521.16834181);
+    return clamp(c0 + t * (c1 + t * (c2 + t * (c3 + t * (c4 + t * c5)))), 0.0, 1.0);
+}
+
+// Robust depth fetch: returns normalised 0..1, plus a validity flag.
+float fetchDepth(ivec2 p, ivec2 sz, out bool valid) {
+    p = clamp(p, ivec2(0), sz - 1);
+    uint raw = imageLoad(depthTex, p).r;
+    valid = (raw != 0u);
+    if (!valid)
+        return 1.0;
+    return clamp((float(raw) - DEPTH_MIN_MM) / (DEPTH_MAX_MM - DEPTH_MIN_MM), 0.0, 1.0);
+}
+
+void main() {
+    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 sz = imageSize(destTex);
+    if (pos.x >= sz.x || pos.y >= sz.y)
+        return;
+
+    bool valid;
+    float d = fetchDepth(pos, sz, valid);
+
+    // ---------- 1. Base color: Turbo colormap of depth ----------
+    vec3 col = turbo(d);
+
+    // ---------- 2. Depth edges via Sobel for crisp silhouettes ----------
+    bool v;
+    float dL = fetchDepth(pos + ivec2(-1, 0), sz, v);
+    float dR = fetchDepth(pos + ivec2(1, 0), sz, v);
+    float dU = fetchDepth(pos + ivec2(0, -1), sz, v);
+    float dD = fetchDepth(pos + ivec2(0, 1), sz, v);
+    float dTL = fetchDepth(pos + ivec2(-1, -1), sz, v);
+    float dTR = fetchDepth(pos + ivec2(1, -1), sz, v);
+    float dBL = fetchDepth(pos + ivec2(-1, 1), sz, v);
+    float dBR = fetchDepth(pos + ivec2(1, 1), sz, v);
+
+    float gx = (dTR + 2.0 * dR + dBR) - (dTL + 2.0 * dL + dBL);
+    float gy = (dBL + 2.0 * dD + dBR) - (dTL + 2.0 * dU + dTR);
+    float edge = sqrt(gx * gx + gy * gy);
+    // Highlight strong depth discontinuities (object silhouettes).
+    float edgeMask = smoothstep(0.04, 0.18, edge);
+
+    // ---------- 3. Iso-depth contour rings every 100 mm ----------
+    // Recover depth in mm for ring math.
+    float depthMM = DEPTH_MIN_MM + d * (DEPTH_MAX_MM - DEPTH_MIN_MM);
+    float ringSpacing = 100.0; // 10 cm rings
+    float ringPos = depthMM / ringSpacing;
+    float ringDist = abs(fract(ringPos) - 0.5); // 0 at ring center
+    float ring = 1.0 - smoothstep(0.45, 0.50, ringDist);
+
+    // ---------- 4. Animated depth sweep "scanner" plane ----------
+    // A bright sweeping band that travels through the volume over time.
+    float sweepMM = mix(DEPTH_MIN_MM, DEPTH_MAX_MM,
+                        0.5 + 0.5 * sin(u_time * 0.6));
+    float sweepWidth = 80.0; // mm
+    float sweep = exp(-pow((depthMM - sweepMM) / sweepWidth, 2.0));
+
+    // ---------- 5. Compose ----------
+    // Base gets a brightness lift near the camera.
+    float near = 1.0 - d;
+    col *= 0.6 + 0.7 * near;
+
+    // Subtle contour overlay (white-ish rings).
+    col = mix(col, vec3(1.0), ring * 0.35);
+
+    // Silhouette edges punch through in white.
+    col = mix(col, vec3(1.0), edgeMask * 0.85);
+
+    // Sweep band: warm glow modulated by Turbo color at that depth.
+    col += sweep * (0.6 * turbo(clamp(sweepMM / DEPTH_MAX_MM, 0.0, 1.0)) + vec3(0.2));
+
+    // Invalid pixels: dark vignette, easy to recognise.
+    if (!valid) {
+        col = vec3(0.02, 0.0, 0.04);
+    }
+
+    // Gentle vignette so the depth image pops on screen.
+    vec2 uv = (vec2(pos) + 0.5) / vec2(sz);
+    vec2 cv = uv - 0.5;
+    float vg = smoothstep(0.85, 0.3, length(cv));
+    col *= mix(0.7, 1.0, vg);
+
+    imageStore(destTex, pos, vec4(col, 1.0));
+}

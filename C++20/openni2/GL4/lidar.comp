@@ -1,0 +1,99 @@
+#version 460 core
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(rgba8, binding = 0) readonly uniform image2D srcColor;
+layout(rgba8, binding = 1) writeonly uniform image2D destTex;
+layout(r16ui, binding = 2) readonly uniform uimage2D depthTex;
+
+layout(location = 0) uniform float u_time;
+
+// Helper: Safely load depth and handle edges
+float getDepth(ivec2 p, ivec2 sz) {
+    p = clamp(p, ivec2(0), sz - 1);
+    return float(imageLoad(depthTex, p).r);
+}
+
+// Helper: Hash-based random noise for digital glitching
+float random(vec2 st) {
+    return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+}
+
+void main() {
+    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 sz = imageSize(destTex);
+    if (pos.x >= sz.x || pos.y >= sz.y)
+        return;
+
+    float d = getDepth(pos, sz);
+
+    // If the sensor has a black hole (no data), render pitch black
+    if (d == 0.0) {
+        imageStore(destTex, pos, vec4(0.05, 0.0, 0.05, 1.0)); // Very dark purple
+        return;
+    }
+
+    // ==========================================
+    // 1. PHYSICAL EDGE DETECTION (Depth Normals)
+    // ==========================================
+    // Calculate the difference in depth between this pixel and its neighbors
+    float dRight = getDepth(pos + ivec2(2, 0), sz);
+    float dTop = getDepth(pos + ivec2(0, 2), sz);
+    float edgeX = abs(d - dRight);
+    float edgeY = abs(d - dTop);
+
+    // If the depth drops suddenly (like the edge of your shoulder), highlight it
+    float edge = clamp((edgeX + edgeY) * 0.03, 0.0, 1.0);
+
+    // ==========================================
+    // 2. TOPOGRAPHICAL Z-CONTOURS
+    // ==========================================
+    // Creates a glowing topological line every 100mm of physical depth
+    // We subtract u_time so the lines appear to "radiate" outward from the camera
+    float contour = smoothstep(0.85, 1.0, fract(d / 100.0 - u_time * 0.5));
+
+    // ==========================================
+    // 3. DEPTH-DRIVEN DATA MOSHING
+    // ==========================================
+    // Objects closer to the camera glitch harder. Objects far away stay stable.
+    float glitchIntensity = smoothstep(3000.0, 300.0, d);
+
+    // Create horizontal "VHS tracking" blocks that change every frame
+    vec2 block = floor(vec2(pos) / vec2(32.0, 4.0));
+    float noise = random(block + vec2(floor(u_time * 15.0)));
+
+    // Only glitch if the noise passes a threshold
+    float offsetPx = (noise > 0.92) ? (noise - 0.92) * 300.0 * glitchIntensity : 0.0;
+
+    // Sample the RGB camera with Chromatic Aberration (tearing Red and Blue channels)
+    ivec2 uvR = clamp(pos + ivec2(offsetPx, 0), ivec2(0), sz - 1);
+    ivec2 uvB = clamp(pos - ivec2(offsetPx, 0), ivec2(0), sz - 1);
+
+    vec3 colR = imageLoad(srcColor, uvR).rgb;
+    vec3 colG = imageLoad(srcColor, pos).rgb;
+    vec3 colB = imageLoad(srcColor, uvB).rgb;
+    vec3 camCol = vec3(colR.r, colG.g, colB.b);
+
+    // ==========================================
+    // 4. SCENE COMPOSITING
+    // ==========================================
+    // Darken the real world so the data visualization pops
+    vec3 finalCol = camCol * 0.2;
+
+    // Add the Physical Edges (Neon Cyan)
+    finalCol += vec3(0.0, 0.8, 1.0) * edge;
+
+    // Add the Z-Contours (Neon Magenta)
+    // We multiply by (1.0 - edge) so the contours don't overwrite the sharp outlines
+    finalCol += vec3(0.9, 0.1, 0.7) * contour * (1.0 - edge);
+
+    // Add a sweeping "Sonar Line" that travels through the room's physical Z-space
+    float sonar = smoothstep(0.98, 1.0, sin(d * 0.005 - u_time * 3.0));
+    finalCol += vec3(1.0, 1.0, 1.0) * sonar;
+
+    // CRT Vignette
+    vec2 uv = (vec2(pos) + 0.5) / vec2(sz);
+    float vg = smoothstep(0.8, 0.2, length(uv - 0.5));
+    finalCol *= vg;
+
+    imageStore(destTex, pos, vec4(finalCol, 1.0));
+}
