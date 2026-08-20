@@ -31,10 +31,10 @@ class Pattern {
                     out << item << " ";
                 }
             }
-            ++repeat; 
+            ++repeat;
         };
 
-	sort();
+        sort();
 
         if (!rev) {
             for (const auto &i : chain) {
