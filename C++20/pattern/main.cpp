@@ -5,9 +5,9 @@
 #include <iostream>
 #include <ranges>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <vector>
-#include<string_view>
 
 template <typename T>
 class Pattern {
@@ -51,31 +51,27 @@ class Pattern {
     }
 
     void sort() {
-        std::sort(chain.begin(), chain.end(), [](auto x, auto y) { return x < y; });
+	    std::ranges::sort(chain);
     }
 };
 
-class PatternException {
+class PatternException : public std::runtime_error {
 public:
-	PatternException(const std::string_view s) : value{s} {}
-	std::string text() { return std::string(value); }
-private:
-	std::string_view value;	
+    PatternException(const std::string_view s) : std::runtime_error(std::string(s)) {}
 };
 
-
-template<typename T>
+template <typename T>
 void read_file(const std::string &filename, Pattern<T> &pattern) {
-	std::fstream file;
-	file.open(filename, std::ios::in | std::ios::binary);
-	if(!file.is_open()) 
-		throw PatternException("Could not read file:\n");
+    std::fstream file;
+    file.open(filename, std::ios::in | std::ios::binary);
+    if (!file.is_open())
+        throw PatternException("Could not read file:\n");
 
-	T type;
-	while(file >> type) {
-		pattern.push(type);
-	}
-	file.close();
+    T type;
+    while (file >> type) {
+        pattern.push(type);
+    }
+    file.close();
 }
 
 int main(int argc, char **argv) {
@@ -87,7 +83,11 @@ int main(int argc, char **argv) {
         }
         pattern.sort();
     } else if (argc == 2) {
-	    read_file<std::string>(argv[1], pattern);
+	try {
+        	read_file<std::string>(argv[1], pattern);
+	} catch(const std::runtime_error &e) {
+		std::cerr << e.what() << "\n";
+	}
     }
 
     std::cout << "Forward:\n";
