@@ -7,6 +7,8 @@
 #include <string>
 #include <type_traits>
 #include <vector>
+#include<string_view>
+
 template <typename T>
 class Pattern {
     std::vector<T> chain;
@@ -53,6 +55,29 @@ class Pattern {
     }
 };
 
+class PatternException {
+public:
+	PatternException(const std::string_view s) : value{s} {}
+	std::string text() { return std::string(value); }
+private:
+	std::string_view value;	
+};
+
+
+template<typename T>
+void read_file(const std::string &filename, Pattern<T> &pattern) {
+	std::fstream file;
+	file.open(filename, std::ios::in | std::ios::binary);
+	if(!file.is_open()) 
+		throw PatternException("Could not read file:\n");
+
+	T type;
+	while(file >> type) {
+		pattern.push(type);
+	}
+	file.close();
+}
+
 int main(int argc, char **argv) {
     Pattern<std::string> pattern;
     if (argc == 1) {
@@ -62,19 +87,7 @@ int main(int argc, char **argv) {
         }
         pattern.sort();
     } else if (argc == 2) {
-        std::fstream file;
-        file.open(argv[1], std::ios::in);
-        if (!file.is_open()) {
-            std::cerr << "File not found.\n";
-            return EXIT_FAILURE;
-        }
-        std::string line;
-        while (file >> line) {
-            if (!line.empty())
-                pattern.push(line);
-        }
-        file.close();
-        pattern.sort();
+	    read_file<std::string>(argv[1], pattern);
     }
 
     std::cout << "Forward:\n";
