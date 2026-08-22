@@ -74,6 +74,13 @@ class Pattern {
 	    pos %= chain.size();
 	    std::ranges::rotate(chain, chain.begin() + pos);
     }
+
+    // use like
+    // pattern.mutate([](std::string s){ if(!s.empty()) a[0] ^T= 0x0F; return s; });
+    template<typename F>
+    void mutate(F &&func) {
+	    std::ranges::transform(chain, chain.begin(), std::forward<F>(func));
+    }	    
 };
 
 class PatternException : public std::runtime_error {
