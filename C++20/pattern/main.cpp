@@ -152,12 +152,14 @@ int main(int argc, char **argv) {
             std::cerr << e.what() << "\n";
             return EXIT_FAILURE;
         }
-        if (argc == 4) {
-        } else {
-            pattern.echo(std::cout, false);
-        }
     } else if (argc == 3) {
-
+	    try {
+		   read_stream<std::string>(std::cin, pattern);
+		   write_pattern_to_image<std::string>(argv[1], argv[2], pattern);
+	    } catch(const std::runtime_error &e) {
+		    std::cerr << e.what() << "\n";
+		    return EXIT_FAILURE;
+	    }
     } else {
         try {
             read_stream<std::string>(std::cin, pattern);
