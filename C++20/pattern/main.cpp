@@ -38,6 +38,7 @@ class Pattern {
                         out << (c ? static_cast<char>(toupper(character))
                                   : static_cast<char>(tolower(character)))
                             << " ";
+			fflush(stdout);
                     }
                     c = !c;
                 } else {
@@ -45,9 +46,7 @@ class Pattern {
                 }
             }
             ++repeat;
-        };
-
-        sort();
+        }; 
 
         if (!rev) {
             for (const auto &i : chain) {
@@ -136,26 +135,25 @@ int main(int argc, char **argv) {
             pattern.push(line);
         }
         pattern.sort();
-    } else if (argc == 2) {
+    } else if (argc == 2 || argc == 3) {
 	try {
         	read_file<std::string>(argv[1], pattern);
 	} catch(const std::runtime_error &e) {
 		std::cerr << e.what() << "\n";
 		return EXIT_FAILURE;
+	}   
+	if(argc == 3) {
+	      	cv::Mat frame;
+		cv::Mat img;
+        	// read exisitng data
+	        cv::imread("image.png", img);
+	        //modify with random file junk
+        	map_pattern<std::string>(frame, pattern, img);
+	       // write back out to file for next run
+       		cv::imwrite(argv[2], frame);
+	} else {
+		pattern.echo(std::cout, false);
 	}
-    }
-
-    cv::Mat frame;
-    cv::Mat img;
-    // read exisitng data
-    cv::imread("image.png", img);
-    //modify with random file junk
-    map_pattern<std::string>(frame, pattern, img);
-    // write back out to file for next run
-    cv::imwrite("image.png", frame);
-    /*std::cout << "Forward:\n";
-    pattern.echo(std::cout, false);
-    std::cout << "Backward:\n";
-    pattern.echo(std::cout, true);*/
-    return EXIT_SUCCESS;
+     }
+     return EXIT_SUCCESS;
 }
