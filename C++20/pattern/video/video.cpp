@@ -20,10 +20,14 @@ int main(int argc, char **argv) {
 
                 double w = cap.get(cv::CAP_PROP_FRAME_WIDTH);
                 double h = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
+                double fps = cap.get(cv::CAP_PROP_FPS);
                 cv::resize(seed, seed, cv::Size(w, h));
                 cv::namedWindow("frame", cv::WINDOW_AUTOSIZE);
                 cv::resizeWindow("frame", static_cast<int>(w), static_cast<int>(h));
-                std::cout << "Frame size: " << static_cast<int>(w) << "x" << static_cast<int>(h) << "\n";
+                std::cout << "Frame size: " << static_cast<int>(w) << "x" << static_cast<int>(h) << "x" << fps << "\n";
+                cv::VideoWriter writer;
+                writer.open("output.mp4", CV_FOURCC('m', 'p', '4', 'v'), fps, cv::Size(w, h));
+
                 bool active = true;
                 while (active) {
                     cv::Mat frame;
@@ -33,6 +37,7 @@ int main(int argc, char **argv) {
                         break;
                     }
                     map_pattern(frame, pattern, seed);
+                    writer.write(frame);
                     pattern.shift(1);
                     cv::imshow("frame", frame);
                     int key = 0;
@@ -48,6 +53,7 @@ int main(int argc, char **argv) {
                     }
                 }
                 cap.release();
+                writer.release();
             }
 
         } catch (std::runtime_error &err) {
