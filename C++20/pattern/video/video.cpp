@@ -22,8 +22,8 @@ int main(int argc, char **argv) {
                 double h = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
                 cv::resize(seed, seed, cv::Size(w, h));
                 cv::namedWindow("frame", cv::WINDOW_AUTOSIZE);
+                cv::resizeWindow("frame", static_cast<int>(w), static_cast<int>(h));
                 std::cout << "Frame size: " << static_cast<int>(w) << "x" << static_cast<int>(h) << "\n";
-
                 bool active = true;
                 while (active) {
                     cv::Mat frame;
@@ -35,9 +35,16 @@ int main(int argc, char **argv) {
                     map_pattern(frame, pattern, seed);
                     pattern.shift(1);
                     cv::imshow("frame", frame);
-                    if (cv::waitKey(1) == 27) {
+                    int key = 0;
+                    switch (cv::waitKey(1)) {
+                    case 27:
                         active = false;
                         break;
+                    case 'z':
+                    case 'Z': {
+                        static int file_index = 0;
+                        cv::imwrite(std::string("frame_") + std::to_string(file_index++) + ".png", frame);
+                    } break;
                     }
                 }
                 cap.release();
