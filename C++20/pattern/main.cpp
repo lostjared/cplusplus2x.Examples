@@ -10,6 +10,16 @@
 #include <vector>
 #include<opencv2/opencv.hpp>
 
+
+
+template<typename T>
+concept PatternIndex = requires(T type) {
+	{ type.size() } -> std::convertible_to<size_t>;
+	{ type[0] };
+};
+
+
+
 template <typename T>
 class Pattern {
     std::vector<T> chain;
@@ -57,6 +67,13 @@ class Pattern {
     void sort() {
 	    std::ranges::sort(chain);
     }
+
+    void shift(size_t pos) {
+	    if(chain.empty()) 
+		    return;
+	    pos %= chain.size();
+	    std::ranges::rotate(chain, chain.begin() + pos);
+    }
 };
 
 class PatternException : public std::runtime_error {
@@ -80,7 +97,7 @@ void read_file(const std::string &filename, Pattern<T> &pattern) {
 
 // map non random data to cv::Mat as pixels
 // was just brainstorming some different ideas
-template<typename T>
+template<PatternIndex T>
 void map_pattern(cv::Mat &frame,  Pattern<T> &pattern, cv::Mat &seed) {
 	frame = cv::Mat::zeros(720, 1280, CV_8UC3);
 	size_t v = 0;
