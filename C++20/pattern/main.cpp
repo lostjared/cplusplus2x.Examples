@@ -127,34 +127,38 @@ void map_pattern(cv::Mat &frame, Pattern<T> &pattern, cv::Mat &seed) {
     }
 }
 
+template <PatternIndex T>
+void write_pattern_to_image(std::string_view input_file, std::string_view output_file, Pattern<T> &pattern) {
+    cv::Mat frame;
+    cv::Mat img;
+    // read exisitng data
+    cv::imread(std::string(input_file), img);
+    if (img.empty())
+        throw PatternException("Could not open input image.");
+    // modify with random file junk
+    map_pattern<std::string>(frame, pattern, img);
+    // write back out to file for next run
+    cv::imwrite(std::string(output_file), frame);
+    std::cout << "Wrote: " << output_file << " \n";
+}
+
 int main(int argc, char **argv) {
     Pattern<std::string> pattern;
     if (argc == 4) {
         try {
             read_file<std::string>(argv[1], pattern);
+            write_pattern_to_image<std::string>(argv[2], argv[3], pattern);
         } catch (const std::runtime_error &e) {
             std::cerr << e.what() << "\n";
             return EXIT_FAILURE;
         }
         if (argc == 4) {
-            cv::Mat frame;
-            cv::Mat img;
-            // read exisitng data
-            cv::imread(argv[2], img);
-            if (img.empty()) {
-                std::cerr << "Error could not open input image.\n";
-                return EXIT_FAILURE;
-            }
-            // modify with random file junk
-            map_pattern<std::string>(frame, pattern, img);
-            // write back out to file for next run
-            cv::imwrite(argv[3], frame);
-            std::cout << "Wrote: " << argv[3] << " \n";
         } else {
             pattern.echo(std::cout, false);
         }
+    } else if (argc == 3) {
+
     } else {
-        std::cout << "Here\n";
         try {
             read_stream<std::string>(std::cin, pattern);
             pattern.echo(std::cout, false);
