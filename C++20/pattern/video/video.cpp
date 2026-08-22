@@ -1,11 +1,11 @@
 #include "../pattern.hpp"
-#include<filesystem>
+#include <filesystem>
 
 int main(int argc, char **argv) {
     if (argc == 4) {
         Pattern<std::string> pattern;
         try {
-	   std::string file = argv[1];
+            std::string file = argv[1];
             if (std::filesystem::exists(file)) {
                 read_file<std::string>(argv[2], pattern);
                 cv::VideoCapture cap;
