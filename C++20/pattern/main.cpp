@@ -3,22 +3,18 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <opencv2/opencv.hpp>
 #include <ranges>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <vector>
-#include<opencv2/opencv.hpp>
 
-
-
-template<typename T>
+template <typename T>
 concept PatternIndex = requires(T type) {
-	{ type.size() } -> std::convertible_to<size_t>;
-	{ type[0] };
+    { type.size() } -> std::convertible_to<size_t>;
+    { type[0] };
 };
-
-
 
 template <typename T>
 class Pattern {
@@ -38,7 +34,7 @@ class Pattern {
                         out << (c ? static_cast<char>(toupper(character))
                                   : static_cast<char>(tolower(character)))
                             << " ";
-			fflush(stdout);
+                        fflush(stdout);
                     }
                     c = !c;
                 } else {
@@ -46,7 +42,7 @@ class Pattern {
                 }
             }
             ++repeat;
-        }; 
+        };
 
         if (!rev) {
             for (const auto &i : chain) {
@@ -64,96 +60,108 @@ class Pattern {
     T &at(size_t index) { return chain[index]; }
 
     void sort() {
-	    std::ranges::sort(chain);
+        std::ranges::sort(chain);
     }
 
     void shift(size_t pos) {
-	    if(chain.empty()) 
-		    return;
-	    pos %= chain.size();
-	    std::ranges::rotate(chain, chain.begin() + pos);
+        if (chain.empty())
+            return;
+        pos %= chain.size();
+        std::ranges::rotate(chain, chain.begin() + pos);
     }
 
     // use like
     // pattern.mutate([](std::string s){ if(!s.empty()) a[0] ^T= 0x0F; return s; });
-    template<typename F>
+    template <typename F>
     void mutate(F &&func) {
-	    std::ranges::transform(chain, chain.begin(), std::forward<F>(func));
-    }	    
+        std::ranges::transform(chain, chain.begin(), std::forward<F>(func));
+    }
 };
 
 class PatternException : public std::runtime_error {
-public:
+  public:
     PatternException(const std::string_view s) : std::runtime_error(std::string(s)) {}
 };
 
-template <typename T>
+template <PatternIndex T>
+void read_stream(std::istream &out, Pattern<T> &pattern) {
+    T type;
+    while (out >> type) {
+        pattern.push(type);
+    }
+}
+
+template <PatternIndex T>
 void read_file(const std::string &filename, Pattern<T> &pattern) {
     std::fstream file;
     file.open(filename, std::ios::in | std::ios::binary);
     if (!file.is_open())
         throw PatternException("Could not read file:\n");
-
-    T type;
-    while (file >> type) {
-        pattern.push(type);
-    }
+    read_stream(file, pattern);
     file.close();
 }
 
 // map non random data to cv::Mat as pixels
 // was just brainstorming some different ideas
-template<PatternIndex T>
-void map_pattern(cv::Mat &frame,  Pattern<T> &pattern, cv::Mat &seed) {
-	frame = cv::Mat::zeros(720, 1280, CV_8UC3);
-	size_t v = 0;
-	size_t repeat = 1;
-	size_t off = 0;
-	for(size_t z = 0; z < frame.rows; ++z) {
-		for(size_t i = 0; i < frame.cols; ++i) {
-			cv::Vec3b &pixel = frame.at<cv::Vec3b>(z, i);
-			cv::Vec3b &pix_seed = seed.at<cv::Vec3b>(z, i);
-			T tval = pattern.at(v % pattern.size());
-			size_t index = 0;
-			for(size_t j = 0; j <= 2 && j < tval.size(); ++j) {
-				pixel[index++] = static_cast<unsigned char>((tval[j] * pix_seed[j]) % 256);
-			}
-			++off;
-			if(off > repeat) {
-				++v;
-				++repeat;
-			}
-		}
-	}
+template <PatternIndex T>
+void map_pattern(cv::Mat &frame, Pattern<T> &pattern, cv::Mat &seed) {
+    frame = cv::Mat::zeros(720, 1280, CV_8UC3);
+    size_t v = 0;
+    size_t repeat = 1;
+    size_t off = 0;
+    for (size_t z = 0; z < frame.rows; ++z) {
+        for (size_t i = 0; i < frame.cols; ++i) {
+            cv::Vec3b &pixel = frame.at<cv::Vec3b>(z, i);
+            cv::Vec3b &pix_seed = seed.at<cv::Vec3b>(z, i);
+            T tval = pattern.at(v % pattern.size());
+            size_t index = 0;
+            for (size_t j = 0; j <= 2 && j < tval.size(); ++j) {
+                pixel[index++] ^= static_cast<unsigned char>((tval[j] ^ pix_seed[j]) % 256);
+            }
+            ++off;
+            if (off > repeat) {
+                ++v;
+                ++repeat;
+            }
+        }
+    }
 }
 
 int main(int argc, char **argv) {
     Pattern<std::string> pattern;
-    if (argc == 1) {
-        std::string line;
-        while (std::getline(std::cin, line)) {
-            pattern.push(line);
+    if (argc == 4) {
+        try {
+            read_file<std::string>(argv[1], pattern);
+        } catch (const std::runtime_error &e) {
+            std::cerr << e.what() << "\n";
+            return EXIT_FAILURE;
         }
-        pattern.sort();
-    } else if (argc == 2 || argc == 3) {
-	try {
-        	read_file<std::string>(argv[1], pattern);
-	} catch(const std::runtime_error &e) {
-		std::cerr << e.what() << "\n";
-		return EXIT_FAILURE;
-	}   
-	if(argc == 3) {
-	      	cv::Mat frame;
-		cv::Mat img;
-        	// read exisitng data
-	        cv::imread("image.png", img);
-	        //modify with random file junk
-        	map_pattern<std::string>(frame, pattern, img);
-	       // write back out to file for next run
-       		cv::imwrite(argv[2], frame);
-	} else {
-		pattern.echo(std::cout, false);
-	}
-     }
-     return EXIT_SUCCESS;
+        if (argc == 4) {
+            cv::Mat frame;
+            cv::Mat img;
+            // read exisitng data
+            cv::imread(argv[2], img);
+            if (img.empty()) {
+                std::cerr << "Error could not open input image.\n";
+                return EXIT_FAILURE;
+            }
+            // modify with random file junk
+            map_pattern<std::string>(frame, pattern, img);
+            // write back out to file for next run
+            cv::imwrite(argv[3], frame);
+            std::cout << "Wrote: " << argv[3] << " \n";
+        } else {
+            pattern.echo(std::cout, false);
+        }
+    } else {
+        std::cout << "Here\n";
+        try {
+            read_stream<std::string>(std::cin, pattern);
+            pattern.echo(std::cout, false);
+        } catch (const std::runtime_error &e) {
+            std::cerr << e.what() << "\n";
+            return EXIT_FAILURE;
+        }
+    }
+    return EXIT_SUCCESS;
 }
