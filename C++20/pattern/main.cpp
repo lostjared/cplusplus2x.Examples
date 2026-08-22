@@ -8,6 +8,7 @@
 #include <string_view>
 #include <type_traits>
 #include <vector>
+#include<opencv2/opencv.hpp>
 
 template <typename T>
 class Pattern {
@@ -50,6 +51,9 @@ class Pattern {
         out << "\n";
     }
 
+    size_t size() const { return chain.size(); }
+    T &at(size_t index) { return chain[index]; }
+
     void sort() {
 	    std::ranges::sort(chain);
     }
@@ -74,6 +78,32 @@ void read_file(const std::string &filename, Pattern<T> &pattern) {
     file.close();
 }
 
+// map non random data to cv::Mat as pixels
+// was just brainstorming some different ideas
+template<typename T>
+void map_pattern(cv::Mat &frame,  Pattern<T> &pattern, cv::Mat &seed) {
+	frame = cv::Mat::zeros(720, 1280, CV_8UC3);
+	size_t v = 0;
+	size_t repeat = 1;
+	size_t off = 0;
+	for(size_t z = 0; z < frame.rows; ++z) {
+		for(size_t i = 0; i < frame.cols; ++i) {
+			cv::Vec3b &pixel = frame.at<cv::Vec3b>(z, i);
+			cv::Vec3b &pix_seed = seed.at<cv::Vec3b>(z, i);
+			T tval = pattern.at(v % pattern.size());
+			size_t index = 0;
+			for(size_t j = 0; j <= 2 && j < tval.size(); ++j) {
+				pixel[index++] = static_cast<unsigned char>((tval[j] * pix_seed[j]) % 256);
+			}
+			++off;
+			if(off > repeat) {
+				++v;
+				++repeat;
+			}
+		}
+	}
+}
+
 int main(int argc, char **argv) {
     Pattern<std::string> pattern;
     if (argc == 1) {
@@ -87,12 +117,21 @@ int main(int argc, char **argv) {
         	read_file<std::string>(argv[1], pattern);
 	} catch(const std::runtime_error &e) {
 		std::cerr << e.what() << "\n";
+		return EXIT_FAILURE;
 	}
     }
 
-    std::cout << "Forward:\n";
+    cv::Mat frame;
+    cv::Mat img;
+    // read exisitng data
+    cv::imread("image.png", img);
+    //modify with random file junk
+    map_pattern<std::string>(frame, pattern, img);
+    // write back out to file for next run
+    cv::imwrite("image.png", frame);
+    /*std::cout << "Forward:\n";
     pattern.echo(std::cout, false);
     std::cout << "Backward:\n";
-    pattern.echo(std::cout, true);
+    pattern.echo(std::cout, true);*/
     return EXIT_SUCCESS;
 }
